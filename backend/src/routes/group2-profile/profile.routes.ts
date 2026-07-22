@@ -9,50 +9,37 @@ const profileController = new ProfileController();
 profileRouter.get(
   "/my-profile",
   authenticateToken,
-  profileController.getMyProfile
+  profileController.getMyProfile,
 );
-profileRouter.get(
-  "/:id",
-  authenticateToken,
-  profileController.getProfile
-);
-profileRouter.put(
-  "/",
-  authenticateToken,
-  profileController.updateProfile
-);
-profileRouter.put(
-  "/avatar",
-  authenticateToken,
-  profileController.updateAvatar
-);
+profileRouter.get("/:id", authenticateToken, profileController.getProfile);
+profileRouter.put("/", authenticateToken, profileController.updateProfile);
+profileRouter.put("/avatar", authenticateToken, profileController.updateAvatar);
 
 // UC1.4 - Interest Management
 profileRouter.get(
   "/interests/categories",
   authenticateToken,
-  profileController.getAllInterestCategories
+  profileController.getAllInterestCategories,
 );
 profileRouter.get(
   "/interests",
   authenticateToken,
-  profileController.getUserInterests
+  profileController.getUserInterests,
 );
 profileRouter.post(
   "/interests",
   authenticateToken,
-  profileController.addInterest
+  profileController.addInterest,
 );
 profileRouter.delete(
   "/interests/:soThichId",
   authenticateToken,
-  profileController.removeInterest
+  profileController.removeInterest,
 );
 profileRouter.put(
   "/interests/goals",
   authenticateToken,
-  profileController.updateGoals
+  profileController.updateGoals,
 );
 
 export default profileRouter;
-

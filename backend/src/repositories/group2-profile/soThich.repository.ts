@@ -64,4 +64,3 @@ export class SoThichRepository {
     return result.rows;
   }
 }
-

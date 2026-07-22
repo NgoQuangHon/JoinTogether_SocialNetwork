@@ -1,18 +1,18 @@
-import { pool } from '../../config/db';
-import { HoatDongModel } from '../../models/group3-activity/hoatDong.model';
+import { pool } from "../../config/db";
+import { HoatDongModel } from "../../models/group3-activity/hoatDong.model";
 
 export class CreateActivityService {
-    async createActivity(data: any): Promise<any> {
-        const hoatDongModel = new HoatDongModel(data);
+  async createActivity(data: any): Promise<any> {
+    const hoatDongModel = new HoatDongModel(data);
 
-        const thoiGianBatDau = hoatDongModel.thoiGianBatDau
-            ? new Date(hoatDongModel.thoiGianBatDau)
-            : null;
-        const thoiGianKetThuc = hoatDongModel.thoiGianKetThuc
-            ? new Date(hoatDongModel.thoiGianKetThuc)
-            : null;
+    const thoiGianBatDau = hoatDongModel.thoiGianBatDau
+      ? new Date(hoatDongModel.thoiGianBatDau)
+      : null;
+    const thoiGianKetThuc = hoatDongModel.thoiGianKetThuc
+      ? new Date(hoatDongModel.thoiGianKetThuc)
+      : null;
 
-        const query = `
+    const query = `
             INSERT INTO hoat_dong (
                 nguoi_to_chuc_id,
                 danh_muc_hoat_dong_id,
@@ -33,21 +33,21 @@ export class CreateActivityService {
                 thoi_gian_ket_thuc AS "thoiGianKetThuc"
         `;
 
-        const result = await pool.query(query, [
-            hoatDongModel.nguoiToChucId,
-            hoatDongModel.danhMucHoatDongId,
-            hoatDongModel.diaDiemId,
-            hoatDongModel.tenHoatDong,
-            hoatDongModel.moTa,
-            thoiGianBatDau,
-            thoiGianKetThuc,
-        ]);
+    const result = await pool.query(query, [
+      hoatDongModel.nguoiToChucId,
+      hoatDongModel.danhMucHoatDongId,
+      hoatDongModel.diaDiemId,
+      hoatDongModel.tenHoatDong,
+      hoatDongModel.moTa,
+      thoiGianBatDau,
+      thoiGianKetThuc,
+    ]);
 
-        return result.rows[0];
-    }
+    return result.rows[0];
+  }
 
-    async getAllActivities(): Promise<any[]> {
-        const query = `
+  async getAllActivities(): Promise<any[]> {
+    const query = `
             SELECT
                 hoat_dong_id AS "hoatDongId",
                 nguoi_to_chuc_id AS "nguoiToChucId",
@@ -61,12 +61,12 @@ export class CreateActivityService {
             ORDER BY hoat_dong_id DESC
         `;
 
-        const result = await pool.query(query);
-        return result.rows;
-    }
+    const result = await pool.query(query);
+    return result.rows;
+  }
 
-    async getActivityById(id: number): Promise<any> {
-        const query = `
+  async getActivityById(id: number): Promise<any> {
+    const query = `
             SELECT
                 hoat_dong_id AS "hoatDongId",
                 nguoi_to_chuc_id AS "nguoiToChucId",
@@ -80,29 +80,29 @@ export class CreateActivityService {
             WHERE hoat_dong_id = $1
         `;
 
-        const result = await pool.query(query, [id]);
-        if (result.rowCount === 0) {
-            throw new Error('Hoạt động không tồn tại.');
-        }
-
-        return result.rows[0];
+    const result = await pool.query(query, [id]);
+    if (result.rowCount === 0) {
+      throw new Error("Hoạt động không tồn tại.");
     }
 
-    async updateActivity(id: number, data: any): Promise<any> {
-        const existing = await this.getActivityById(id);
-        const updatedModel = HoatDongModel.createHoatDongModel({
-            ...existing,
-            ...data,
-        });
+    return result.rows[0];
+  }
 
-        const thoiGianBatDau = updatedModel.thoiGianBatDau
-            ? new Date(updatedModel.thoiGianBatDau)
-            : null;
-        const thoiGianKetThuc = updatedModel.thoiGianKetThuc
-            ? new Date(updatedModel.thoiGianKetThuc)
-            : null;
+  async updateActivity(id: number, data: any): Promise<any> {
+    const existing = await this.getActivityById(id);
+    const updatedModel = HoatDongModel.createHoatDongModel({
+      ...existing,
+      ...data,
+    });
 
-        const query = `
+    const thoiGianBatDau = updatedModel.thoiGianBatDau
+      ? new Date(updatedModel.thoiGianBatDau)
+      : null;
+    const thoiGianKetThuc = updatedModel.thoiGianKetThuc
+      ? new Date(updatedModel.thoiGianKetThuc)
+      : null;
+
+    const query = `
             UPDATE hoat_dong
             SET
                 nguoi_to_chuc_id = $1,
@@ -124,28 +124,28 @@ export class CreateActivityService {
                 thoi_gian_ket_thuc AS "thoiGianKetThuc"
         `;
 
-        const result = await pool.query(query, [
-            updatedModel.nguoiToChucId,
-            updatedModel.danhMucHoatDongId,
-            updatedModel.diaDiemId,
-            updatedModel.tenHoatDong,
-            updatedModel.moTa,
-            thoiGianBatDau,
-            thoiGianKetThuc,
-            id,
-        ]);
+    const result = await pool.query(query, [
+      updatedModel.nguoiToChucId,
+      updatedModel.danhMucHoatDongId,
+      updatedModel.diaDiemId,
+      updatedModel.tenHoatDong,
+      updatedModel.moTa,
+      thoiGianBatDau,
+      thoiGianKetThuc,
+      id,
+    ]);
 
-        return result.rows[0];
-    }
+    return result.rows[0];
+  }
 
-    async deleteActivity(id: number): Promise<void> {
-        await this.getActivityById(id);
+  async deleteActivity(id: number): Promise<void> {
+    await this.getActivityById(id);
 
-        const query = `
+    const query = `
             DELETE FROM hoat_dong
             WHERE hoat_dong_id = $1
         `;
 
-        await pool.query(query, [id]);
-    }
+    await pool.query(query, [id]);
+  }
 }

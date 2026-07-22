@@ -20,7 +20,7 @@ export class ProfileService {
 
     // Get interests for this profile
     const interests = await this.soThichRepo.findInterestsByProfileId(
-      profile.hoSoId!
+      profile.hoSoId!,
     );
 
     return {
@@ -32,7 +32,8 @@ export class ProfileService {
   async updateProfile(nguoiDungId: number, data: any): Promise<any> {
     // Validate with model if data is provided
     if (data.tieuSu !== undefined && data.tieuSu !== null) {
-      const existingProfile = await this.hoSoNguoiDungRepo.findByNguoiDungId(nguoiDungId);
+      const existingProfile =
+        await this.hoSoNguoiDungRepo.findByNguoiDungId(nguoiDungId);
       if (!existingProfile) {
         await this.hoSoNguoiDungRepo.create({ nguoiDungId });
       }
@@ -61,7 +62,10 @@ export class ProfileService {
       profile = await this.hoSoNguoiDungRepo.create({ nguoiDungId });
     }
 
-    const updated = await this.hoSoNguoiDungRepo.updateAvatar(nguoiDungId, anhDaiDien);
+    const updated = await this.hoSoNguoiDungRepo.updateAvatar(
+      nguoiDungId,
+      anhDaiDien,
+    );
     return updated;
   }
 
@@ -74,7 +78,9 @@ export class ProfileService {
     // Group interests by category
     const result = categories.map((cat: any) => ({
       ...cat,
-      soThich: interests.filter((i: any) => i.danhMucSoThichId === cat.danhMucSoThichId),
+      soThich: interests.filter(
+        (i: any) => i.danhMucSoThichId === cat.danhMucSoThichId,
+      ),
     }));
 
     // Add uncategorized interests
@@ -100,7 +106,11 @@ export class ProfileService {
     return await this.soThichRepo.findInterestsByProfileId(profile.hoSoId!);
   }
 
-  async addInterest(nguoiDungId: number, soThichId: number, mucDoQuanTam?: number | null): Promise<any> {
+  async addInterest(
+    nguoiDungId: number,
+    soThichId: number,
+    mucDoQuanTam?: number | null,
+  ): Promise<any> {
     // Verify interest exists
     const interest = await this.soThichRepo.findById(soThichId);
     if (!interest) {
@@ -116,7 +126,7 @@ export class ProfileService {
     // Check for duplicate
     const existing = await this.hoSoSoThichRepo.findByHoSoIdAndSoThichId(
       profile.hoSoId!,
-      soThichId
+      soThichId,
     );
     if (existing) {
       throw new Error("Sở thích đã tồn tại trong hồ sơ.");
@@ -125,7 +135,7 @@ export class ProfileService {
     const result = await this.hoSoSoThichRepo.addInterest(
       profile.hoSoId!,
       soThichId,
-      mucDoQuanTam
+      mucDoQuanTam,
     );
 
     return result;
@@ -139,7 +149,7 @@ export class ProfileService {
 
     const removed = await this.hoSoSoThichRepo.removeInterest(
       profile.hoSoId!,
-      soThichId
+      soThichId,
     );
 
     if (!removed) {
@@ -147,10 +157,13 @@ export class ProfileService {
     }
   }
 
-  async updateProfileGoals(nguoiDungId: number, data: {
-    mucTieuThamGia?: string;
-    thoiGianRanh?: string;
-  }): Promise<any> {
+  async updateProfileGoals(
+    nguoiDungId: number,
+    data: {
+      mucTieuThamGia?: string;
+      thoiGianRanh?: string;
+    },
+  ): Promise<any> {
     let profile = await this.hoSoNguoiDungRepo.findByNguoiDungId(nguoiDungId);
     if (!profile) {
       profile = await this.hoSoNguoiDungRepo.create({ nguoiDungId });
@@ -164,4 +177,3 @@ export class ProfileService {
     return updated;
   }
 }
-
