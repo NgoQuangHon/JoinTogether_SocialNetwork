@@ -11,7 +11,6 @@ profileRouter.get(
   authenticateToken,
   profileController.getMyProfile,
 );
-profileRouter.get("/:id", authenticateToken, profileController.getProfile);
 profileRouter.put("/", authenticateToken, profileController.updateProfile);
 profileRouter.put("/avatar", authenticateToken, profileController.updateAvatar);
 
@@ -41,5 +40,6 @@ profileRouter.put(
   authenticateToken,
   profileController.updateGoals,
 );
+profileRouter.get("/:id", authenticateToken, profileController.getProfile);
 
 export default profileRouter;

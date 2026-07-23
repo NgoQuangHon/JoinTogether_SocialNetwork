@@ -19,10 +19,10 @@ import connectionRouter from "./routes/group4-interaction/connection.routes";
 
 app.use("/api/auth", authRouter);
 app.use("/api/profile", profileRouter);
-app.use("/api/activities", activityRouter);
 app.use("/api/activities/:hoatDongId/criteria", criteriaRouter);
-app.use("/api/criteria", criteriaDirectRouter);
 app.use("/api/activities/search", searchRouter);
+app.use("/api/activities", activityRouter);
+app.use("/api/criteria", criteriaDirectRouter);
 app.use("/api/search-history", searchHistoryRouter);
 app.use("/api/connections", connectionRouter);
 

@@ -159,7 +159,7 @@ export class HoatDongRepository {
 
     if (filters.keyword) {
       conditions.push(
-        `($3 ILIKE $${paramIndex} OR hd.mo_ta ILIKE $${paramIndex})`,
+        `(hd.ten_hoat_dong ILIKE $${paramIndex} OR hd.mo_ta ILIKE $${paramIndex})`,
       );
       values.push(`%${filters.keyword}%`);
       paramIndex++;
