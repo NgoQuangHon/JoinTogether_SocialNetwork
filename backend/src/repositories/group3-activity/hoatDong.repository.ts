@@ -88,20 +88,41 @@ export class HoatDongRepository {
     const values: any[] = [];
     let paramIndex = 1;
 
-    if (data.nguoiToChucId !== undefined) { setClauses.push(`nguoi_to_chuc_id = $${paramIndex++}`); values.push(data.nguoiToChucId); }
-    if (data.danhMucHoatDongId !== undefined) { setClauses.push(`danh_muc_hoat_dong_id = $${paramIndex++}`); values.push(data.danhMucHoatDongId); }
-    if (data.diaDiemId !== undefined) { setClauses.push(`dia_diem_id = $${paramIndex++}`); values.push(data.diaDiemId); }
-    if (data.tenHoatDong !== undefined) { setClauses.push(`ten_hoat_dong = $${paramIndex++}`); values.push(data.tenHoatDong); }
-    if (data.moTa !== undefined) { setClauses.push(`mo_ta = $${paramIndex++}`); values.push(data.moTa); }
-    if (data.thoiGianBatDau !== undefined) { setClauses.push(`thoi_gian_bat_dau = $${paramIndex++}`); values.push(data.thoiGianBatDau); }
-    if (data.thoiGianKetThuc !== undefined) { setClauses.push(`thoi_gian_ket_thuc = $${paramIndex++}`); values.push(data.thoiGianKetThuc); }
+    if (data.nguoiToChucId !== undefined) {
+      setClauses.push(`nguoi_to_chuc_id = $${paramIndex++}`);
+      values.push(data.nguoiToChucId);
+    }
+    if (data.danhMucHoatDongId !== undefined) {
+      setClauses.push(`danh_muc_hoat_dong_id = $${paramIndex++}`);
+      values.push(data.danhMucHoatDongId);
+    }
+    if (data.diaDiemId !== undefined) {
+      setClauses.push(`dia_diem_id = $${paramIndex++}`);
+      values.push(data.diaDiemId);
+    }
+    if (data.tenHoatDong !== undefined) {
+      setClauses.push(`ten_hoat_dong = $${paramIndex++}`);
+      values.push(data.tenHoatDong);
+    }
+    if (data.moTa !== undefined) {
+      setClauses.push(`mo_ta = $${paramIndex++}`);
+      values.push(data.moTa);
+    }
+    if (data.thoiGianBatDau !== undefined) {
+      setClauses.push(`thoi_gian_bat_dau = $${paramIndex++}`);
+      values.push(data.thoiGianBatDau);
+    }
+    if (data.thoiGianKetThuc !== undefined) {
+      setClauses.push(`thoi_gian_ket_thuc = $${paramIndex++}`);
+      values.push(data.thoiGianKetThuc);
+    }
 
     if (setClauses.length === 0) return this.findById(id) as any;
 
     values.push(id);
     const query = `
       UPDATE hoat_dong
-      SET ${setClauses.join(', ')}
+      SET ${setClauses.join(", ")}
       WHERE hoat_dong_id = $${paramIndex}
       RETURNING
         hoat_dong_id AS "hoatDongId",
@@ -137,7 +158,9 @@ export class HoatDongRepository {
     let paramIndex = 1;
 
     if (filters.keyword) {
-      conditions.push(`($3 ILIKE $${paramIndex} OR hd.mo_ta ILIKE $${paramIndex})`);
+      conditions.push(
+        `($3 ILIKE $${paramIndex} OR hd.mo_ta ILIKE $${paramIndex})`,
+      );
       values.push(`%${filters.keyword}%`);
       paramIndex++;
     }
@@ -158,7 +181,8 @@ export class HoatDongRepository {
       values.push(filters.denNgay);
     }
 
-    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    const whereClause =
+      conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
     const limit = filters.limit ?? 20;
     const offset = filters.offset ?? 0;
 
