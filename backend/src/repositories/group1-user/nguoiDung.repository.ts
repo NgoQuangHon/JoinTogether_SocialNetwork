@@ -18,6 +18,16 @@ export class NguoiDungRepository {
     return result.rows[0];
   }
 
+  async findById(nguoiDungId: number): Promise<NguoiDung | null> {
+    const query = `
+            SELECT nguoi_dung_id as "nguoiDungId", ho_ten as "hoTen", email, so_dien_thoai as "soDienThoai", trang_thai as "trangThai", ngay_tao as "ngayTao"
+            FROM nguoi_dung
+            WHERE nguoi_dung_id = $1
+        `;
+    const result = await pool.query(query, [nguoiDungId]);
+    return result.rows.length > 0 ? result.rows[0] : null;
+  }
+
   async findByEmail(email: string): Promise<NguoiDung | null> {
     const query = `
             SELECT nguoi_dung_id as "nguoiDungId", ho_ten as "hoTen", email, so_dien_thoai as "soDienThoai", trang_thai as "trangThai", ngay_tao as "ngayTao"

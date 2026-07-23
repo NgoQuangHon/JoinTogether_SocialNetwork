@@ -1,18 +1,12 @@
-# Implementation Plan: Profile & Interest Management
+# Implementation Plan: Activity, Criteria, Search, Connections
 
-## UC1.3 - Quản lý hồ sơ cá nhân
-## UC1.4 - Quản lý sở thích
-
-### Step-by-step
+## Step-by-step
 
 - [x] Step 1: Analyze codebase and create plan
-- [x] Step 2: Get user approval on plan
-- [x] Step 3: Create repositories
-  - [x] `src/repositories/group2-profile/hoSoNguoiDung.repository.ts`
-  - [x] `src/repositories/group2-profile/soThich.repository.ts`
-  - [x] `src/repositories/group2-profile/hoSoSoThich.repository.ts`
-- [x] Step 4: Create `src/services/group2-profile/profile.service.ts`
-- [x] Step 5: Create `src/controllers/group2-profile/profile.controller.ts`
-- [x] Step 6: Create `src/routes/group2-profile/profile.routes.ts`
-- [x] Step 7: Update `src/index.ts` to register new routes
-
+- [x] Step 2: Get user approval
+- [ ] Step 3: Create repositories (hoatDong, danhMucHoatDong, diaDiem, hinhAnhHoatDong, tieuChiThamGia, yeuCauKetNoi, quanHeKetNoi, lichSuTimKiem)
+- [ ] Step 4: Update/create services (createActivity enhanced, criteria, search, connection)
+- [ ] Step 5: Update/create controllers (createActivity enhanced, criteria, search, connection)
+- [ ] Step 6: Update/create routes (createActivity enhanced, criteria, search, connection)
+- [ ] Step 7: Update src/index.ts to register all routes
+- [ ] Step 8: Verify TypeScript compilation
