@@ -3,6 +3,17 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+if (!process.env.DB_HOST) {
+    dotenv.config({ path: 'src/.env' });
+}
+
+const requiredEnvVars = ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD'];
+const missingEnvVars = requiredEnvVars.filter((key) => !process.env[key]);
+
+if (missingEnvVars.length > 0) {
+    throw new Error(`Missing database environment variables: ${missingEnvVars.join(', ')}`);
+}
+
 export const pool = new Pool({
     host: process.env.DB_HOST,
     port: Number(process.env.DB_PORT),
