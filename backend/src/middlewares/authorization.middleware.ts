@@ -17,7 +17,10 @@ function parseId(value: unknown): number | null {
   return Number.isInteger(id) && id > 0 ? id : null;
 }
 
-function forbidden(res: Response, message = "Ban khong co quyen thuc hien hanh dong nay."): void {
+function forbidden(
+  res: Response,
+  message = "Ban khong co quyen thuc hien hanh dong nay.",
+): void {
   res.status(403).json({ success: false, message });
 }
 
@@ -25,7 +28,10 @@ function badRequest(res: Response, message = "ID khong hop le."): void {
   res.status(400).json({ success: false, message });
 }
 
-async function isActivityOwner(hoatDongId: number, nguoiDungId: number): Promise<boolean> {
+async function isActivityOwner(
+  hoatDongId: number,
+  nguoiDungId: number,
+): Promise<boolean> {
   const result = await pool.query(
     `
       SELECT 1
@@ -40,7 +46,10 @@ async function isActivityOwner(hoatDongId: number, nguoiDungId: number): Promise
   return (result.rowCount ?? 0) > 0;
 }
 
-async function isActivityMember(hoatDongId: number, nguoiDungId: number): Promise<boolean> {
+async function isActivityMember(
+  hoatDongId: number,
+  nguoiDungId: number,
+): Promise<boolean> {
   const result = await pool.query(
     `
       SELECT 1
@@ -55,7 +64,11 @@ async function isActivityMember(hoatDongId: number, nguoiDungId: number): Promis
   return (result.rowCount ?? 0) > 0;
 }
 
-export function requireAdmin(req: Request, res: Response, next: NextFunction): void {
+export function requireAdmin(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void {
   const user = getUser(req);
   if (!user?.nguoiDungId) {
     forbidden(res);
@@ -80,7 +93,11 @@ export function requireAdmin(req: Request, res: Response, next: NextFunction): v
 }
 
 export function requireActivityOwner(paramName = "id") {
-  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  return async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     try {
       const user = getUser(req);
       const hoatDongId = parseId(req.params[paramName]);
@@ -108,7 +125,11 @@ export function requireActivityOwner(paramName = "id") {
 }
 
 export function requireCriteriaOwner(paramName = "id") {
-  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  return async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     try {
       const user = getUser(req);
       const tieuChiId = parseId(req.params[paramName]);
@@ -134,7 +155,9 @@ export function requireCriteriaOwner(paramName = "id") {
       );
 
       if (result.rows.length === 0) {
-        res.status(404).json({ success: false, message: "Tieu chi khong ton tai." });
+        res
+          .status(404)
+          .json({ success: false, message: "Tieu chi khong ton tai." });
         return;
       }
 
@@ -151,7 +174,11 @@ export function requireCriteriaOwner(paramName = "id") {
 }
 
 export function requireImageOwner(paramName = "id") {
-  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  return async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     try {
       const user = getUser(req);
       const hinhAnhId = parseId(req.params[paramName]);
@@ -177,7 +204,9 @@ export function requireImageOwner(paramName = "id") {
       );
 
       if (result.rows.length === 0) {
-        res.status(404).json({ success: false, message: "Hinh anh khong ton tai." });
+        res
+          .status(404)
+          .json({ success: false, message: "Hinh anh khong ton tai." });
         return;
       }
 
@@ -194,7 +223,11 @@ export function requireImageOwner(paramName = "id") {
 }
 
 export function requireActivityMember(paramName = "hoatDongId") {
-  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  return async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     try {
       const user = getUser(req);
       const hoatDongId = parseId(req.params[paramName]);
@@ -226,7 +259,11 @@ export function requireActivityMember(paramName = "hoatDongId") {
 }
 
 export function requireChatRoomMember(paramName = "phongId") {
-  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  return async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     try {
       const user = getUser(req);
       const phongId = parseId(req.params[paramName]);
@@ -251,7 +288,9 @@ export function requireChatRoomMember(paramName = "phongId") {
       );
 
       if (result.rows.length === 0) {
-        res.status(404).json({ success: false, message: "Phong tro chuyen khong ton tai." });
+        res
+          .status(404)
+          .json({ success: false, message: "Phong tro chuyen khong ton tai." });
         return;
       }
 
@@ -265,18 +304,30 @@ export function requireChatRoomMember(paramName = "phongId") {
         return;
       }
 
-      forbidden(res, "Chi thanh vien hoat dong moi co quyen truy cap phong tro chuyen.");
+      forbidden(
+        res,
+        "Chi thanh vien hoat dong moi co quyen truy cap phong tro chuyen.",
+      );
     } catch (error: any) {
       res.status(500).json({ success: false, message: error.message });
     }
   };
 }
 
-export function requireReviewParticipant(activityParamName = "hoatDongId", reviewedUserParamName = "nguoiDuocDanhGiaId") {
-  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export function requireReviewParticipant(
+  activityParamName = "hoatDongId",
+  reviewedUserParamName = "nguoiDuocDanhGiaId",
+) {
+  return async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     try {
       const user = getUser(req);
-      const hoatDongId = parseId(req.params[activityParamName] ?? req.body?.[activityParamName]);
+      const hoatDongId = parseId(
+        req.params[activityParamName] ?? req.body?.[activityParamName],
+      );
       const nguoiDuocDanhGiaId = parseId(
         req.params[reviewedUserParamName] ?? req.body?.[reviewedUserParamName],
       );
@@ -308,7 +359,10 @@ export function requireReviewParticipant(activityParamName = "hoatDongId", revie
         return;
       }
 
-      forbidden(res, "Chi nguoi tham gia cung hoat dong moi co the danh gia nhau.");
+      forbidden(
+        res,
+        "Chi nguoi tham gia cung hoat dong moi co the danh gia nhau.",
+      );
     } catch (error: any) {
       res.status(500).json({ success: false, message: error.message });
     }
