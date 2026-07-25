@@ -1,7 +1,6 @@
 import { HoSoNguoiDungRepository } from "../../repositories/group2-profile/hoSoNguoiDung.repository";
 import { SoThichRepository } from "../../repositories/group2-profile/soThich.repository";
 import { HoSoSoThichRepository } from "../../repositories/group2-profile/hoSoSoThich.repository";
-import { HoSoNguoiDungModel } from "../../models/group2-profile/hoSoNguoiDung.model";
 
 export class ProfileService {
   private hoSoNguoiDungRepo = new HoSoNguoiDungRepository();
@@ -23,20 +22,17 @@ export class ProfileService {
       profile.hoSoId!,
     );
 
-    return {
-      ...profile,
-      soThich: interests,
-    };
+    const result: any = {};
+    Object.assign(result, profile);
+    result.soThich = interests;
+    return result;
   }
 
   async updateProfile(nguoiDungId: number, data: any): Promise<any> {
-    // Validate with model if data is provided
-    if (data.tieuSu !== undefined && data.tieuSu !== null) {
-      const existingProfile =
-        await this.hoSoNguoiDungRepo.findByNguoiDungId(nguoiDungId);
-      if (!existingProfile) {
-        await this.hoSoNguoiDungRepo.create({ nguoiDungId });
-      }
+    // Ensure profile exists
+    const existingProfile = await this.hoSoNguoiDungRepo.findByNguoiDungId(nguoiDungId);
+    if (!existingProfile) {
+      await this.hoSoNguoiDungRepo.create({ nguoiDungId });
     }
 
     const updatedProfile = await this.hoSoNguoiDungRepo.update(nguoiDungId, {
@@ -103,7 +99,7 @@ export class ProfileService {
       return [];
     }
 
-    return await this.soThichRepo.findInterestsByProfileId(profile.hoSoId!);
+    return this.soThichRepo.findInterestsByProfileId(profile.hoSoId!);
   }
 
   async addInterest(
@@ -170,8 +166,8 @@ export class ProfileService {
     }
 
     const updated = await this.hoSoNguoiDungRepo.update(nguoiDungId, {
-      mucTieuThamGia: data.mucTieuThamGia ?? null,
-      thoiGianRanh: data.thoiGianRanh ?? null,
+      mucTieuThamGia: data.mucTieuThamGia ? data.mucTieuThamGia : null,
+      thoiGianRanh: data.thoiGianRanh ? data.thoiGianRanh : null,
     });
 
     return updated;

@@ -13,17 +13,12 @@ app.use(express.json());
 import authRouter from "./routes/group1-user/auth.routes";
 import profileRouter from "./routes/group2-profile/profile.routes";
 import activityRouter from "./routes/group3-activity/activity.routes";
-import criteriaRouter, { criteriaDirectRouter } from "./routes/group3-activity/criteria.routes";
-import searchRouter, { searchHistoryRouter } from "./routes/group3-activity/search.routes";
 import connectionRouter from "./routes/group4-interaction/connection.routes";
 
+// "báo" — Router cha duy nhất cho mỗi nhóm API, không có route con "tự sinh"
 app.use("/api/auth", authRouter);
 app.use("/api/profile", profileRouter);
-app.use("/api/activities/:hoatDongId/criteria", criteriaRouter);
-app.use("/api/activities/search", searchRouter);
-app.use("/api/activities", activityRouter);
-app.use("/api/criteria", criteriaDirectRouter);
-app.use("/api/search-history", searchHistoryRouter);
+app.use("/api/activities", activityRouter); // Sub: categories, locations, search, search-history, :id, :id/images, :hoatDongId/criteria, criteria/:id
 app.use("/api/connections", connectionRouter);
 
 app.get("/health", (req, res) => {

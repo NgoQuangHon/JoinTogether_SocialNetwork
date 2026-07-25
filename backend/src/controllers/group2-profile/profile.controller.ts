@@ -35,7 +35,6 @@ export class ProfileController {
   public getMyProfile = async (req: Request, res: Response): Promise<void> => {
     try {
       const nguoiDungId = (req as any).user.nguoiDungId;
-
       const profile = await this.profileService.getProfile(nguoiDungId);
 
       res.status(200).json({
@@ -53,7 +52,6 @@ export class ProfileController {
   public updateProfile = async (req: Request, res: Response): Promise<void> => {
     try {
       const nguoiDungId = (req as any).user.nguoiDungId;
-
       const { tieuSu, ngaySinh, khuVuc } = req.body;
 
       // Validate ngaySinh if provided
@@ -180,7 +178,7 @@ export class ProfileController {
       const result = await this.profileService.addInterest(
         nguoiDungId,
         soThichId,
-        mucDoQuanTam ?? null
+        mucDoQuanTam ? mucDoQuanTam : null
       );
 
       res.status(201).json({
@@ -256,4 +254,3 @@ export class ProfileController {
     }
   };
 }
-
