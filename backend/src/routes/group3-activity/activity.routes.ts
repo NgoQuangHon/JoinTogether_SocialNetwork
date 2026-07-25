@@ -2,6 +2,7 @@ import { Router } from "express";
 import { ActivityController } from "../../controllers/group3-activity/activity.controller";
 import { CriteriaController } from "../../controllers/group3-activity/criteria.controller";
 import searchRouter, { searchHistoryRouter } from "../../routes/group3-activity/search.routes";
+import memberRouter from "../../routes/group3-activity/member.routes";
 import { authenticateToken } from "../../middlewares/auth.middleware";
 import {
   requireActivityOwner,
@@ -42,6 +43,9 @@ activityRouter.delete("/criteria/:id", authenticateToken, criteriaController.del
 // --- Criteria nested under /:hoatDongId/criteria (static path "criteria" won't conflict with /:id) ---
 activityRouter.get("/:hoatDongId/criteria", authenticateToken, criteriaController.getCriteriaByActivity);
 activityRouter.post("/:hoatDongId/criteria", authenticateToken, requireActivityOwner(), criteriaController.addCriteria);
+
+// --- Member/Join routes (must be before generic /:id CRUD) ---
+activityRouter.use("/", memberRouter);
 
 // --- Activity CRUD (parameterized /:id routes — must come AFTER all static routes!) ---
 activityRouter.post("/", authenticateToken, activityController.createActivity);
