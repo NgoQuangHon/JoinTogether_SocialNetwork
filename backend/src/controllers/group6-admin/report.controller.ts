@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { asyncHandler } from "../../utils/asyncHandler";
 import { ReportService } from "../../services/group6-admin/report.service";
 
 export class ReportController {
@@ -6,9 +7,8 @@ export class ReportController {
 
   // ==================== UC6.1: GỬI BÁO CÁO VI PHẠM ====================
 
-  public createReport = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const nguoiBaoCaoId = (req as any).user.nguoiDungId;
+  public createReport = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+      const nguoiBaoCaoId = req.user!.nguoiDungId;
       const { nguoiBiBaoCaoId, loaiViPhamId, noiDung, bangChung } = req.body;
 
       if (!nguoiBiBaoCaoId || !loaiViPhamId) {
@@ -27,25 +27,17 @@ export class ReportController {
       });
 
       res.status(201).json({ success: true, message: "Đã gửi báo cáo vi phạm.", data: result });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  };
+    });
 
   // ==================== XEM DANH SÁCH BÁO CÁO ====================
 
-  public getReports = async (req: Request, res: Response): Promise<void> => {
-    try {
+  public getReports = asyncHandler(async (req: Request, res: Response): Promise<void> => {
       const trangThai = req.query.trangThai as string | undefined;
       const result = await this.reportService.getReports(trangThai);
       res.status(200).json({ success: true, data: result });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  };
+    });
 
-  public getReportById = async (req: Request, res: Response): Promise<void> => {
-    try {
+  public getReportById = asyncHandler(async (req: Request, res: Response): Promise<void> => {
       const baoCaoId = parseInt(req.params.id as string, 10);
 
       if (isNaN(baoCaoId)) {
@@ -55,16 +47,12 @@ export class ReportController {
 
       const result = await this.reportService.getReportById(baoCaoId);
       res.status(200).json({ success: true, data: result });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  };
+    });
 
   // ==================== UC6.2: XỬ LÝ BÁO CÁO ====================
 
-  public processReport = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const nguoiXuLyId = (req as any).user.nguoiDungId;
+  public processReport = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+      const nguoiXuLyId = req.user!.nguoiDungId;
       const baoCaoId = parseInt(req.params.id as string, 10);
       const { ketQua, truDiem } = req.body;
 
@@ -80,24 +68,16 @@ export class ReportController {
 
       const result = await this.reportService.processReport(baoCaoId, nguoiXuLyId, { ketQua, truDiem });
       res.status(200).json({ success: true, message: "Đã xử lý báo cáo.", data: result });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  };
+    });
 
   // ==================== LOẠI VI PHẠM ====================
 
-  public getLoaiViPham = async (_req: Request, res: Response): Promise<void> => {
-    try {
+  public getLoaiViPham = asyncHandler(async (_req: Request, res: Response): Promise<void> => {
       const result = await this.reportService.getLoaiViPham();
       res.status(200).json({ success: true, data: result });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  };
+    });
 
-  public createLoaiViPham = async (req: Request, res: Response): Promise<void> => {
-    try {
+  public createLoaiViPham = asyncHandler(async (req: Request, res: Response): Promise<void> => {
       const { tenLoai, moTa, mucDo } = req.body;
 
       if (!tenLoai) {
@@ -107,15 +87,11 @@ export class ReportController {
 
       const result = await this.reportService.createLoaiViPham({ tenLoai, moTa, mucDo });
       res.status(201).json({ success: true, data: result });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  };
+    });
 
   // ==================== UC6.3: QUẢN LÝ VI PHẠM ====================
 
-  public updateLoaiViPham = async (req: Request, res: Response): Promise<void> => {
-    try {
+  public updateLoaiViPham = asyncHandler(async (req: Request, res: Response): Promise<void> => {
       const id = parseInt(req.params.id as string, 10);
       if (isNaN(id)) {
         res.status(400).json({ success: false, message: "ID loại vi phạm không hợp lệ." });
@@ -125,13 +101,9 @@ export class ReportController {
       const { tenLoai, moTa, mucDo } = req.body;
       const result = await this.reportService.updateLoaiViPham(id, { tenLoai, moTa, mucDo });
       res.status(200).json({ success: true, data: result });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  };
+    });
 
-  public deleteLoaiViPham = async (req: Request, res: Response): Promise<void> => {
-    try {
+  public deleteLoaiViPham = asyncHandler(async (req: Request, res: Response): Promise<void> => {
       const id = parseInt(req.params.id as string, 10);
       if (isNaN(id)) {
         res.status(400).json({ success: false, message: "ID loại vi phạm không hợp lệ." });
@@ -140,18 +112,11 @@ export class ReportController {
 
       await this.reportService.deleteLoaiViPham(id);
       res.status(200).json({ success: true, message: "Đã xóa loại vi phạm." });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  };
+    });
 
-  public getViolationStats = async (_req: Request, res: Response): Promise<void> => {
-    try {
+  public getViolationStats = asyncHandler(async (_req: Request, res: Response): Promise<void> => {
       const result = await this.reportService.getViolationStats();
       res.status(200).json({ success: true, data: result });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  };
+    });
 }
 

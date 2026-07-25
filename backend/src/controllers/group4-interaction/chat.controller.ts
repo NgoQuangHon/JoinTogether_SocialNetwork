@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { asyncHandler } from "../../utils/asyncHandler";
 import { ChatService } from "../../services/group4-interaction/chat.service";
 import { NotificationService } from "../../services/group4-interaction/notification.service";
 
@@ -8,8 +9,7 @@ export class ChatController {
 
   // ==================== PHÒNG TRÒ CHUYỆN ====================
 
-  public getOrCreateRoom = async (req: Request, res: Response): Promise<void> => {
-    try {
+  public getOrCreateRoom = asyncHandler(async (req: Request, res: Response): Promise<void> => {
       const hoatDongId = parseInt(req.params.hoatDongId as string, 10);
 
       if (isNaN(hoatDongId)) {
@@ -19,26 +19,18 @@ export class ChatController {
 
       const result = await this.chatService.getOrCreateRoom(hoatDongId);
       res.status(200).json({ success: true, data: result });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  };
+    });
 
-  public getUserRooms = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const nguoiDungId = (req as any).user.nguoiDungId;
+  public getUserRooms = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+      const nguoiDungId = req.user!.nguoiDungId;
       const result = await this.chatService.getUserRooms(nguoiDungId);
       res.status(200).json({ success: true, data: result });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  };
+    });
 
   // ==================== TIN NHẮN ====================
 
-  public sendMessage = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const nguoiGuiId = (req as any).user.nguoiDungId;
+  public sendMessage = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+      const nguoiGuiId = req.user!.nguoiDungId;
       const phongId = parseInt(req.params.phongId as string, 10);
       const { noiDung } = req.body;
 
@@ -54,13 +46,9 @@ export class ChatController {
 
       const result = await this.chatService.sendMessage(phongId, nguoiGuiId, noiDung);
       res.status(201).json({ success: true, message: "Đã gửi tin nhắn.", data: result });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  };
+    });
 
-  public getMessages = async (req: Request, res: Response): Promise<void> => {
-    try {
+  public getMessages = asyncHandler(async (req: Request, res: Response): Promise<void> => {
       const phongId = parseInt(req.params.phongId as string, 10);
       const limit = parseInt(req.query.limit as string, 10) || 50;
       const offset = parseInt(req.query.offset as string, 10) || 0;
@@ -72,14 +60,10 @@ export class ChatController {
 
       const result = await this.chatService.getMessages(phongId, limit, offset);
       res.status(200).json({ success: true, data: result });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  };
+    });
 
-  public deleteMessage = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const nguoiDungId = (req as any).user.nguoiDungId;
+  public deleteMessage = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+      const nguoiDungId = req.user!.nguoiDungId;
       const tinNhanId = parseInt(req.params.tinNhanId as string, 10);
 
       if (isNaN(tinNhanId)) {
@@ -89,28 +73,20 @@ export class ChatController {
 
       await this.chatService.deleteMessage(tinNhanId, nguoiDungId);
       res.status(200).json({ success: true, message: "Đã xóa tin nhắn." });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  };
+    });
 
   // ==================== THÔNG BÁO ====================
 
-  public getNotifications = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const nguoiNhanId = (req as any).user.nguoiDungId;
+  public getNotifications = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+      const nguoiNhanId = req.user!.nguoiDungId;
       const limit = parseInt(req.query.limit as string, 10) || 20;
       const offset = parseInt(req.query.offset as string, 10) || 0;
 
       const result = await this.notificationService.getNotifications(nguoiNhanId, limit, offset);
       res.status(200).json({ success: true, data: result });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  };
+    });
 
-  public deleteNotification = async (req: Request, res: Response): Promise<void> => {
-    try {
+  public deleteNotification = asyncHandler(async (req: Request, res: Response): Promise<void> => {
       const thongBaoId = parseInt(req.params.thongBaoId as string, 10);
 
       if (isNaN(thongBaoId)) {
@@ -118,11 +94,8 @@ export class ChatController {
         return;
       }
 
-      await this.notificationService.deleteNotification(thongBaoId, (req as any).user.nguoiDungId);
+      await this.notificationService.deleteNotification(thongBaoId, req.user!.nguoiDungId);
       res.status(200).json({ success: true, message: "Đã xóa thông báo." });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  };
+    });
 }
 

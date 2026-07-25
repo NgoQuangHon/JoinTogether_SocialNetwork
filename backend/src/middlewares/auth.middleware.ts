@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-
-const JWT_SECRET = process.env.JWT_SECRET || "super-secret-key";
+import { JWT_SECRET } from "../config/jwt";
+import { AuthenticatedUser } from "../types/express";
 
 export const authenticateToken = (
   req: Request,
@@ -18,7 +18,7 @@ export const authenticateToken = (
     return;
   }
 
-  jwt.verify(token, JWT_SECRET, (err: any, user: any) => {
+  jwt.verify(token, JWT_SECRET, (err, decoded) => {
     if (err) {
       res.status(403).json({
         success: false,
@@ -26,7 +26,7 @@ export const authenticateToken = (
       });
       return;
     }
-    (req as any).user = user;
+    req.user = decoded as AuthenticatedUser;
     next();
   });
 };

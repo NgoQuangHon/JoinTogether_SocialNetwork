@@ -1,6 +1,7 @@
 import { HoSoNguoiDungRepository } from "../../repositories/group2-profile/hoSoNguoiDung.repository";
 import { SoThichRepository } from "../../repositories/group2-profile/soThich.repository";
 import { HoSoSoThichRepository } from "../../repositories/group2-profile/hoSoSoThich.repository";
+import { BadRequestError, ConflictError, NotFoundError } from "../../utils/AppError";
 
 export class ProfileService {
   private hoSoNguoiDungRepo = new HoSoNguoiDungRepository();
@@ -45,7 +46,7 @@ export class ProfileService {
     });
 
     if (!updatedProfile) {
-      throw new Error("Không tìm thấy hồ sơ người dùng.");
+      throw new BadRequestError("Không tìm thấy hồ sơ người dùng.");
     }
 
     return updatedProfile;
@@ -110,7 +111,7 @@ export class ProfileService {
     // Verify interest exists
     const interest = await this.soThichRepo.findById(soThichId);
     if (!interest) {
-      throw new Error("Sở thích không tồn tại.");
+      throw new NotFoundError("Sở thích không tồn tại.");
     }
 
     // Ensure profile exists
@@ -125,7 +126,7 @@ export class ProfileService {
       soThichId,
     );
     if (existing) {
-      throw new Error("Sở thích đã tồn tại trong hồ sơ.");
+      throw new ConflictError("Sở thích đã tồn tại trong hồ sơ.");
     }
 
     const result = await this.hoSoSoThichRepo.addInterest(
@@ -140,7 +141,7 @@ export class ProfileService {
   async removeInterest(nguoiDungId: number, soThichId: number): Promise<void> {
     const profile = await this.hoSoNguoiDungRepo.findByNguoiDungId(nguoiDungId);
     if (!profile) {
-      throw new Error("Không tìm thấy hồ sơ người dùng.");
+      throw new BadRequestError("Không tìm thấy hồ sơ người dùng.");
     }
 
     const removed = await this.hoSoSoThichRepo.removeInterest(
@@ -149,7 +150,7 @@ export class ProfileService {
     );
 
     if (!removed) {
-      throw new Error("Sở thích không tồn tại trong hồ sơ.");
+      throw new NotFoundError("Sở thích không tồn tại trong hồ sơ.");
     }
   }
 

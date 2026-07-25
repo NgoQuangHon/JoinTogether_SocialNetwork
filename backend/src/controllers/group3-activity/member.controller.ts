@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { asyncHandler } from "../../utils/asyncHandler";
 import { MemberService } from "../../services/group3-activity/member.service";
 
 export class MemberController {
@@ -6,9 +7,8 @@ export class MemberController {
 
   // ==================== UC4.1: GỬI YÊU CẦU THAM GIA ====================
 
-  public sendJoinRequest = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const nguoiDungId = (req as any).user.nguoiDungId;
+  public sendJoinRequest = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+      const nguoiDungId = req.user!.nguoiDungId;
       const hoatDongId = parseInt(req.params.id as string, 10);
 
       if (isNaN(hoatDongId)) {
@@ -18,15 +18,11 @@ export class MemberController {
 
       const result = await this.memberService.sendJoinRequest(nguoiDungId, hoatDongId);
       res.status(201).json({ success: true, message: "Đã gửi yêu cầu tham gia.", data: result });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  };
+    });
 
   // ==================== UC4.3: XÁC NHẬN THAM GIA ====================
 
-  public getPendingRequests = async (req: Request, res: Response): Promise<void> => {
-    try {
+  public getPendingRequests = asyncHandler(async (req: Request, res: Response): Promise<void> => {
       const hoatDongId = parseInt(req.params.id as string, 10);
 
       if (isNaN(hoatDongId)) {
@@ -36,14 +32,10 @@ export class MemberController {
 
       const result = await this.memberService.getPendingRequests(hoatDongId);
       res.status(200).json({ success: true, data: result });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  };
+    });
 
-  public approveRequest = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const nguoiToChucId = (req as any).user.nguoiDungId;
+  public approveRequest = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+      const nguoiToChucId = req.user!.nguoiDungId;
       const yeuCauId = parseInt(req.params.yeuCauId as string, 10);
 
       if (isNaN(yeuCauId)) {
@@ -53,14 +45,10 @@ export class MemberController {
 
       const result = await this.memberService.approveRequest(yeuCauId, nguoiToChucId);
       res.status(200).json({ success: true, message: "Đã chấp nhận yêu cầu tham gia.", data: result });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  };
+    });
 
-  public rejectRequest = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const nguoiToChucId = (req as any).user.nguoiDungId;
+  public rejectRequest = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+      const nguoiToChucId = req.user!.nguoiDungId;
       const yeuCauId = parseInt(req.params.yeuCauId as string, 10);
 
       if (isNaN(yeuCauId)) {
@@ -70,15 +58,11 @@ export class MemberController {
 
       const result = await this.memberService.rejectRequest(yeuCauId, nguoiToChucId);
       res.status(200).json({ success: true, message: "Đã từ chối yêu cầu tham gia.", data: result });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  };
+    });
 
   // ==================== QUẢN LÝ THÀNH VIÊN ====================
 
-  public getMembers = async (req: Request, res: Response): Promise<void> => {
-    try {
+  public getMembers = asyncHandler(async (req: Request, res: Response): Promise<void> => {
       const hoatDongId = parseInt(req.params.id as string, 10);
 
       if (isNaN(hoatDongId)) {
@@ -88,14 +72,10 @@ export class MemberController {
 
       const result = await this.memberService.getMembers(hoatDongId);
       res.status(200).json({ success: true, data: result });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  };
+    });
 
-  public removeMember = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const nguoiToChucId = (req as any).user.nguoiDungId;
+  public removeMember = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+      const nguoiToChucId = req.user!.nguoiDungId;
       const thanhVienId = parseInt(req.params.thanhVienId as string, 10);
 
       if (isNaN(thanhVienId)) {
@@ -105,14 +85,10 @@ export class MemberController {
 
       await this.memberService.removeMember(thanhVienId, nguoiToChucId);
       res.status(200).json({ success: true, message: "Đã xóa thành viên khỏi hoạt động." });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  };
+    });
 
-  public leaveActivity = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const nguoiDungId = (req as any).user.nguoiDungId;
+  public leaveActivity = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+      const nguoiDungId = req.user!.nguoiDungId;
       const hoatDongId = parseInt(req.params.id as string, 10);
 
       if (isNaN(hoatDongId)) {
@@ -122,16 +98,12 @@ export class MemberController {
 
       await this.memberService.leaveActivity(nguoiDungId, hoatDongId);
       res.status(200).json({ success: true, message: "Đã rời khỏi hoạt động." });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  };
+    });
 
   // ==================== XÁC NHẬN THAM DỰ ====================
 
-  public confirmAttendance = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const nguoiToChucId = (req as any).user.nguoiDungId;
+  public confirmAttendance = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+      const nguoiToChucId = req.user!.nguoiDungId;
       const thanhVienId = parseInt(req.params.thanhVienId as string, 10);
 
       if (isNaN(thanhVienId)) {
@@ -141,13 +113,9 @@ export class MemberController {
 
       const result = await this.memberService.confirmAttendance(thanhVienId, nguoiToChucId);
       res.status(200).json({ success: true, message: "Đã xác nhận tham dự.", data: result });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  };
+    });
 
-  public getAttendanceList = async (req: Request, res: Response): Promise<void> => {
-    try {
+  public getAttendanceList = asyncHandler(async (req: Request, res: Response): Promise<void> => {
       const hoatDongId = parseInt(req.params.id as string, 10);
 
       if (isNaN(hoatDongId)) {
@@ -157,9 +125,6 @@ export class MemberController {
 
       const result = await this.memberService.getAttendanceList(hoatDongId);
       res.status(200).json({ success: true, data: result });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  };
+    });
 }
 

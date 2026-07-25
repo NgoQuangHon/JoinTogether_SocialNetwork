@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
+import { asyncHandler } from "../../utils/asyncHandler";
 import { SearchService } from "../../services/group3-activity/search.service";
 
 export class SearchController {
   private searchService = new SearchService();
 
-  public searchActivities = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const nguoiDungId = (req as any).user.nguoiDungId;
+  public searchActivities = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+      const nguoiDungId = req.user!.nguoiDungId;
       const { keyword, danhMucHoatDongId, diaDiemId, tuNgay, denNgay, limit, offset } = req.query;
 
       const filters: any = {};
@@ -21,28 +21,17 @@ export class SearchController {
       const result = await this.searchService.searchActivities(nguoiDungId, filters);
 
       res.status(200).json({ success: true, data: result.rows, total: result.total });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  };
+    });
 
-  public getSearchHistory = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const nguoiDungId = (req as any).user.nguoiDungId;
+  public getSearchHistory = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+      const nguoiDungId = req.user!.nguoiDungId;
       const result = await this.searchService.getSearchHistory(nguoiDungId);
       res.status(200).json({ success: true, data: result });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  };
+    });
 
-  public clearSearchHistory = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const nguoiDungId = (req as any).user.nguoiDungId;
+  public clearSearchHistory = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+      const nguoiDungId = req.user!.nguoiDungId;
       await this.searchService.clearSearchHistory(nguoiDungId);
       res.status(200).json({ success: true, message: "Xóa lịch sử tìm kiếm thành công." });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  };
+    });
 }

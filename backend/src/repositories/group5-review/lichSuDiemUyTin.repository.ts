@@ -1,8 +1,8 @@
-import { pool } from "../../config/db";
+import { pool, Queryable } from "../../config/db";
 import { LichSuDiemUyTin } from "../../models/group5-review/lichSuDiemUyTin.model";
 
 export class LichSuDiemUyTinRepository {
-  async create(data: Partial<LichSuDiemUyTin>): Promise<LichSuDiemUyTin> {
+  async create(data: Partial<LichSuDiemUyTin>, executor: Queryable = pool): Promise<LichSuDiemUyTin> {
     const query = `
       INSERT INTO lich_su_diem_uy_tin (diem_uy_tin_id, diem_thay_doi, ly_do_thay_doi)
       VALUES ($1, $2, $3)

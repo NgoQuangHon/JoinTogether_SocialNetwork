@@ -1,4 +1,5 @@
 import { ThongBaoRepository } from "../../repositories/group4-interaction/thongBao.repository";
+import { ForbiddenError, NotFoundError } from "../../utils/AppError";
 
 export class NotificationService {
   private thongBaoRepo = new ThongBaoRepository();
@@ -10,12 +11,12 @@ export class NotificationService {
   async deleteNotification(thongBaoId: number, nguoiDungId: number): Promise<void> {
     const notification = await this.thongBaoRepo.findById(thongBaoId);
     if (!notification) {
-      throw new Error("Thông báo không tồn tại.");
+      throw new NotFoundError("Thông báo không tồn tại.");
     }
 
     // Chỉ người nhận mới được xóa thông báo
     if (notification.nguoiNhanId !== nguoiDungId) {
-      throw new Error("Bạn không có quyền xóa thông báo này.");
+      throw new ForbiddenError("Bạn không có quyền xóa thông báo này.");
     }
 
     await this.thongBaoRepo.delete(thongBaoId);

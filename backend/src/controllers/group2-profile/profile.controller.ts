@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { asyncHandler } from "../../utils/asyncHandler";
 import { ProfileService } from "../../services/group2-profile/profile.service";
 
 export class ProfileController {
@@ -6,8 +7,7 @@ export class ProfileController {
 
   // ==================== UC1.3 - PROFILE ====================
 
-  public getProfile = async (req: Request, res: Response): Promise<void> => {
-    try {
+  public getProfile = asyncHandler(async (req: Request, res: Response): Promise<void> => {
       const nguoiDungId = parseInt(req.params.id as string, 10);
 
       if (isNaN(nguoiDungId)) {
@@ -24,34 +24,20 @@ export class ProfileController {
         success: true,
         data: profile,
       });
-    } catch (error: any) {
-      res.status(400).json({
-        success: false,
-        message: error.message,
-      });
-    }
-  };
+    });
 
-  public getMyProfile = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const nguoiDungId = (req as any).user.nguoiDungId;
+  public getMyProfile = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+      const nguoiDungId = req.user!.nguoiDungId;
       const profile = await this.profileService.getProfile(nguoiDungId);
 
       res.status(200).json({
         success: true,
         data: profile,
       });
-    } catch (error: any) {
-      res.status(400).json({
-        success: false,
-        message: error.message,
-      });
-    }
-  };
+    });
 
-  public updateProfile = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const nguoiDungId = (req as any).user.nguoiDungId;
+  public updateProfile = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+      const nguoiDungId = req.user!.nguoiDungId;
       const { tieuSu, ngaySinh, khuVuc } = req.body;
 
       // Validate ngaySinh if provided
@@ -79,18 +65,10 @@ export class ProfileController {
         message: "Cập nhật hồ sơ thành công.",
         data: updatedProfile,
       });
-    } catch (error: any) {
-      res.status(400).json({
-        success: false,
-        message: error.message,
-        invalidFields: error.invalidFields || [],
-      });
-    }
-  };
+    });
 
-  public updateAvatar = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const nguoiDungId = (req as any).user.nguoiDungId;
+  public updateAvatar = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+      const nguoiDungId = req.user!.nguoiDungId;
       const { anhDaiDien } = req.body;
 
       if (!anhDaiDien) {
@@ -111,41 +89,27 @@ export class ProfileController {
         message: "Cập nhật ảnh đại diện thành công.",
         data: updated,
       });
-    } catch (error: any) {
-      res.status(400).json({
-        success: false,
-        message: error.message,
-      });
-    }
-  };
+    });
 
   // ==================== UC1.4 - INTERESTS ====================
 
-  public getAllInterestCategories = async (
+  public getAllInterestCategories = asyncHandler(async (
     _req: Request,
     res: Response
   ): Promise<void> => {
-    try {
       const categories = await this.profileService.getAllInterestCategories();
 
       res.status(200).json({
         success: true,
         data: categories,
       });
-    } catch (error: any) {
-      res.status(400).json({
-        success: false,
-        message: error.message,
-      });
-    }
-  };
+    });
 
-  public getUserInterests = async (
+  public getUserInterests = asyncHandler(async (
     req: Request,
     res: Response
   ): Promise<void> => {
-    try {
-      const nguoiDungId = (req as any).user.nguoiDungId;
+      const nguoiDungId = req.user!.nguoiDungId;
       const interests = await this.profileService.getUserInterests(
         nguoiDungId
       );
@@ -154,17 +118,10 @@ export class ProfileController {
         success: true,
         data: interests,
       });
-    } catch (error: any) {
-      res.status(400).json({
-        success: false,
-        message: error.message,
-      });
-    }
-  };
+    });
 
-  public addInterest = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const nguoiDungId = (req as any).user.nguoiDungId;
+  public addInterest = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+      const nguoiDungId = req.user!.nguoiDungId;
       const { soThichId, mucDoQuanTam } = req.body;
 
       if (!soThichId) {
@@ -186,22 +143,13 @@ export class ProfileController {
         message: "Thêm sở thích thành công.",
         data: result,
       });
-    } catch (error: any) {
-      const statusCode =
-        error.message === "Sở thích đã tồn tại trong hồ sơ." ? 409 : 400;
-      res.status(statusCode).json({
-        success: false,
-        message: error.message,
-      });
-    }
-  };
+    });
 
-  public removeInterest = async (
+  public removeInterest = asyncHandler(async (
     req: Request,
     res: Response
   ): Promise<void> => {
-    try {
-      const nguoiDungId = (req as any).user.nguoiDungId;
+      const nguoiDungId = req.user!.nguoiDungId;
       const soThichId = parseInt(req.params.soThichId as string, 10);
 
       if (isNaN(soThichId)) {
@@ -218,19 +166,10 @@ export class ProfileController {
         success: true,
         message: "Xóa sở thích thành công.",
       });
-    } catch (error: any) {
-      const statusCode =
-        error.message === "Sở thích không tồn tại trong hồ sơ." ? 404 : 400;
-      res.status(statusCode).json({
-        success: false,
-        message: error.message,
-      });
-    }
-  };
+    });
 
-  public updateGoals = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const nguoiDungId = (req as any).user.nguoiDungId;
+  public updateGoals = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+      const nguoiDungId = req.user!.nguoiDungId;
       const { mucTieuThamGia, thoiGianRanh } = req.body;
 
       const updated = await this.profileService.updateProfileGoals(
@@ -246,11 +185,5 @@ export class ProfileController {
         message: "Cập nhật mục tiêu và thời gian rảnh thành công.",
         data: updated,
       });
-    } catch (error: any) {
-      res.status(400).json({
-        success: false,
-        message: error.message,
-      });
-    }
-  };
+    });
 }

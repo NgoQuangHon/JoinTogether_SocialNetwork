@@ -2,13 +2,22 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import express from "express";
-import { connectDB } from "./config/db";
+import cors from "cors";
+import helmet from "helmet";
+import { connectDB, pool } from "./config/db";
+import { notFoundHandler, errorHandler } from "./middlewares/errorHandler.middleware";
 
 const app = express();
 
 const PORT = process.env.PORT || 5000;
 
-app.use(express.json());
+app.use(helmet());
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGIN?.split(",") ?? "*",
+  }),
+);
+app.use(express.json({ limit: "1mb" }));
 
 import authRouter from "./routes/group1-user/auth.routes";
 import profileRouter from "./routes/group2-profile/profile.routes";
@@ -36,12 +45,30 @@ app.get("/health", (req, res) => {
   res.send({ status: "good response" });
 });
 
+// Đặt SAU tất cả router: bắt mọi request không khớp route nào (404)
+app.use(notFoundHandler);
+
+// Đặt CUỐI CÙNG: xử lý lỗi tập trung cho toàn bộ app
+app.use(errorHandler);
+
 async function start() {
   await connectDB();
 
-  app.listen(PORT, () => {
+  const server = app.listen(PORT, () => {
     console.log(`🚀 Server is running on ${PORT}`);
   });
+
+  const shutdown = async (signal: string) => {
+    console.log(`\n${signal} nhận được, đang tắt server...`);
+    server.close(async () => {
+      await pool.end();
+      console.log("✅ Đã đóng kết nối PostgreSQL, thoát chương trình.");
+      process.exit(0);
+    });
+  };
+
+  process.on("SIGINT", () => void shutdown("SIGINT"));
+  process.on("SIGTERM", () => void shutdown("SIGTERM"));
 }
 
 start();

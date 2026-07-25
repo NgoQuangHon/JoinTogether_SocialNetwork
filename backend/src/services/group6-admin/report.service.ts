@@ -7,6 +7,7 @@ import { LichSuDiemUyTinRepository } from "../../repositories/group5-review/lich
 import { NhatKyQuanTriRepository } from "../../repositories/group6-admin/nhatKyQuanTri.repository";
 import { ThongBaoRepository } from "../../repositories/group4-interaction/thongBao.repository";
 import { NguoiDungRepository } from "../../repositories/group1-user/nguoiDung.repository";
+import { BadRequestError, ConflictError, NotFoundError } from "../../utils/AppError";
 
 export class ReportService {
   private baoCaoRepo = new BaoCaoViPhamRepository();
@@ -31,19 +32,19 @@ export class ReportService {
     },
   ): Promise<any> {
     if (nguoiBaoCaoId === data.nguoiBiBaoCaoId) {
-      throw new Error("Không thể báo cáo chính mình.");
+      throw new BadRequestError("Không thể báo cáo chính mình.");
     }
 
     // Kiểm tra người bị báo cáo tồn tại
     const reportedUser = await this.nguoiDungRepo.findById(data.nguoiBiBaoCaoId);
     if (!reportedUser) {
-      throw new Error("Người dùng bị báo cáo không tồn tại.");
+      throw new NotFoundError("Người dùng bị báo cáo không tồn tại.");
     }
 
     // Kiểm tra loại vi phạm
     const loaiViPham = await this.loaiViPhamRepo.findById(data.loaiViPhamId);
     if (!loaiViPham) {
-      throw new Error("Loại vi phạm không tồn tại.");
+      throw new NotFoundError("Loại vi phạm không tồn tại.");
     }
 
     const baoCao = await this.baoCaoRepo.create({
@@ -76,7 +77,7 @@ export class ReportService {
   async getReportById(baoCaoId: number): Promise<any> {
     const baoCao = await this.baoCaoRepo.findById(baoCaoId);
     if (!baoCao) {
-      throw new Error("Báo cáo không tồn tại.");
+      throw new NotFoundError("Báo cáo không tồn tại.");
     }
 
     const bangChung = await this.bangChungRepo.findByBaoCaoId(baoCaoId);
@@ -94,13 +95,13 @@ export class ReportService {
   ): Promise<any> {
     const baoCao = await this.baoCaoRepo.findById(baoCaoId);
     if (!baoCao) {
-      throw new Error("Báo cáo không tồn tại.");
+      throw new NotFoundError("Báo cáo không tồn tại.");
     }
 
     // Kiểm tra đã xử lý chưa
     const existingDecision = await this.quyetDinhRepo.findByBaoCaoId(baoCaoId);
     if (existingDecision) {
-      throw new Error("Báo cáo này đã được xử lý trước đó.");
+      throw new ConflictError("Báo cáo này đã được xử lý trước đó.");
     }
 
     // Tạo quyết định xử lý
@@ -156,7 +157,7 @@ export class ReportService {
   async updateLoaiViPham(id: number, data: { tenLoai?: string; moTa?: string; mucDo?: string }): Promise<any> {
     const existing = await this.loaiViPhamRepo.findById(id);
     if (!existing) {
-      throw new Error("Loại vi phạm không tồn tại.");
+      throw new NotFoundError("Loại vi phạm không tồn tại.");
     }
     return await this.loaiViPhamRepo.update(id, data);
   }
@@ -164,7 +165,7 @@ export class ReportService {
   async deleteLoaiViPham(id: number): Promise<void> {
     const existing = await this.loaiViPhamRepo.findById(id);
     if (!existing) {
-      throw new Error("Loại vi phạm không tồn tại.");
+      throw new NotFoundError("Loại vi phạm không tồn tại.");
     }
     await this.loaiViPhamRepo.delete(id);
   }

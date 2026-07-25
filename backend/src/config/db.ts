@@ -1,4 +1,4 @@
-import { Pool } from 'pg';
+import { Pool, PoolClient } from 'pg';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -13,6 +13,13 @@ const missingEnvVars = requiredEnvVars.filter((key) => !process.env[key]);
 if (missingEnvVars.length > 0) {
     throw new Error(`Missing database environment variables: ${missingEnvVars.join(', ')}`);
 }
+
+/**
+ * Cho phép các repository nhận vào `pool` (mặc định) hoặc một `PoolClient`
+ * đang trong transaction (BEGIN/COMMIT/ROLLBACK), để nhiều lệnh ghi liên
+ * quan tới nhau có thể được gộp vào cùng 1 transaction từ tầng service.
+ */
+export type Queryable = Pool | PoolClient;
 
 export const pool = new Pool({
     host: process.env.DB_HOST,

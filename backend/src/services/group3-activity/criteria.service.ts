@@ -1,6 +1,7 @@
 import { TieuChiThamGiaRepository } from "../../repositories/group3-activity/tieuChiThamGia.repository";
 import { HoatDongRepository } from "../../repositories/group3-activity/hoatDong.repository";
 import { TieuChiThamGiaModel } from "../../models/group3-activity/tieuChiThamGia.model";
+import { NotFoundError } from "../../utils/AppError";
 
 export class CriteriaService {
   private tieuChiRepo = new TieuChiThamGiaRepository();
@@ -9,7 +10,7 @@ export class CriteriaService {
   async getCriteriaByActivity(hoatDongId: number): Promise<any[]> {
     const activity = await this.hoatDongRepo.findById(hoatDongId);
     if (!activity) {
-      throw new Error("Hoạt động không tồn tại.");
+      throw new NotFoundError("Hoạt động không tồn tại.");
     }
     return await this.tieuChiRepo.findByHoatDongId(hoatDongId);
   }
@@ -17,7 +18,7 @@ export class CriteriaService {
   async addCriteria(hoatDongId: number, data: any): Promise<any> {
     const activity = await this.hoatDongRepo.findById(hoatDongId);
     if (!activity) {
-      throw new Error("Hoạt động không tồn tại.");
+      throw new NotFoundError("Hoạt động không tồn tại.");
     }
 
     const model = new TieuChiThamGiaModel({ ...data, hoatDongId });
@@ -32,7 +33,7 @@ export class CriteriaService {
   async updateCriteria(id: number, data: any): Promise<any> {
     const existing = await this.tieuChiRepo.findById(id);
     if (!existing) {
-      throw new Error("Tiêu chí không tồn tại.");
+      throw new NotFoundError("Tiêu chí không tồn tại.");
     }
 
     return await this.tieuChiRepo.update(id, data);
@@ -41,7 +42,7 @@ export class CriteriaService {
   async deleteCriteria(id: number): Promise<void> {
     const existing = await this.tieuChiRepo.findById(id);
     if (!existing) {
-      throw new Error("Tiêu chí không tồn tại.");
+      throw new NotFoundError("Tiêu chí không tồn tại.");
     }
     await this.tieuChiRepo.delete(id);
   }

@@ -1,6 +1,7 @@
 import { NguoiDungRepository } from "../../repositories/group1-user/nguoiDung.repository";
 import { TaiKhoanRepository } from "../../repositories/group1-user/taiKhoan.repository";
 import { NhatKyQuanTriRepository } from "../../repositories/group6-admin/nhatKyQuanTri.repository";
+import { ConflictError, NotFoundError } from "../../utils/AppError";
 
 export class AccountService {
   private nguoiDungRepo = new NguoiDungRepository();
@@ -18,7 +19,7 @@ export class AccountService {
   async getUserById(nguoiDungId: number): Promise<any> {
     const user = await this.nguoiDungRepo.findById(nguoiDungId);
     if (!user) {
-      throw new Error("Người dùng không tồn tại.");
+      throw new NotFoundError("Người dùng không tồn tại.");
     }
     return user;
   }
@@ -26,7 +27,7 @@ export class AccountService {
   async updateUser(nguoiDungId: number, adminId: number, data: { hoTen?: string; email?: string; soDienThoai?: string; trangThai?: string }): Promise<any> {
     const existing = await this.nguoiDungRepo.findById(nguoiDungId);
     if (!existing) {
-      throw new Error("Người dùng không tồn tại.");
+      throw new NotFoundError("Người dùng không tồn tại.");
     }
 
     const updated = await this.nguoiDungRepo.update(nguoiDungId, data);
@@ -44,11 +45,11 @@ export class AccountService {
   async lockAccount(nguoiDungId: number, adminId: number): Promise<any> {
     const existing = await this.nguoiDungRepo.findById(nguoiDungId);
     if (!existing) {
-      throw new Error("Người dùng không tồn tại.");
+      throw new NotFoundError("Người dùng không tồn tại.");
     }
 
     if (existing.trangThai === 'LOCKED') {
-      throw new Error("Tài khoản này đã bị khóa trước đó.");
+      throw new ConflictError("Tài khoản này đã bị khóa trước đó.");
     }
 
     const updated = await this.nguoiDungRepo.updateTrangThai(nguoiDungId, 'LOCKED');
@@ -66,11 +67,11 @@ export class AccountService {
   async unlockAccount(nguoiDungId: number, adminId: number): Promise<any> {
     const existing = await this.nguoiDungRepo.findById(nguoiDungId);
     if (!existing) {
-      throw new Error("Người dùng không tồn tại.");
+      throw new NotFoundError("Người dùng không tồn tại.");
     }
 
     if (existing.trangThai !== 'LOCKED') {
-      throw new Error("Tài khoản này không bị khóa.");
+      throw new ConflictError("Tài khoản này không bị khóa.");
     }
 
     const updated = await this.nguoiDungRepo.updateTrangThai(nguoiDungId, 'ACTIVE');

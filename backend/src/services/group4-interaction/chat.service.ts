@@ -2,6 +2,7 @@ import { PhongTroChuyenRepository } from "../../repositories/group4-interaction/
 import { TinNhanRepository } from "../../repositories/group4-interaction/tinNhan.repository";
 import { HoatDongRepository } from "../../repositories/group3-activity/hoatDong.repository";
 import { ThanhVienHoatDongRepository } from "../../repositories/group3-activity/thanhVienHoatDong.repository";
+import { BadRequestError, ForbiddenError, NotFoundError } from "../../utils/AppError";
 
 export class ChatService {
   private phongRepo = new PhongTroChuyenRepository();
@@ -14,7 +15,7 @@ export class ChatService {
   async getOrCreateRoom(hoatDongId: number): Promise<any> {
     const activity = await this.hoatDongRepo.findById(hoatDongId);
     if (!activity) {
-      throw new Error("Hoạt động không tồn tại.");
+      throw new NotFoundError("Hoạt động không tồn tại.");
     }
 
     // Tìm phòng đã tồn tại
@@ -34,7 +35,7 @@ export class ChatService {
   async getRoomById(phongId: number): Promise<any> {
     const room = await this.phongRepo.findById(phongId);
     if (!room) {
-      throw new Error("Phòng trò chuyện không tồn tại.");
+      throw new NotFoundError("Phòng trò chuyện không tồn tại.");
     }
     return room;
   }
@@ -48,7 +49,7 @@ export class ChatService {
   async sendMessage(phongId: number, nguoiGuiId: number, noiDung: string): Promise<any> {
     const room = await this.phongRepo.findById(phongId);
     if (!room) {
-      throw new Error("Phòng trò chuyện không tồn tại.");
+      throw new NotFoundError("Phòng trò chuyện không tồn tại.");
     }
 
     const hoatDongId = room.hoatDongId!;
@@ -58,11 +59,11 @@ export class ChatService {
     const isMember = await this.thanhVienRepo.isMember(nguoiGuiId, hoatDongId);
 
     if (!isOrganizer && !isMember) {
-      throw new Error("Bạn không phải là thành viên của hoạt động này.");
+      throw new ForbiddenError("Bạn không phải là thành viên của hoạt động này.");
     }
 
     if (!noiDung || noiDung.trim().length === 0) {
-      throw new Error("Nội dung tin nhắn không được để trống.");
+      throw new BadRequestError("Nội dung tin nhắn không được để trống.");
     }
 
     return await this.tinNhanRepo.create({
@@ -75,7 +76,7 @@ export class ChatService {
   async getMessages(phongId: number, limit: number = 50, offset: number = 0): Promise<any[]> {
     const room = await this.phongRepo.findById(phongId);
     if (!room) {
-      throw new Error("Phòng trò chuyện không tồn tại.");
+      throw new NotFoundError("Phòng trò chuyện không tồn tại.");
     }
 
     return await this.tinNhanRepo.findByPhongId(phongId, limit, offset);
@@ -84,12 +85,12 @@ export class ChatService {
   async deleteMessage(tinNhanId: number, nguoiDungId: number): Promise<void> {
     const message = await this.tinNhanRepo.findById(tinNhanId);
     if (!message) {
-      throw new Error("Tin nhắn không tồn tại.");
+      throw new NotFoundError("Tin nhắn không tồn tại.");
     }
 
     // Chỉ người gửi mới được xóa
     if (message.nguoiGuiId !== nguoiDungId) {
-      throw new Error("Bạn không có quyền xóa tin nhắn này.");
+      throw new ForbiddenError("Bạn không có quyền xóa tin nhắn này.");
     }
 
     await this.tinNhanRepo.delete(tinNhanId);

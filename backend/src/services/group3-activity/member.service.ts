@@ -3,6 +3,7 @@ import { ThanhVienHoatDongRepository } from "../../repositories/group3-activity/
 import { XacNhanThamDuRepository } from "../../repositories/group3-activity/xacNhanThamDu.repository";
 import { HoatDongRepository } from "../../repositories/group3-activity/hoatDong.repository";
 import { ThongBaoRepository } from "../../repositories/group4-interaction/thongBao.repository";
+import { BadRequestError, ConflictError, ForbiddenError, NotFoundError } from "../../utils/AppError";
 
 export class MemberService {
   private yeuCauRepo = new YeuCauThamGiaRepository();
@@ -16,26 +17,26 @@ export class MemberService {
   async sendJoinRequest(nguoiDungId: number, hoatDongId: number): Promise<any> {
     const activity = await this.hoatDongRepo.findById(hoatDongId);
     if (!activity) {
-      throw new Error("Hoạt động không tồn tại.");
+      throw new NotFoundError("Hoạt động không tồn tại.");
     }
 
     // Kiểm tra đã là thành viên chưa
     const isMember = await this.thanhVienRepo.isMember(nguoiDungId, hoatDongId);
     if (isMember) {
-      throw new Error("Bạn đã là thành viên của hoạt động này.");
+      throw new ConflictError("Bạn đã là thành viên của hoạt động này.");
     }
 
     // Kiểm tra đã gửi yêu cầu trước đó chưa
     const existingRequest = await this.yeuCauRepo.findExistingRequest(hoatDongId, nguoiDungId);
     if (existingRequest) {
       if (existingRequest.trangThai === 'PENDING') {
-        throw new Error("Yêu cầu tham gia của bạn đang chờ xử lý.");
+        throw new ConflictError("Yêu cầu tham gia của bạn đang chờ xử lý.");
       }
       if (existingRequest.trangThai === 'APPROVED') {
-        throw new Error("Bạn đã được duyệt tham gia hoạt động này.");
+        throw new ConflictError("Bạn đã được duyệt tham gia hoạt động này.");
       }
       if (existingRequest.trangThai === 'REJECTED') {
-        throw new Error("Yêu cầu tham gia của bạn đã bị từ chối trước đó.");
+        throw new ConflictError("Yêu cầu tham gia của bạn đã bị từ chối trước đó.");
       }
     }
 
@@ -67,7 +68,7 @@ export class MemberService {
   async approveRequest(yeuCauId: number, nguoiToChucId: number): Promise<any> {
     const request = await this.yeuCauRepo.findById(yeuCauId);
     if (!request) {
-      throw new Error("Yêu cầu không tồn tại.");
+      throw new NotFoundError("Yêu cầu không tồn tại.");
     }
 
     const hoatDongId = request.hoatDongId!;
@@ -76,11 +77,11 @@ export class MemberService {
     // Kiểm tra người duyệt có phải chủ hoạt động không
     const activity = await this.hoatDongRepo.findById(hoatDongId);
     if (!activity || activity.nguoiToChucId !== nguoiToChucId) {
-      throw new Error("Bạn không có quyền duyệt yêu cầu này.");
+      throw new ForbiddenError("Bạn không có quyền duyệt yêu cầu này.");
     }
 
     if (request.trangThai !== 'PENDING') {
-      throw new Error("Yêu cầu này đã được xử lý trước đó.");
+      throw new ConflictError("Yêu cầu này đã được xử lý trước đó.");
     }
 
     // Chấp nhận: tạo thành viên
@@ -105,7 +106,7 @@ export class MemberService {
   async rejectRequest(yeuCauId: number, nguoiToChucId: number): Promise<any> {
     const request = await this.yeuCauRepo.findById(yeuCauId);
     if (!request) {
-      throw new Error("Yêu cầu không tồn tại.");
+      throw new NotFoundError("Yêu cầu không tồn tại.");
     }
 
     const hoatDongId = request.hoatDongId!;
@@ -113,11 +114,11 @@ export class MemberService {
 
     const activity = await this.hoatDongRepo.findById(hoatDongId);
     if (!activity || activity.nguoiToChucId !== nguoiToChucId) {
-      throw new Error("Bạn không có quyền từ chối yêu cầu này.");
+      throw new ForbiddenError("Bạn không có quyền từ chối yêu cầu này.");
     }
 
     if (request.trangThai !== 'PENDING') {
-      throw new Error("Yêu cầu này đã được xử lý trước đó.");
+      throw new ConflictError("Yêu cầu này đã được xử lý trước đó.");
     }
 
     await this.yeuCauRepo.updateStatus(yeuCauId, 'REJECTED');
@@ -142,7 +143,7 @@ export class MemberService {
   async removeMember(thanhVienId: number, nguoiToChucId: number): Promise<void> {
     const member = await this.thanhVienRepo.findById(thanhVienId);
     if (!member) {
-      throw new Error("Thành viên không tồn tại.");
+      throw new NotFoundError("Thành viên không tồn tại.");
     }
 
     const hoatDongId = member.hoatDongId!;
@@ -150,7 +151,7 @@ export class MemberService {
 
     const activity = await this.hoatDongRepo.findById(hoatDongId);
     if (!activity || activity.nguoiToChucId !== nguoiToChucId) {
-      throw new Error("Bạn không có quyền xóa thành viên này.");
+      throw new ForbiddenError("Bạn không có quyền xóa thành viên này.");
     }
 
     await this.thanhVienRepo.delete(thanhVienId);
@@ -167,17 +168,17 @@ export class MemberService {
   async leaveActivity(nguoiDungId: number, hoatDongId: number): Promise<void> {
     const activity = await this.hoatDongRepo.findById(hoatDongId);
     if (!activity) {
-      throw new Error("Hoạt động không tồn tại.");
+      throw new NotFoundError("Hoạt động không tồn tại.");
     }
 
     // Không cho chủ hoạt động rời — chỉ có thể xóa hoạt động
     if (activity.nguoiToChucId === nguoiDungId) {
-      throw new Error("Bạn là người tổ chức, không thể tự rời. Vui lòng xóa hoạt động nếu muốn.");
+      throw new BadRequestError("Bạn là người tổ chức, không thể tự rời. Vui lòng xóa hoạt động nếu muốn.");
     }
 
     const deleted = await this.thanhVienRepo.deleteByUserAndActivity(nguoiDungId, hoatDongId);
     if (!deleted) {
-      throw new Error("Bạn không phải là thành viên của hoạt động này.");
+      throw new ForbiddenError("Bạn không phải là thành viên của hoạt động này.");
     }
   }
 
@@ -186,20 +187,20 @@ export class MemberService {
   async confirmAttendance(thanhVienId: number, nguoiToChucId: number): Promise<any> {
     const member = await this.thanhVienRepo.findById(thanhVienId);
     if (!member) {
-      throw new Error("Thành viên không tồn tại.");
+      throw new NotFoundError("Thành viên không tồn tại.");
     }
 
     const hoatDongId = member.hoatDongId!;
     const activity = await this.hoatDongRepo.findById(hoatDongId);
     if (!activity || activity.nguoiToChucId !== nguoiToChucId) {
-      throw new Error("Chỉ người tổ chức mới có thể xác nhận tham dự.");
+      throw new ForbiddenError("Chỉ người tổ chức mới có thể xác nhận tham dự.");
     }
 
     // Kiểm tra đã có xác nhận chưa
     const existing = await this.xacNhanRepo.findByThanhVienId(thanhVienId);
     if (existing) {
       if (existing.trangThaiThamDu === 'DA_DIEM_DANH') {
-        throw new Error("Thành viên này đã được xác nhận tham dự trước đó.");
+        throw new ConflictError("Thành viên này đã được xác nhận tham dự trước đó.");
       }
       // Cập nhật lại
       const xacNhanId = existing.xacNhanId!;

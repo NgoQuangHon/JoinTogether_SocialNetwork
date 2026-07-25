@@ -1,6 +1,7 @@
 import { VaiTroRepository } from "../../repositories/group1-user/vaiTro.repository";
 import { QuyenHanRepository } from "../../repositories/group1-user/quyenHan.repository";
 import { NhatKyQuanTriRepository } from "../../repositories/group6-admin/nhatKyQuanTri.repository";
+import { NotFoundError } from "../../utils/AppError";
 
 export class RolePermissionService {
   private vaiTroRepo = new VaiTroRepository();
@@ -16,7 +17,7 @@ export class RolePermissionService {
   async getRoleById(id: number): Promise<any> {
     const role = await this.vaiTroRepo.findById(id);
     if (!role) {
-      throw new Error("Vai trò không tồn tại.");
+      throw new NotFoundError("Vai trò không tồn tại.");
     }
     return role;
   }
@@ -37,7 +38,7 @@ export class RolePermissionService {
   async updateRole(id: number, adminId: number, data: { tenVaiTro?: string; moTa?: string }): Promise<any> {
     const existing = await this.vaiTroRepo.findById(id);
     if (!existing) {
-      throw new Error("Vai trò không tồn tại.");
+      throw new NotFoundError("Vai trò không tồn tại.");
     }
 
     const updated = await this.vaiTroRepo.update(id, data);
@@ -55,7 +56,7 @@ export class RolePermissionService {
   async deleteRole(id: number, adminId: number): Promise<void> {
     const existing = await this.vaiTroRepo.findById(id);
     if (!existing) {
-      throw new Error("Vai trò không tồn tại.");
+      throw new NotFoundError("Vai trò không tồn tại.");
     }
 
     await this.vaiTroRepo.delete(id);
@@ -77,7 +78,7 @@ export class RolePermissionService {
   async getPermissionById(id: number): Promise<any> {
     const permission = await this.quyenHanRepo.findById(id);
     if (!permission) {
-      throw new Error("Quyền hạn không tồn tại.");
+      throw new NotFoundError("Quyền hạn không tồn tại.");
     }
     return permission;
   }
@@ -98,7 +99,7 @@ export class RolePermissionService {
   async updatePermission(id: number, adminId: number, data: { tenQuyen?: string; moTa?: string }): Promise<any> {
     const existing = await this.quyenHanRepo.findById(id);
     if (!existing) {
-      throw new Error("Quyền hạn không tồn tại.");
+      throw new NotFoundError("Quyền hạn không tồn tại.");
     }
 
     const updated = await this.quyenHanRepo.update(id, data);
@@ -116,7 +117,7 @@ export class RolePermissionService {
   async deletePermission(id: number, adminId: number): Promise<void> {
     const existing = await this.quyenHanRepo.findById(id);
     if (!existing) {
-      throw new Error("Quyền hạn không tồn tại.");
+      throw new NotFoundError("Quyền hạn không tồn tại.");
     }
 
     await this.quyenHanRepo.delete(id);

@@ -1,8 +1,8 @@
-import { pool } from "../../config/db";
+import { pool, Queryable } from "../../config/db";
 import { DanhGia } from "../../models/group5-review/danhGia.model";
 
 export class DanhGiaRepository {
-  async create(data: Partial<DanhGia>): Promise<DanhGia> {
+  async create(data: Partial<DanhGia>, executor: Queryable = pool): Promise<DanhGia> {
     const query = `
       INSERT INTO danh_gia (hoat_dong_id, nguoi_danh_gia_id, nguoi_duoc_danh_gia_id, nhan_xet, diem_tong)
       VALUES ($1, $2, $3, $4, $5)
@@ -14,7 +14,7 @@ export class DanhGiaRepository {
         nhan_xet AS "nhanXet",
         diem_tong AS "diemTong"
     `;
-    const result = await pool.query(query, [
+    const result = await executor.query(query, [
       data.hoatDongId,
       data.nguoiDanhGiaId,
       data.nguoiDuocDanhGiaId,

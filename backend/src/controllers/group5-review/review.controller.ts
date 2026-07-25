@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { asyncHandler } from "../../utils/asyncHandler";
 import { ReviewService } from "../../services/group5-review/review.service";
 
 export class ReviewController {
@@ -6,9 +7,8 @@ export class ReviewController {
 
   // ==================== UC5.1: GỬI ĐÁNH GIÁ ====================
 
-  public createReview = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const nguoiDanhGiaId = (req as any).user.nguoiDungId;
+  public createReview = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+      const nguoiDanhGiaId = req.user!.nguoiDungId;
       const { hoatDongId, nguoiDuocDanhGiaId, nhanXet, diemTong, chiTiet } = req.body;
 
       if (!hoatDongId || !nguoiDuocDanhGiaId) {
@@ -23,15 +23,11 @@ export class ReviewController {
       });
 
       res.status(201).json({ success: true, message: "Đã gửi đánh giá.", data: result });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  };
+    });
 
   // ==================== UC5.2: XEM ĐÁNH GIÁ ====================
 
-  public getReviewsByActivity = async (req: Request, res: Response): Promise<void> => {
-    try {
+  public getReviewsByActivity = asyncHandler(async (req: Request, res: Response): Promise<void> => {
       const hoatDongId = parseInt(req.params.hoatDongId as string, 10);
 
       if (isNaN(hoatDongId)) {
@@ -41,13 +37,9 @@ export class ReviewController {
 
       const result = await this.reviewService.getReviewsByActivity(hoatDongId);
       res.status(200).json({ success: true, data: result });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  };
+    });
 
-  public getReviewsForUser = async (req: Request, res: Response): Promise<void> => {
-    try {
+  public getReviewsForUser = asyncHandler(async (req: Request, res: Response): Promise<void> => {
       const nguoiDuocDanhGiaId = parseInt(req.params.nguoiDungId as string, 10);
 
       if (isNaN(nguoiDuocDanhGiaId)) {
@@ -57,13 +49,9 @@ export class ReviewController {
 
       const result = await this.reviewService.getReviewsForUser(nguoiDuocDanhGiaId);
       res.status(200).json({ success: true, data: result });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  };
+    });
 
-  public getReviewDetail = async (req: Request, res: Response): Promise<void> => {
-    try {
+  public getReviewDetail = asyncHandler(async (req: Request, res: Response): Promise<void> => {
       const danhGiaId = parseInt(req.params.danhGiaId as string, 10);
 
       if (isNaN(danhGiaId)) {
@@ -73,26 +61,18 @@ export class ReviewController {
 
       const result = await this.reviewService.getReviewDetail(danhGiaId);
       res.status(200).json({ success: true, data: result });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  };
+    });
 
   // ==================== TIÊU CHÍ ĐÁNH GIÁ ====================
 
-  public getAllTieuChi = async (_req: Request, res: Response): Promise<void> => {
-    try {
+  public getAllTieuChi = asyncHandler(async (_req: Request, res: Response): Promise<void> => {
       const result = await this.reviewService.getAllTieuChi();
       res.status(200).json({ success: true, data: result });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  };
+    });
 
   // ==================== UC5.3: XEM ĐIỂM UY TÍN ====================
 
-  public getReputation = async (req: Request, res: Response): Promise<void> => {
-    try {
+  public getReputation = asyncHandler(async (req: Request, res: Response): Promise<void> => {
       const nguoiDungId = parseInt(req.params.nguoiDungId as string, 10);
 
       if (isNaN(nguoiDungId)) {
@@ -102,13 +82,9 @@ export class ReviewController {
 
       const result = await this.reviewService.getReputation(nguoiDungId);
       res.status(200).json({ success: true, data: result });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  };
+    });
 
-  public getReputationHistory = async (req: Request, res: Response): Promise<void> => {
-    try {
+  public getReputationHistory = asyncHandler(async (req: Request, res: Response): Promise<void> => {
       const nguoiDungId = parseInt(req.params.nguoiDungId as string, 10);
 
       if (isNaN(nguoiDungId)) {
@@ -118,9 +94,6 @@ export class ReviewController {
 
       const result = await this.reviewService.getReputationHistory(nguoiDungId);
       res.status(200).json({ success: true, data: result });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  };
+    });
 }
 

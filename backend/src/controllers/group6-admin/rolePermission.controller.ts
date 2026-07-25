@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { asyncHandler } from "../../utils/asyncHandler";
 import { RolePermissionService } from "../../services/group6-admin/rolePermission.service";
 
 export class RolePermissionController {
@@ -6,17 +7,12 @@ export class RolePermissionController {
 
   // ==================== UC7.2: QUẢN LÝ VAI TRÒ ====================
 
-  public getRoles = async (_req: Request, res: Response): Promise<void> => {
-    try {
+  public getRoles = asyncHandler(async (_req: Request, res: Response): Promise<void> => {
       const result = await this.rolePermissionService.getRoles();
       res.status(200).json({ success: true, data: result });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  };
+    });
 
-  public getRoleById = async (req: Request, res: Response): Promise<void> => {
-    try {
+  public getRoleById = asyncHandler(async (req: Request, res: Response): Promise<void> => {
       const id = parseInt(req.params.id as string, 10);
       if (isNaN(id)) {
         res.status(400).json({ success: false, message: "ID vai trò không hợp lệ." });
@@ -24,14 +20,10 @@ export class RolePermissionController {
       }
       const result = await this.rolePermissionService.getRoleById(id);
       res.status(200).json({ success: true, data: result });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  };
+    });
 
-  public createRole = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const adminId = (req as any).user.nguoiDungId;
+  public createRole = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+      const adminId = req.user!.nguoiDungId;
       const { tenVaiTro, moTa } = req.body;
 
       if (!tenVaiTro) {
@@ -41,15 +33,11 @@ export class RolePermissionController {
 
       const result = await this.rolePermissionService.createRole(adminId, { tenVaiTro, moTa });
       res.status(201).json({ success: true, data: result });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  };
+    });
 
-  public updateRole = async (req: Request, res: Response): Promise<void> => {
-    try {
+  public updateRole = asyncHandler(async (req: Request, res: Response): Promise<void> => {
       const id = parseInt(req.params.id as string, 10);
-      const adminId = (req as any).user.nguoiDungId;
+      const adminId = req.user!.nguoiDungId;
       const { tenVaiTro, moTa } = req.body;
 
       if (isNaN(id)) {
@@ -59,15 +47,11 @@ export class RolePermissionController {
 
       const result = await this.rolePermissionService.updateRole(id, adminId, { tenVaiTro, moTa });
       res.status(200).json({ success: true, data: result });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  };
+    });
 
-  public deleteRole = async (req: Request, res: Response): Promise<void> => {
-    try {
+  public deleteRole = asyncHandler(async (req: Request, res: Response): Promise<void> => {
       const id = parseInt(req.params.id as string, 10);
-      const adminId = (req as any).user.nguoiDungId;
+      const adminId = req.user!.nguoiDungId;
 
       if (isNaN(id)) {
         res.status(400).json({ success: false, message: "ID vai trò không hợp lệ." });
@@ -76,24 +60,16 @@ export class RolePermissionController {
 
       await this.rolePermissionService.deleteRole(id, adminId);
       res.status(200).json({ success: true, message: "Đã xóa vai trò." });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  };
+    });
 
   // ==================== UC7.2: QUẢN LÝ QUYỀN HẠN ====================
 
-  public getPermissions = async (_req: Request, res: Response): Promise<void> => {
-    try {
+  public getPermissions = asyncHandler(async (_req: Request, res: Response): Promise<void> => {
       const result = await this.rolePermissionService.getPermissions();
       res.status(200).json({ success: true, data: result });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  };
+    });
 
-  public getPermissionById = async (req: Request, res: Response): Promise<void> => {
-    try {
+  public getPermissionById = asyncHandler(async (req: Request, res: Response): Promise<void> => {
       const id = parseInt(req.params.id as string, 10);
       if (isNaN(id)) {
         res.status(400).json({ success: false, message: "ID quyền hạn không hợp lệ." });
@@ -101,14 +77,10 @@ export class RolePermissionController {
       }
       const result = await this.rolePermissionService.getPermissionById(id);
       res.status(200).json({ success: true, data: result });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  };
+    });
 
-  public createPermission = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const adminId = (req as any).user.nguoiDungId;
+  public createPermission = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+      const adminId = req.user!.nguoiDungId;
       const { tenQuyen, moTa } = req.body;
 
       if (!tenQuyen) {
@@ -118,15 +90,11 @@ export class RolePermissionController {
 
       const result = await this.rolePermissionService.createPermission(adminId, { tenQuyen, moTa });
       res.status(201).json({ success: true, data: result });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  };
+    });
 
-  public updatePermission = async (req: Request, res: Response): Promise<void> => {
-    try {
+  public updatePermission = asyncHandler(async (req: Request, res: Response): Promise<void> => {
       const id = parseInt(req.params.id as string, 10);
-      const adminId = (req as any).user.nguoiDungId;
+      const adminId = req.user!.nguoiDungId;
       const { tenQuyen, moTa } = req.body;
 
       if (isNaN(id)) {
@@ -136,15 +104,11 @@ export class RolePermissionController {
 
       const result = await this.rolePermissionService.updatePermission(id, adminId, { tenQuyen, moTa });
       res.status(200).json({ success: true, data: result });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  };
+    });
 
-  public deletePermission = async (req: Request, res: Response): Promise<void> => {
-    try {
+  public deletePermission = asyncHandler(async (req: Request, res: Response): Promise<void> => {
       const id = parseInt(req.params.id as string, 10);
-      const adminId = (req as any).user.nguoiDungId;
+      const adminId = req.user!.nguoiDungId;
 
       if (isNaN(id)) {
         res.status(400).json({ success: false, message: "ID quyền hạn không hợp lệ." });
@@ -153,9 +117,6 @@ export class RolePermissionController {
 
       await this.rolePermissionService.deletePermission(id, adminId);
       res.status(200).json({ success: true, message: "Đã xóa quyền hạn." });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  };
+    });
 }
 

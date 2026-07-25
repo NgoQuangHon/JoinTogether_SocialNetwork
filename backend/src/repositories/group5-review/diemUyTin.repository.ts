@@ -1,4 +1,4 @@
-import { pool } from "../../config/db";
+import { pool, Queryable } from "../../config/db";
 import { DiemUyTin } from "../../models/group5-review/diemUyTin.model";
 
 export class DiemUyTinRepository {
@@ -34,7 +34,7 @@ export class DiemUyTinRepository {
     return result.rows.length > 0 ? result.rows[0] : null;
   }
 
-  async updateDiem(nguoiDungId: number, diemThayDoi: number): Promise<DiemUyTin | null> {
+  async updateDiem(nguoiDungId: number, diemThayDoi: number, executor: Queryable = pool): Promise<DiemUyTin | null> {
     const query = `
       UPDATE diem_uy_tin
       SET
