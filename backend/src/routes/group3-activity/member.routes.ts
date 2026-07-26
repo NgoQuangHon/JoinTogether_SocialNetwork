@@ -8,14 +8,26 @@ const memberController = new MemberController();
 
 // ==================== UC4.1: GỬI YÊU CẦU THAM GIA ====================
 // POST /api/activities/:id/join — Gửi yêu cầu tham gia hoạt động
-memberRouter.post("/:id/join", authenticateToken, memberController.sendJoinRequest);
+memberRouter.post(
+  "/:id/join",
+  authenticateToken,
+  memberController.sendJoinRequest,
+);
 
 // ==================== THÀNH VIÊN ====================
 // GET /api/activities/:id/members — Danh sách thành viên
-memberRouter.get("/:id/members", authenticateToken, memberController.getMembers);
+memberRouter.get(
+  "/:id/members",
+  authenticateToken,
+  memberController.getMembers,
+);
 
 // DELETE /api/activities/:id/leave — Rời hoạt động
-memberRouter.delete("/:id/leave", authenticateToken, memberController.leaveActivity);
+memberRouter.delete(
+  "/:id/leave",
+  authenticateToken,
+  memberController.leaveActivity,
+);
 
 // ==================== UC4.3: DUYỆT YÊU CẦU THAM GIA ====================
 // GET /api/activities/:id/requests — Danh sách yêu cầu đang chờ
@@ -69,4 +81,3 @@ memberRouter.get(
 );
 
 export default memberRouter;
-

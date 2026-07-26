@@ -13,7 +13,15 @@ export default searchRouter;
 // SearchHistoryRouter — mounted at /api/activities/search-history
 const searchHistoryRouter = Router();
 
-searchHistoryRouter.get("/", authenticateToken, searchController.getSearchHistory);
-searchHistoryRouter.delete("/", authenticateToken, searchController.clearSearchHistory);
+searchHistoryRouter.get(
+  "/",
+  authenticateToken,
+  searchController.getSearchHistory,
+);
+searchHistoryRouter.delete(
+  "/",
+  authenticateToken,
+  searchController.clearSearchHistory,
+);
 
 export { searchHistoryRouter };
