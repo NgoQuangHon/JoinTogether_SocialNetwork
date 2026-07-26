@@ -7,7 +7,11 @@ const adminRouter = Router();
 const adminController = new AdminController();
 
 // --- Nhật ký quản trị (UC6.3) ---
-adminRouter.get("/audit-logs", authenticateToken, requireAdmin, adminController.getAuditLogs);
+adminRouter.get(
+  "/audit-logs",
+  authenticateToken,
+  requireAdmin,
+  adminController.getAuditLogs,
+);
 
 export default adminRouter;
-

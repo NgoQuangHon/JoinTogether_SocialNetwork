@@ -42,7 +42,11 @@ reviewRouter.get(
 // ==================== TIÊU CHÍ ĐÁNH GIÁ ====================
 
 // GET /api/reviews/criteria — Danh sách tiêu chí đánh giá
-reviewRouter.get("/criteria", authenticateToken, reviewController.getAllTieuChi);
+reviewRouter.get(
+  "/criteria",
+  authenticateToken,
+  reviewController.getAllTieuChi,
+);
 
 // ==================== UC5.3: ĐIỂM UY TÍN ====================
 
@@ -61,4 +65,3 @@ reviewRouter.get(
 );
 
 export default reviewRouter;
-

@@ -17,4 +17,3 @@ accountRouter.put("/:id/lock", accountController.lockAccount);
 accountRouter.put("/:id/unlock", accountController.unlockAccount);
 
 export default accountRouter;
-

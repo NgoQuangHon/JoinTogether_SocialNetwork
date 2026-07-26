@@ -24,4 +24,3 @@ rolePermissionRouter.put("/permissions/:id", rpController.updatePermission);
 rolePermissionRouter.delete("/permissions/:id", rpController.deletePermission);
 
 export default rolePermissionRouter;
-

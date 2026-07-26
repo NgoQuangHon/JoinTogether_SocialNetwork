@@ -45,7 +45,11 @@ chatRouter.delete(
 // ==================== THÔNG BÁO ====================
 
 // GET /api/chat/notifications — Lấy thông báo của tôi
-chatRouter.get("/notifications", authenticateToken, chatController.getNotifications);
+chatRouter.get(
+  "/notifications",
+  authenticateToken,
+  chatController.getNotifications,
+);
 
 // DELETE /api/chat/notifications/:thongBaoId — Xóa thông báo
 chatRouter.delete(
@@ -55,4 +59,3 @@ chatRouter.delete(
 );
 
 export default chatRouter;
-
