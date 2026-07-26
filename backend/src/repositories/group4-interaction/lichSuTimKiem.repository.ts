@@ -15,8 +15,8 @@ export class LichSuTimKiemRepository {
     `;
     const result = await pool.query(query, [
       data.nguoiDungId,
-      data.tuKhoaTimKiem ?? null,
-      data.boLocTimKiem ?? null,
+      data.tuKhoaTimKiem === undefined || data.tuKhoaTimKiem === null ? null : data.tuKhoaTimKiem,
+      data.boLocTimKiem === undefined || data.boLocTimKiem === null ? null : data.boLocTimKiem,
     ]);
     return result.rows[0];
   }
@@ -41,6 +41,6 @@ export class LichSuTimKiemRepository {
   async deleteByNguoiDungId(nguoiDungId: number): Promise<boolean> {
     const query = `DELETE FROM lich_su_tim_kiem WHERE nguoi_dung_id = $1`;
     const result = await pool.query(query, [nguoiDungId]);
-    return (result.rowCount ?? 0) > 0;
+    return (result.rowCount === undefined || result.rowCount === null ? 0 : result.rowCount) > 0;
   }
 }

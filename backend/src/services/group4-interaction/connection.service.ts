@@ -35,7 +35,7 @@ export class ConnectionService {
     return await this.yeuCauRepo.create({
       nguoiGuiId,
       nguoiNhanId,
-      loiNhan: loiNhan ?? null,
+      loiNhan: loiNhan === undefined || loiNhan === null ? null : loiNhan,
       trangThai: 'PENDING',
     });
   }

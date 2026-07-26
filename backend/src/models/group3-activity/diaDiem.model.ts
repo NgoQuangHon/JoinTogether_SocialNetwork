@@ -16,11 +16,11 @@ export class DiaDiemModel {
     private _duongDanTrucTuyen?: string | null;
 
     constructor(data: Partial<DiaDiem> = {}) {
-        this._diaDiemId = data.diaDiemId ?? null;
-        this._tenDiaDiem = data.tenDiaDiem ?? null;
-        this._diaChi = data.diaChi ?? null;
-        this._hinhThuc = data.hinhThuc ?? null;
-        this._duongDanTrucTuyen = data.duongDanTrucTuyen ?? null;
+        this._diaDiemId = data.diaDiemId === undefined || data.diaDiemId === null ? null : data.diaDiemId;
+        this._tenDiaDiem = data.tenDiaDiem === undefined || data.tenDiaDiem === null ? null : data.tenDiaDiem;
+        this._diaChi = data.diaChi === undefined || data.diaChi === null ? null : data.diaChi;
+        this._hinhThuc = data.hinhThuc === undefined || data.hinhThuc === null ? null : data.hinhThuc;
+        this._duongDanTrucTuyen = data.duongDanTrucTuyen === undefined || data.duongDanTrucTuyen === null ? null : data.duongDanTrucTuyen;
     }
 
     get diaDiemId(): number | null | undefined {
@@ -69,10 +69,10 @@ export class DiaDiemModel {
 
     static createDiaDiemPayload(data: Partial<DiaDiem>): Partial<DiaDiem> {
         return {
-            tenDiaDiem: data.tenDiaDiem ?? null,
-            diaChi: data.diaChi ?? null,
-            hinhThuc: data.hinhThuc ?? null,
-            duongDanTrucTuyen: data.duongDanTrucTuyen ?? null,
+            tenDiaDiem: data.tenDiaDiem === undefined || data.tenDiaDiem === null ? null : data.tenDiaDiem,
+            diaChi: data.diaChi === undefined || data.diaChi === null ? null : data.diaChi,
+            hinhThuc: data.hinhThuc === undefined || data.hinhThuc === null ? null : data.hinhThuc,
+            duongDanTrucTuyen: data.duongDanTrucTuyen === undefined || data.duongDanTrucTuyen === null ? null : data.duongDanTrucTuyen,
         };
     }
 }

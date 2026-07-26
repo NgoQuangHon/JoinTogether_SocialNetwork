@@ -16,11 +16,11 @@ export class LichSuDiemUyTinModel {
     private readonly _thoiGianCapNhat?: Date | string | null;
 
     constructor(data: Partial<LichSuDiemUyTin> = {}) {
-        this._lichSuId = data.lichSuId ?? null;
+        this._lichSuId = data.lichSuId === undefined || data.lichSuId === null ? null : data.lichSuId;
         this._diemUyTinId = LichSuDiemUyTinValidator.validatePositiveNumber(data.diemUyTinId, 'DiemUyTinId');
         this._diemThayDoi = LichSuDiemUyTinValidator.validateRequiredNumber(data.diemThayDoi, 'DiemThayDoi');
-        this._lyDoThayDoi = data.lyDoThayDoi ?? null;
-        this._thoiGianCapNhat = data.thoiGianCapNhat ?? null;
+        this._lyDoThayDoi = data.lyDoThayDoi === undefined || data.lyDoThayDoi === null ? null : data.lyDoThayDoi;
+        this._thoiGianCapNhat = data.thoiGianCapNhat === undefined || data.thoiGianCapNhat === null ? null : data.thoiGianCapNhat;
     }
 
     get lichSuId(): number | null | undefined {
@@ -44,7 +44,7 @@ export class LichSuDiemUyTinModel {
     }
 
     updateLyDoThayDoi(newLyDoThayDoi: string | null | undefined): void {
-        this._lyDoThayDoi = newLyDoThayDoi ?? null;
+        this._lyDoThayDoi = newLyDoThayDoi === undefined || newLyDoThayDoi === null ? null : newLyDoThayDoi;
     }
 
     static createLichSuDiemUyTinModel(data: Partial<LichSuDiemUyTin>): LichSuDiemUyTinModel {
@@ -53,10 +53,10 @@ export class LichSuDiemUyTinModel {
 
     static createLichSuDiemUyTinPayload(data: Partial<LichSuDiemUyTin>): Partial<LichSuDiemUyTin> {
         return {
-            diemUyTinId: data.diemUyTinId ?? 0,
-            diemThayDoi: data.diemThayDoi ?? 0,
-            lyDoThayDoi: data.lyDoThayDoi ?? null,
-            thoiGianCapNhat: data.thoiGianCapNhat ?? null,
+            diemUyTinId: data.diemUyTinId === undefined || data.diemUyTinId === null ? 0 : data.diemUyTinId,
+            diemThayDoi: data.diemThayDoi === undefined || data.diemThayDoi === null ? 0 : data.diemThayDoi,
+            lyDoThayDoi: data.lyDoThayDoi === undefined || data.lyDoThayDoi === null ? null : data.lyDoThayDoi,
+            thoiGianCapNhat: data.thoiGianCapNhat === undefined || data.thoiGianCapNhat === null ? null : data.thoiGianCapNhat,
         };
     }
 }

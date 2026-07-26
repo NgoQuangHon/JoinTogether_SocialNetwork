@@ -16,7 +16,7 @@ export class LichSuDiemUyTinRepository {
     const result = await pool.query(query, [
       data.diemUyTinId,
       data.diemThayDoi,
-      data.lyDoThayDoi ?? null,
+      data.lyDoThayDoi === undefined || data.lyDoThayDoi === null ? null : data.lyDoThayDoi,
     ]);
     return result.rows[0];
   }

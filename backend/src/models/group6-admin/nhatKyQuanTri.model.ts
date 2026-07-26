@@ -16,11 +16,11 @@ export class NhatKyQuanTriModel {
     private readonly _thoiGianThucHien?: Date | string | null;
 
     constructor(data: Partial<NhatKyQuanTri> = {}) {
-        this._nhatKyId = data.nhatKyId ?? null;
-        this._nguoiQuanTriId = data.nguoiQuanTriId ?? null;
+        this._nhatKyId = data.nhatKyId === undefined || data.nhatKyId === null ? null : data.nhatKyId;
+        this._nguoiQuanTriId = data.nguoiQuanTriId === undefined || data.nguoiQuanTriId === null ? null : data.nguoiQuanTriId;
         this._hanhDong = NhatKyQuanTriValidator.validateRequiredString(data.hanhDong, 'Hành động');
-        this._doiTuongTacDong = data.doiTuongTacDong ?? null;
-        this._thoiGianThucHien = data.thoiGianThucHien ?? null;
+        this._doiTuongTacDong = data.doiTuongTacDong === undefined || data.doiTuongTacDong === null ? null : data.doiTuongTacDong;
+        this._thoiGianThucHien = data.thoiGianThucHien === undefined || data.thoiGianThucHien === null ? null : data.thoiGianThucHien;
     }
 
     get nhatKyId(): number | null | undefined {
@@ -48,7 +48,7 @@ export class NhatKyQuanTriModel {
     }
 
     updateDoiTuongTacDong(newDoiTuongTacDong: string | null | undefined): void {
-        this._doiTuongTacDong = newDoiTuongTacDong ?? null;
+        this._doiTuongTacDong = newDoiTuongTacDong === undefined || newDoiTuongTacDong === null ? null : newDoiTuongTacDong;
     }
 
     static createNhatKyQuanTriModel(data: Partial<NhatKyQuanTri>): NhatKyQuanTriModel {
@@ -57,10 +57,10 @@ export class NhatKyQuanTriModel {
 
     static createNhatKyQuanTriPayload(data: Partial<NhatKyQuanTri>): Partial<NhatKyQuanTri> {
         return {
-            nguoiQuanTriId: data.nguoiQuanTriId ?? null,
-            hanhDong: data.hanhDong ?? '',
-            doiTuongTacDong: data.doiTuongTacDong ?? null,
-            thoiGianThucHien: data.thoiGianThucHien ?? null,
+            nguoiQuanTriId: data.nguoiQuanTriId === undefined || data.nguoiQuanTriId === null ? null : data.nguoiQuanTriId,
+            hanhDong: data.hanhDong === undefined || data.hanhDong === null ? '' : data.hanhDong,
+            doiTuongTacDong: data.doiTuongTacDong === undefined || data.doiTuongTacDong === null ? null : data.doiTuongTacDong,
+            thoiGianThucHien: data.thoiGianThucHien === undefined || data.thoiGianThucHien === null ? null : data.thoiGianThucHien,
         };
     }
 }

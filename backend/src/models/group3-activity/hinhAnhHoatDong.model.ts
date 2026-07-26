@@ -16,11 +16,11 @@ export class HinhAnhHoatDongModel {
     private _laAnhDaiDien?: boolean | null;
 
     constructor(data: Partial<HinhAnhHoatDong> = {}) {
-        this._hinhAnhId = data.hinhAnhId ?? null;
+        this._hinhAnhId = data.hinhAnhId === undefined || data.hinhAnhId === null ? null : data.hinhAnhId;
         this._hoatDongId = HinhAnhHoatDongValidator.validatePositiveNumber(data.hoatDongId, 'HoatDongId');
         this._duongDan = HinhAnhHoatDongValidator.validateRequiredString(data.duongDan, 'Đường dẫn hình ảnh');
-        this._moTa = data.moTa ?? null;
-        this._laAnhDaiDien = data.laAnhDaiDien ?? false;
+        this._moTa = data.moTa === undefined || data.moTa === null ? null : data.moTa;
+        this._laAnhDaiDien = data.laAnhDaiDien === undefined || data.laAnhDaiDien === null ? false : data.laAnhDaiDien;
     }
 
     get hinhAnhId(): number | null | undefined {
@@ -48,7 +48,7 @@ export class HinhAnhHoatDongModel {
     }
 
     updateMoTa(newMoTa: string | null | undefined): void {
-        this._moTa = newMoTa ?? null;
+        this._moTa = newMoTa === undefined || newMoTa === null ? null : newMoTa;
     }
 
     markAsPrimaryImage(laAnhDaiDien: boolean): void {
@@ -61,10 +61,10 @@ export class HinhAnhHoatDongModel {
 
     static createHinhAnhHoatDongPayload(data: Partial<HinhAnhHoatDong>): Partial<HinhAnhHoatDong> {
         return {
-            hoatDongId: data.hoatDongId ?? 0,
-            duongDan: data.duongDan ?? '',
-            moTa: data.moTa ?? null,
-            laAnhDaiDien: data.laAnhDaiDien ?? false,
+            hoatDongId: data.hoatDongId === undefined || data.hoatDongId === null ? 0 : data.hoatDongId,
+            duongDan: data.duongDan === undefined || data.duongDan === null ? '' : data.duongDan,
+            moTa: data.moTa === undefined || data.moTa === null ? null : data.moTa,
+            laAnhDaiDien: data.laAnhDaiDien === undefined || data.laAnhDaiDien === null ? false : data.laAnhDaiDien,
         };
     }
 }

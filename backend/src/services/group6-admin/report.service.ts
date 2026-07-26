@@ -51,7 +51,7 @@ export class ReportService {
       nguoiBaoCaoId,
       nguoiBiBaoCaoId: data.nguoiBiBaoCaoId,
       loaiViPhamId: data.loaiViPhamId,
-      noiDung: data.noiDung ?? null,
+      noiDung: data.noiDung === undefined || data.noiDung === null ? null : data.noiDung,
     });
 
     // Thêm bằng chứng nếu có
@@ -59,7 +59,7 @@ export class ReportService {
       for (const bc of data.bangChung) {
         await this.bangChungRepo.create({
           baoCaoId: baoCao.baoCaoId!,
-          loaiBangChung: bc.loaiBangChung ?? null,
+          loaiBangChung: bc.loaiBangChung === undefined || bc.loaiBangChung === null ? null : bc.loaiBangChung,
           duongDan: bc.duongDan,
         });
       }

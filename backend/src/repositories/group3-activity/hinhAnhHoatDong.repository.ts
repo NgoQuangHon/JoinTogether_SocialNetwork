@@ -47,8 +47,8 @@ export class HinhAnhHoatDongRepository {
     const result = await pool.query(query, [
       data.hoatDongId,
       data.duongDan,
-      data.moTa ?? null,
-      data.laAnhDaiDien ?? false,
+      data.moTa === undefined || data.moTa === null ? null : data.moTa,
+      data.laAnhDaiDien === undefined || data.laAnhDaiDien === null ? false : data.laAnhDaiDien,
     ]);
     return result.rows[0];
   }
@@ -56,7 +56,7 @@ export class HinhAnhHoatDongRepository {
   async delete(id: number): Promise<boolean> {
     const query = `DELETE FROM hinh_anh_hoat_dong WHERE hinh_anh_id = $1`;
     const result = await pool.query(query, [id]);
-    return (result.rowCount ?? 0) > 0;
+    return (result.rowCount === undefined || result.rowCount === null ? 0 : result.rowCount) > 0;
   }
 
   async setPrimaryImage(hoatDongId: number, hinhAnhId: number): Promise<void> {

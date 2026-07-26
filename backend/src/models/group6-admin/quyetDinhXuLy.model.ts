@@ -16,11 +16,11 @@ export class QuyetDinhXuLyModel {
     private readonly _ngayXuLy?: Date | string | null;
 
     constructor(data: Partial<QuyetDinhXuLy> = {}) {
-        this._quyetDinhId = data.quyetDinhId ?? null;
+        this._quyetDinhId = data.quyetDinhId === undefined || data.quyetDinhId === null ? null : data.quyetDinhId;
         this._baoCaoId = QuyetDinhXuLyValidator.validatePositiveNumber(data.baoCaoId, 'BaoCaoId');
-        this._nguoiXuLyId = data.nguoiXuLyId ?? null;
-        this._ketQua = data.ketQua ?? null;
-        this._ngayXuLy = data.ngayXuLy ?? null;
+        this._nguoiXuLyId = data.nguoiXuLyId === undefined || data.nguoiXuLyId === null ? null : data.nguoiXuLyId;
+        this._ketQua = data.ketQua === undefined || data.ketQua === null ? null : data.ketQua;
+        this._ngayXuLy = data.ngayXuLy === undefined || data.ngayXuLy === null ? null : data.ngayXuLy;
     }
 
     get quyetDinhId(): number | null | undefined {
@@ -44,7 +44,7 @@ export class QuyetDinhXuLyModel {
     }
 
     updateKetQua(newKetQua: string | null | undefined): void {
-        this._ketQua = newKetQua ?? null;
+        this._ketQua = newKetQua === undefined || newKetQua === null ? null : newKetQua;
     }
 
     static createQuyetDinhXuLyModel(data: Partial<QuyetDinhXuLy>): QuyetDinhXuLyModel {
@@ -53,10 +53,10 @@ export class QuyetDinhXuLyModel {
 
     static createQuyetDinhXuLyPayload(data: Partial<QuyetDinhXuLy>): Partial<QuyetDinhXuLy> {
         return {
-            baoCaoId: data.baoCaoId ?? 0,
-            nguoiXuLyId: data.nguoiXuLyId ?? null,
-            ketQua: data.ketQua ?? null,
-            ngayXuLy: data.ngayXuLy ?? null,
+            baoCaoId: data.baoCaoId === undefined || data.baoCaoId === null ? 0 : data.baoCaoId,
+            nguoiXuLyId: data.nguoiXuLyId === undefined || data.nguoiXuLyId === null ? null : data.nguoiXuLyId,
+            ketQua: data.ketQua === undefined || data.ketQua === null ? null : data.ketQua,
+            ngayXuLy: data.ngayXuLy === undefined || data.ngayXuLy === null ? null : data.ngayXuLy,
         };
     }
 }

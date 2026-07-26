@@ -17,7 +17,7 @@ export class BaoCaoViPhamRepository {
       data.nguoiBaoCaoId,
       data.nguoiBiBaoCaoId,
       data.loaiViPhamId,
-      data.noiDung ?? null,
+      data.noiDung === undefined || data.noiDung === null ? null : data.noiDung,
     ]);
     return result.rows[0];
   }

@@ -16,11 +16,11 @@ export class TieuChiThamGiaModel {
     private _batBuoc?: boolean | null;
 
     constructor(data: Partial<TieuChiThamGia> = {}) {
-        this._tieuChiId = data.tieuChiId ?? null;
+        this._tieuChiId = data.tieuChiId === undefined || data.tieuChiId === null ? null : data.tieuChiId;
         this._hoatDongId = TieuChiThamGiaValidator.validatePositiveNumber(data.hoatDongId, 'HoatDongId');
         this._tenTieuChi = TieuChiThamGiaValidator.validateRequiredString(data.tenTieuChi, 'Tên tiêu chí');
-        this._giaTriYeuCau = data.giaTriYeuCau ?? null;
-        this._batBuoc = data.batBuoc ?? false;
+        this._giaTriYeuCau = data.giaTriYeuCau === undefined || data.giaTriYeuCau === null ? null : data.giaTriYeuCau;
+        this._batBuoc = data.batBuoc === undefined || data.batBuoc === null ? false : data.batBuoc;
     }
 
     get tieuChiId(): number | null | undefined {
@@ -48,7 +48,7 @@ export class TieuChiThamGiaModel {
     }
 
     updateGiaTriYeuCau(newGiaTriYeuCau: string | null | undefined): void {
-        this._giaTriYeuCau = newGiaTriYeuCau ?? null;
+        this._giaTriYeuCau = newGiaTriYeuCau === undefined || newGiaTriYeuCau === null ? null : newGiaTriYeuCau;
     }
 
     setRequired(batBuoc: boolean): void {
@@ -61,10 +61,10 @@ export class TieuChiThamGiaModel {
 
     static createTieuChiThamGiaPayload(data: Partial<TieuChiThamGia>): Partial<TieuChiThamGia> {
         return {
-            hoatDongId: data.hoatDongId ?? 0,
-            tenTieuChi: data.tenTieuChi ?? '',
-            giaTriYeuCau: data.giaTriYeuCau ?? null,
-            batBuoc: data.batBuoc ?? false,
+            hoatDongId: data.hoatDongId === undefined || data.hoatDongId === null ? 0 : data.hoatDongId,
+            tenTieuChi: data.tenTieuChi === undefined || data.tenTieuChi === null ? '' : data.tenTieuChi,
+            giaTriYeuCau: data.giaTriYeuCau === undefined || data.giaTriYeuCau === null ? null : data.giaTriYeuCau,
+            batBuoc: data.batBuoc === undefined || data.batBuoc === null ? false : data.batBuoc,
         };
     }
 }

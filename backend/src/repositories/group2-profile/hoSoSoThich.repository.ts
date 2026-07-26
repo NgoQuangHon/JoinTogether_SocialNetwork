@@ -12,7 +12,7 @@ export class HoSoSoThichRepository {
         so_thich_id as "soThichId",
         muc_do_quan_tam as "mucDoQuanTam"
     `;
-    const result = await pool.query(query, [hoSoId, soThichId, mucDoQuanTam ?? null]);
+    const result = await pool.query(query, [hoSoId, soThichId, mucDoQuanTam === undefined || mucDoQuanTam === null ? null : mucDoQuanTam]);
     return result.rows.length > 0 ? result.rows[0] : null;
   }
 
@@ -22,7 +22,7 @@ export class HoSoSoThichRepository {
       WHERE ho_so_id = $1 AND so_thich_id = $2
     `;
     const result = await pool.query(query, [hoSoId, soThichId]);
-    return (result.rowCount ?? 0) > 0;
+    return (result.rowCount === undefined || result.rowCount === null ? 0 : result.rowCount) > 0;
   }
 
   async findByHoSoIdAndSoThichId(hoSoId: number, soThichId: number): Promise<HoSoSoThich | null> {

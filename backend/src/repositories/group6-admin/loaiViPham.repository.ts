@@ -42,8 +42,8 @@ export class LoaiViPhamRepository {
     `;
     const result = await pool.query(query, [
       data.tenLoai,
-      data.moTa ?? null,
-      data.mucDo ?? null,
+      data.moTa === undefined || data.moTa === null ? null : data.moTa,
+      data.mucDo === undefined || data.mucDo === null ? null : data.mucDo,
     ]);
     return result.rows[0];
   }
@@ -88,7 +88,7 @@ export class LoaiViPhamRepository {
   async delete(id: number): Promise<boolean> {
     const query = `DELETE FROM loai_vi_pham WHERE loai_vi_pham_id = $1`;
     const result = await pool.query(query, [id]);
-    return (result.rowCount ?? 0) > 0;
+    return (result.rowCount === undefined || result.rowCount === null ? 0 : result.rowCount) > 0;
   }
 
   async getStats(): Promise<any> {

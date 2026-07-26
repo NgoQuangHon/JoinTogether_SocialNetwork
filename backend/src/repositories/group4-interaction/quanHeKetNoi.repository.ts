@@ -16,7 +16,7 @@ export class QuanHeKetNoiRepository {
     const result = await executor.query(query, [
       data.nguoiDungId1,
       data.nguoiDungId2,
-      data.trangThai ?? 'ACTIVE',
+      data.trangThai === undefined || data.trangThai === null ? 'ACTIVE' : data.trangThai,
     ]);
     return result.rows[0];
   }
@@ -65,6 +65,6 @@ export class QuanHeKetNoiRepository {
         AND trang_thai = 'ACTIVE'
     `;
     const result = await pool.query(query, [nguoiDungId1, nguoiDungId2]);
-    return (result.rowCount ?? 0) > 0;
+    return (result.rowCount === undefined || result.rowCount === null ? 0 : result.rowCount) > 0;
   }
 }

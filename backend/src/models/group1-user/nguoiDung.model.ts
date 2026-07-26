@@ -18,12 +18,12 @@ export class NguoiDungModel {
     private readonly _ngayTao?: Date | string | null;
 
     constructor(data: Partial<NguoiDung> = {}) {
-        this._nguoiDungId = data.nguoiDungId ?? null;
+        this._nguoiDungId = data.nguoiDungId === undefined || data.nguoiDungId === null ? null : data.nguoiDungId;
         this._hoTen = NguoiDungValidator.validateRequiredString(data.hoTen, 'Họ tên');
         this._email = NguoiDungValidator.validateEmail(data.email);
-        this._soDienThoai = data.soDienThoai ?? null;
-        this._trangThai = data.trangThai ?? null;
-        this._ngayTao = data.ngayTao ?? null;
+        this._soDienThoai = data.soDienThoai === undefined || data.soDienThoai === null ? null : data.soDienThoai;
+        this._trangThai = data.trangThai === undefined || data.trangThai === null ? null : data.trangThai;
+        this._ngayTao = data.ngayTao === undefined || data.ngayTao === null ? null : data.ngayTao;
     }
 
     get nguoiDungId(): number | null | undefined {
@@ -59,11 +59,11 @@ export class NguoiDungModel {
     }
 
     updateSoDienThoai(newSoDienThoai: string | null | undefined): void {
-        this._soDienThoai = newSoDienThoai ?? null;
+        this._soDienThoai = newSoDienThoai === undefined || newSoDienThoai === null ? null : newSoDienThoai;
     }
 
     updateTrangThai(newTrangThai: string | null | undefined): void {
-        this._trangThai = newTrangThai ?? null;
+        this._trangThai = newTrangThai === undefined || newTrangThai === null ? null : newTrangThai;
     }
 
     static createNguoiDungModel(data: Partial<NguoiDung>): NguoiDungModel {
@@ -72,11 +72,11 @@ export class NguoiDungModel {
 
     static createNguoiDungPayload(data: Partial<NguoiDung>): Partial<NguoiDung> {
         return {
-            hoTen: data.hoTen ?? '',
-            email: data.email ?? '',
-            soDienThoai: data.soDienThoai ?? null,
-            trangThai: data.trangThai ?? null,
-            ngayTao: data.ngayTao ?? null,
+            hoTen: data.hoTen === undefined || data.hoTen === null ? '' : data.hoTen,
+            email: data.email === undefined || data.email === null ? '' : data.email,
+            soDienThoai: data.soDienThoai === undefined || data.soDienThoai === null ? null : data.soDienThoai,
+            trangThai: data.trangThai === undefined || data.trangThai === null ? null : data.trangThai,
+            ngayTao: data.ngayTao === undefined || data.ngayTao === null ? null : data.ngayTao,
         };
     }
 }

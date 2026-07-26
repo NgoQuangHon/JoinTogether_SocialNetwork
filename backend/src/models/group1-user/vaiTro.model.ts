@@ -12,9 +12,9 @@ export class VaiTroModel {
     private _moTa?: string | null;
 
     constructor(data: Partial<VaiTro> = {}) {
-        this._vaiTroId = data.vaiTroId ?? null;
+        this._vaiTroId = data.vaiTroId === undefined || data.vaiTroId === null ? null : data.vaiTroId;
         this._tenVaiTro = VaiTroValidator.validateRequiredString(data.tenVaiTro, 'Tên vai trò');
-        this._moTa = data.moTa ?? null;
+        this._moTa = data.moTa === undefined || data.moTa === null ? null : data.moTa;
     }
 
     get vaiTroId(): number | null | undefined {
@@ -34,7 +34,7 @@ export class VaiTroModel {
     }
 
     updateMoTa(newMoTa: string | null | undefined): void {
-        this._moTa = newMoTa ?? null;
+        this._moTa = newMoTa === undefined || newMoTa === null ? null : newMoTa;
     }
 
     static createVaiTroModel(data: Partial<VaiTro>): VaiTroModel {
@@ -43,8 +43,8 @@ export class VaiTroModel {
 
     static createVaiTroPayload(data: Partial<VaiTro>): Partial<VaiTro> {
         return {
-            tenVaiTro: data.tenVaiTro ?? '',
-            moTa: data.moTa ?? null,
+            tenVaiTro: data.tenVaiTro === undefined || data.tenVaiTro === null ? '' : data.tenVaiTro,
+            moTa: data.moTa === undefined || data.moTa === null ? null : data.moTa,
         };
     }
 }

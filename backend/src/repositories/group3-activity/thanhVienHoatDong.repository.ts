@@ -16,7 +16,7 @@ export class ThanhVienHoatDongRepository {
     const result = await pool.query(query, [
       data.hoatDongId,
       data.nguoiDungId,
-      data.yeuCauId ?? null,
+      data.yeuCauId === undefined || data.yeuCauId === null ? null : data.yeuCauId,
     ]);
     return result.rows[0];
   }
@@ -81,13 +81,13 @@ export class ThanhVienHoatDongRepository {
       LIMIT 1
     `;
     const result = await pool.query(query, [hoatDongId, nguoiDungId]);
-    return (result.rowCount ?? 0) > 0;
+    return (result.rowCount === undefined || result.rowCount === null ? 0 : result.rowCount) > 0;
   }
 
   async delete(id: number): Promise<boolean> {
     const query = `DELETE FROM thanh_vien_hoat_dong WHERE thanh_vien_id = $1`;
     const result = await pool.query(query, [id]);
-    return (result.rowCount ?? 0) > 0;
+    return (result.rowCount === undefined || result.rowCount === null ? 0 : result.rowCount) > 0;
   }
 
   async deleteByUserAndActivity(nguoiDungId: number, hoatDongId: number): Promise<boolean> {
@@ -96,7 +96,7 @@ export class ThanhVienHoatDongRepository {
       WHERE nguoi_dung_id = $1 AND hoat_dong_id = $2
     `;
     const result = await pool.query(query, [nguoiDungId, hoatDongId]);
-    return (result.rowCount ?? 0) > 0;
+    return (result.rowCount === undefined || result.rowCount === null ? 0 : result.rowCount) > 0;
   }
 }
 

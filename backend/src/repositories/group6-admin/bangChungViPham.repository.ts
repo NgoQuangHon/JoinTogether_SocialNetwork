@@ -14,7 +14,7 @@ export class BangChungViPhamRepository {
     `;
     const result = await pool.query(query, [
       data.baoCaoId,
-      data.loaiBangChung ?? null,
+      data.loaiBangChung === undefined || data.loaiBangChung === null ? null : data.loaiBangChung,
       data.duongDan,
     ]);
     return result.rows[0];

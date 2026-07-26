@@ -14,8 +14,8 @@ export class XacNhanThamDuRepository {
     `;
     const result = await pool.query(query, [
       data.thanhVienId,
-      data.trangThaiThamDu ?? 'CHUA_DIEM_DANH',
-      data.thoiGianCheckIn ?? null,
+      data.trangThaiThamDu === undefined || data.trangThaiThamDu === null ? 'CHUA_DIEM_DANH' : data.trangThaiThamDu,
+      data.thoiGianCheckIn === undefined || data.thoiGianCheckIn === null ? null : data.thoiGianCheckIn,
     ]);
     return result.rows[0];
   }

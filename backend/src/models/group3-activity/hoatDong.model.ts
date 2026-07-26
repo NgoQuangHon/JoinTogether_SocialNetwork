@@ -22,14 +22,14 @@ export class HoatDongModel {
     private _thoiGianKetThuc?: Date | string | null;
 
     constructor(data: Partial<HoatDong> = {}) {
-        this._hoatDongId = data.hoatDongId ?? null;
-        this._nguoiToChucId = data.nguoiToChucId ?? null;
-        this._danhMucHoatDongId = data.danhMucHoatDongId ?? null;
-        this._diaDiemId = data.diaDiemId ?? null;
+        this._hoatDongId = data.hoatDongId === undefined || data.hoatDongId === null ? null : data.hoatDongId;
+        this._nguoiToChucId = data.nguoiToChucId === undefined || data.nguoiToChucId === null ? null : data.nguoiToChucId;
+        this._danhMucHoatDongId = data.danhMucHoatDongId === undefined || data.danhMucHoatDongId === null ? null : data.danhMucHoatDongId;
+        this._diaDiemId = data.diaDiemId === undefined || data.diaDiemId === null ? null : data.diaDiemId;
         this._tenHoatDong = HoatDongValidator.validateRequiredString(data.tenHoatDong, 'Tên hoạt động');
-        this._moTa = data.moTa ?? null;
-        this._thoiGianBatDau = data.thoiGianBatDau ?? null;
-        this._thoiGianKetThuc = data.thoiGianKetThuc ?? null;
+        this._moTa = data.moTa === undefined || data.moTa === null ? null : data.moTa;
+        this._thoiGianBatDau = data.thoiGianBatDau === undefined || data.thoiGianBatDau === null ? null : data.thoiGianBatDau;
+        this._thoiGianKetThuc = data.thoiGianKetThuc === undefined || data.thoiGianKetThuc === null ? null : data.thoiGianKetThuc;
     }
 
     get hoatDongId(): number | null | undefined {
@@ -69,15 +69,15 @@ export class HoatDongModel {
     }
 
     updateMoTa(newMoTa: string | null | undefined): void {
-        this._moTa = newMoTa ?? null;
+        this._moTa = newMoTa === undefined || newMoTa === null ? null : newMoTa;
     }
 
     updateThoiGianBatDau(newThoiGianBatDau: Date | string | null | undefined): void {
-        this._thoiGianBatDau = newThoiGianBatDau ?? null;
+        this._thoiGianBatDau = newThoiGianBatDau === undefined || newThoiGianBatDau === null ? null : newThoiGianBatDau;
     }
 
     updateThoiGianKetThuc(newThoiGianKetThuc: Date | string | null | undefined): void {
-        this._thoiGianKetThuc = newThoiGianKetThuc ?? null;
+        this._thoiGianKetThuc = newThoiGianKetThuc === undefined || newThoiGianKetThuc === null ? null : newThoiGianKetThuc;
     }
 
     static createHoatDongModel(data: Partial<HoatDong>): HoatDongModel {
@@ -86,13 +86,13 @@ export class HoatDongModel {
 
     static createHoatDongPayload(data: Partial<HoatDong>): Partial<HoatDong> {
         return {
-            nguoiToChucId: data.nguoiToChucId ?? null,
-            danhMucHoatDongId: data.danhMucHoatDongId ?? null,
-            diaDiemId: data.diaDiemId ?? null,
-            tenHoatDong: data.tenHoatDong ?? '',
-            moTa: data.moTa ?? null,
-            thoiGianBatDau: data.thoiGianBatDau ?? null,
-            thoiGianKetThuc: data.thoiGianKetThuc ?? null,
+            nguoiToChucId: data.nguoiToChucId === undefined || data.nguoiToChucId === null ? null : data.nguoiToChucId,
+            danhMucHoatDongId: data.danhMucHoatDongId === undefined || data.danhMucHoatDongId === null ? null : data.danhMucHoatDongId,
+            diaDiemId: data.diaDiemId === undefined || data.diaDiemId === null ? null : data.diaDiemId,
+            tenHoatDong: data.tenHoatDong === undefined || data.tenHoatDong === null ? '' : data.tenHoatDong,
+            moTa: data.moTa === undefined || data.moTa === null ? null : data.moTa,
+            thoiGianBatDau: data.thoiGianBatDau === undefined || data.thoiGianBatDau === null ? null : data.thoiGianBatDau,
+            thoiGianKetThuc: data.thoiGianKetThuc === undefined || data.thoiGianKetThuc === null ? null : data.thoiGianKetThuc,
         };
     }
 }

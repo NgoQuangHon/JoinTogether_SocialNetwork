@@ -12,9 +12,9 @@ export class DanhMucSoThichModel {
     private _moTa?: string | null;
 
     constructor(data: Partial<DanhMucSoThich> = {}) {
-        this._danhMucSoThichId = data.danhMucSoThichId ?? null;
+        this._danhMucSoThichId = data.danhMucSoThichId === undefined || data.danhMucSoThichId === null ? null : data.danhMucSoThichId;
         this._tenDanhMuc = DanhMucSoThichValidator.validateRequiredString(data.tenDanhMuc, 'Tên danh mục sở thích');
-        this._moTa = data.moTa ?? null;
+        this._moTa = data.moTa === undefined || data.moTa === null ? null : data.moTa;
     }
 
     get danhMucSoThichId(): number | null | undefined {
@@ -34,7 +34,7 @@ export class DanhMucSoThichModel {
     }
 
     updateMoTa(newMoTa: string | null | undefined): void {
-        this._moTa = newMoTa ?? null;
+        this._moTa = newMoTa === undefined || newMoTa === null ? null : newMoTa;
     }
 
     static createDanhMucSoThichModel(data: Partial<DanhMucSoThich>): DanhMucSoThichModel {
@@ -43,8 +43,8 @@ export class DanhMucSoThichModel {
 
     static createDanhMucSoThichPayload(data: Partial<DanhMucSoThich>): Partial<DanhMucSoThich> {
         return {
-            tenDanhMuc: data.tenDanhMuc ?? '',
-            moTa: data.moTa ?? null,
+            tenDanhMuc: data.tenDanhMuc === undefined || data.tenDanhMuc === null ? '' : data.tenDanhMuc,
+            moTa: data.moTa === undefined || data.moTa === null ? null : data.moTa,
         };
     }
 }

@@ -16,11 +16,11 @@ export class ThanhVienHoatDongModel {
     private _ngayThamGia?: Date | string | null;
 
     constructor(data: Partial<ThanhVienHoatDong> = {}) {
-        this._thanhVienId = data.thanhVienId ?? null;
+        this._thanhVienId = data.thanhVienId === undefined || data.thanhVienId === null ? null : data.thanhVienId;
         this._hoatDongId = ThanhVienHoatDongValidator.validatePositiveNumber(data.hoatDongId, 'HoatDongId');
         this._nguoiDungId = ThanhVienHoatDongValidator.validatePositiveNumber(data.nguoiDungId, 'NguoiDungId');
-        this._yeuCauId = data.yeuCauId ?? null;
-        this._ngayThamGia = data.ngayThamGia ?? null;
+        this._yeuCauId = data.yeuCauId === undefined || data.yeuCauId === null ? null : data.yeuCauId;
+        this._ngayThamGia = data.ngayThamGia === undefined || data.ngayThamGia === null ? null : data.ngayThamGia;
     }
 
     get thanhVienId(): number | null | undefined {
@@ -44,7 +44,7 @@ export class ThanhVienHoatDongModel {
     }
 
     updateYeuCauId(newYeuCauId: number | null | undefined): void {
-        this._yeuCauId = newYeuCauId ?? null;
+        this._yeuCauId = newYeuCauId === undefined || newYeuCauId === null ? null : newYeuCauId;
     }
 
     static createThanhVienHoatDongModel(data: Partial<ThanhVienHoatDong>): ThanhVienHoatDongModel {
@@ -53,10 +53,10 @@ export class ThanhVienHoatDongModel {
 
     static createThanhVienHoatDongPayload(data: Partial<ThanhVienHoatDong>): Partial<ThanhVienHoatDong> {
         return {
-            hoatDongId: data.hoatDongId ?? 0,
-            nguoiDungId: data.nguoiDungId ?? 0,
-            yeuCauId: data.yeuCauId ?? null,
-            ngayThamGia: data.ngayThamGia ?? null,
+            hoatDongId: data.hoatDongId === undefined || data.hoatDongId === null ? 0 : data.hoatDongId,
+            nguoiDungId: data.nguoiDungId === undefined || data.nguoiDungId === null ? 0 : data.nguoiDungId,
+            yeuCauId: data.yeuCauId === undefined || data.yeuCauId === null ? null : data.yeuCauId,
+            ngayThamGia: data.ngayThamGia === undefined || data.ngayThamGia === null ? null : data.ngayThamGia,
         };
     }
 }

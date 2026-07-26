@@ -16,8 +16,8 @@ export class YeuCauKetNoiRepository {
     const result = await pool.query(query, [
       data.nguoiGuiId,
       data.nguoiNhanId,
-      data.loiNhan ?? null,
-      data.trangThai ?? 'PENDING',
+      data.loiNhan === undefined || data.loiNhan === null ? null : data.loiNhan,
+      data.trangThai === undefined || data.trangThai === null ? 'PENDING' : data.trangThai,
     ]);
     return result.rows[0];
   }
@@ -93,6 +93,6 @@ export class YeuCauKetNoiRepository {
   async delete(id: number): Promise<boolean> {
     const query = `DELETE FROM yeu_cau_ket_noi WHERE yeu_cau_ket_noi_id = $1`;
     const result = await pool.query(query, [id]);
-    return (result.rowCount ?? 0) > 0;
+    return (result.rowCount === undefined || result.rowCount === null ? 0 : result.rowCount) > 0;
   }
 }

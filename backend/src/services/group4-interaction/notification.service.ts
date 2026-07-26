@@ -32,7 +32,7 @@ export class NotificationService {
       nguoiNhanId,
       tieuDe,
       noiDung,
-      loaiThongBao: loaiThongBao ?? 'CHUNG',
+      loaiThongBao: loaiThongBao === undefined || loaiThongBao === null ? 'CHUNG' : loaiThongBao,
     });
   }
 }

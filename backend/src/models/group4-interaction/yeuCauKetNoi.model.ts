@@ -16,11 +16,11 @@ export class YeuCauKetNoiModel {
     private _trangThai?: string | null;
 
     constructor(data: Partial<YeuCauKetNoi> = {}) {
-        this._yeuCauKetNoiId = data.yeuCauKetNoiId ?? null;
+        this._yeuCauKetNoiId = data.yeuCauKetNoiId === undefined || data.yeuCauKetNoiId === null ? null : data.yeuCauKetNoiId;
         this._nguoiGuiId = YeuCauKetNoiValidator.validatePositiveNumber(data.nguoiGuiId, 'NguoiGuiId');
         this._nguoiNhanId = YeuCauKetNoiValidator.validatePositiveNumber(data.nguoiNhanId, 'NguoiNhanId');
-        this._loiNhan = data.loiNhan ?? null;
-        this._trangThai = data.trangThai ?? null;
+        this._loiNhan = data.loiNhan === undefined || data.loiNhan === null ? null : data.loiNhan;
+        this._trangThai = data.trangThai === undefined || data.trangThai === null ? null : data.trangThai;
     }
 
     get yeuCauKetNoiId(): number | null | undefined {
@@ -44,11 +44,11 @@ export class YeuCauKetNoiModel {
     }
 
     updateLoiNhan(newLoiNhan: string | null | undefined): void {
-        this._loiNhan = newLoiNhan ?? null;
+        this._loiNhan = newLoiNhan === undefined || newLoiNhan === null ? null : newLoiNhan;
     }
 
     updateTrangThai(newTrangThai: string | null | undefined): void {
-        this._trangThai = newTrangThai ?? null;
+        this._trangThai = newTrangThai === undefined || newTrangThai === null ? null : newTrangThai;
     }
 
     static createYeuCauKetNoiModel(data: Partial<YeuCauKetNoi>): YeuCauKetNoiModel {
@@ -57,10 +57,10 @@ export class YeuCauKetNoiModel {
 
     static createYeuCauKetNoiPayload(data: Partial<YeuCauKetNoi>): Partial<YeuCauKetNoi> {
         return {
-            nguoiGuiId: data.nguoiGuiId ?? 0,
-            nguoiNhanId: data.nguoiNhanId ?? 0,
-            loiNhan: data.loiNhan ?? null,
-            trangThai: data.trangThai ?? null,
+            nguoiGuiId: data.nguoiGuiId === undefined || data.nguoiGuiId === null ? 0 : data.nguoiGuiId,
+            nguoiNhanId: data.nguoiNhanId === undefined || data.nguoiNhanId === null ? 0 : data.nguoiNhanId,
+            loiNhan: data.loiNhan === undefined || data.loiNhan === null ? null : data.loiNhan,
+            trangThai: data.trangThai === undefined || data.trangThai === null ? null : data.trangThai,
         };
     }
 }

@@ -15,8 +15,8 @@ export class PhongTroChuyenRepository {
     `;
     const result = await pool.query(query, [
       data.hoatDongId,
-      data.tenPhong ?? null,
-      data.trangThai ?? 'ACTIVE',
+      data.tenPhong === undefined || data.tenPhong === null ? null : data.tenPhong,
+      data.trangThai === undefined || data.trangThai === null ? 'ACTIVE' : data.trangThai,
     ]);
     return result.rows[0];
   }

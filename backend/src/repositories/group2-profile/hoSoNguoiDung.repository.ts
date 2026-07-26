@@ -36,12 +36,12 @@ export class HoSoNguoiDungRepository {
     `;
     const values = [
       data.nguoiDungId,
-      data.tieuSu ?? null,
-      data.ngaySinh ?? null,
-      data.khuVuc ?? null,
-      data.mucTieuThamGia ?? null,
-      data.thoiGianRanh ?? null,
-      data.anhDaiDien ?? null,
+      data.tieuSu === undefined || data.tieuSu === null ? null : data.tieuSu,
+      data.ngaySinh === undefined || data.ngaySinh === null ? null : data.ngaySinh,
+      data.khuVuc === undefined || data.khuVuc === null ? null : data.khuVuc,
+      data.mucTieuThamGia === undefined || data.mucTieuThamGia === null ? null : data.mucTieuThamGia,
+      data.thoiGianRanh === undefined || data.thoiGianRanh === null ? null : data.thoiGianRanh,
+      data.anhDaiDien === undefined || data.anhDaiDien === null ? null : data.anhDaiDien,
     ];
     const result = await pool.query(query, values);
     return result.rows[0];

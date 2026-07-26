@@ -18,12 +18,12 @@ export class ThongTinXacThucModel {
     private _daSuDung?: boolean | null;
 
     constructor(data: Partial<ThongTinXacThuc> = {}) {
-        this._xacThucId = data.xacThucId ?? null;
+        this._xacThucId = data.xacThucId === undefined || data.xacThucId === null ? null : data.xacThucId;
         this._taiKhoanId = ThongTinXacThucValidator.validatePositiveNumber(data.taiKhoanId, 'TaiKhoanId');
-        this._loaiXacThuc = data.loaiXacThuc ?? null;
-        this._maXacThuc = data.maXacThuc ?? null;
-        this._thoiGianHetHan = data.thoiGianHetHan ?? null;
-        this._daSuDung = data.daSuDung ?? false;
+        this._loaiXacThuc = data.loaiXacThuc === undefined || data.loaiXacThuc === null ? null : data.loaiXacThuc;
+        this._maXacThuc = data.maXacThuc === undefined || data.maXacThuc === null ? null : data.maXacThuc;
+        this._thoiGianHetHan = data.thoiGianHetHan === undefined || data.thoiGianHetHan === null ? null : data.thoiGianHetHan;
+        this._daSuDung = data.daSuDung === undefined || data.daSuDung === null ? false : data.daSuDung;
     }
 
     get xacThucId(): number | null | undefined {
@@ -51,11 +51,11 @@ export class ThongTinXacThucModel {
     }
 
     updateMaXacThuc(newMaXacThuc: string | null | undefined): void {
-        this._maXacThuc = newMaXacThuc ?? null;
+        this._maXacThuc = newMaXacThuc === undefined || newMaXacThuc === null ? null : newMaXacThuc;
     }
 
     updateLoaiXacThuc(newLoaiXacThuc: string | null | undefined): void {
-        this._loaiXacThuc = newLoaiXacThuc ?? null;
+        this._loaiXacThuc = newLoaiXacThuc === undefined || newLoaiXacThuc === null ? null : newLoaiXacThuc;
     }
 
     markAsUsed(daSuDung: boolean): void {
@@ -68,11 +68,11 @@ export class ThongTinXacThucModel {
 
     static createThongTinXacThucPayload(data: Partial<ThongTinXacThuc>): Partial<ThongTinXacThuc> {
         return {
-            taiKhoanId: data.taiKhoanId ?? 0,
-            loaiXacThuc: data.loaiXacThuc ?? null,
-            maXacThuc: data.maXacThuc ?? null,
-            thoiGianHetHan: data.thoiGianHetHan ?? null,
-            daSuDung: data.daSuDung ?? false,
+            taiKhoanId: data.taiKhoanId === undefined || data.taiKhoanId === null ? 0 : data.taiKhoanId,
+            loaiXacThuc: data.loaiXacThuc === undefined || data.loaiXacThuc === null ? null : data.loaiXacThuc,
+            maXacThuc: data.maXacThuc === undefined || data.maXacThuc === null ? null : data.maXacThuc,
+            thoiGianHetHan: data.thoiGianHetHan === undefined || data.thoiGianHetHan === null ? null : data.thoiGianHetHan,
+            daSuDung: data.daSuDung === undefined || data.daSuDung === null ? false : data.daSuDung,
         };
     }
 }

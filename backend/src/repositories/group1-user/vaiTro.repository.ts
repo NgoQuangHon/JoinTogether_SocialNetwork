@@ -13,7 +13,7 @@ export class VaiTroRepository {
     `;
     const result = await pool.query(query, [
       data.tenVaiTro,
-      data.moTa ?? null,
+      data.moTa === undefined || data.moTa === null ? null : data.moTa,
     ]);
     return result.rows[0];
   }
@@ -77,7 +77,7 @@ export class VaiTroRepository {
   async delete(id: number): Promise<boolean> {
     const query = `DELETE FROM vai_tro WHERE vai_tro_id = $1`;
     const result = await pool.query(query, [id]);
-    return (result.rowCount ?? 0) > 0;
+    return (result.rowCount === undefined || result.rowCount === null ? 0 : result.rowCount) > 0;
   }
 }
 

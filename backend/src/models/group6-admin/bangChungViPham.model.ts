@@ -14,9 +14,9 @@ export class BangChungViPhamModel {
     private _duongDan: string;
 
     constructor(data: Partial<BangChungViPham> = {}) {
-        this._bangChungId = data.bangChungId ?? null;
+        this._bangChungId = data.bangChungId === undefined || data.bangChungId === null ? null : data.bangChungId;
         this._baoCaoId = BangChungViPhamValidator.validatePositiveNumber(data.baoCaoId, 'BaoCaoId');
-        this._loaiBangChung = data.loaiBangChung ?? null;
+        this._loaiBangChung = data.loaiBangChung === undefined || data.loaiBangChung === null ? null : data.loaiBangChung;
         this._duongDan = BangChungViPhamValidator.validateRequiredString(data.duongDan, 'Đường dẫn');
     }
 
@@ -37,7 +37,7 @@ export class BangChungViPhamModel {
     }
 
     updateLoaiBangChung(newLoaiBangChung: string | null | undefined): void {
-        this._loaiBangChung = newLoaiBangChung ?? null;
+        this._loaiBangChung = newLoaiBangChung === undefined || newLoaiBangChung === null ? null : newLoaiBangChung;
     }
 
     updateDuongDan(newDuongDan: string): void {
@@ -50,9 +50,9 @@ export class BangChungViPhamModel {
 
     static createBangChungViPhamPayload(data: Partial<BangChungViPham>): Partial<BangChungViPham> {
         return {
-            baoCaoId: data.baoCaoId ?? 0,
-            loaiBangChung: data.loaiBangChung ?? null,
-            duongDan: data.duongDan ?? '',
+            baoCaoId: data.baoCaoId === undefined || data.baoCaoId === null ? 0 : data.baoCaoId,
+            loaiBangChung: data.loaiBangChung === undefined || data.loaiBangChung === null ? null : data.loaiBangChung,
+            duongDan: data.duongDan === undefined || data.duongDan === null ? '' : data.duongDan,
         };
     }
 }

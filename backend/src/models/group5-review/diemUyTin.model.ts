@@ -16,11 +16,11 @@ export class DiemUyTinModel {
     private _soLanCanhBao?: number | null;
 
     constructor(data: Partial<DiemUyTin> = {}) {
-        this._diemUyTinId = data.diemUyTinId ?? null;
+        this._diemUyTinId = data.diemUyTinId === undefined || data.diemUyTinId === null ? null : data.diemUyTinId;
         this._nguoiDungId = DiemUyTinValidator.validatePositiveNumber(data.nguoiDungId, 'NguoiDungId');
-        this._diemHienTai = data.diemHienTai ?? null;
-        this._soLuotDanhGia = data.soLuotDanhGia ?? null;
-        this._soLanCanhBao = data.soLanCanhBao ?? null;
+        this._diemHienTai = data.diemHienTai === undefined || data.diemHienTai === null ? null : data.diemHienTai;
+        this._soLuotDanhGia = data.soLuotDanhGia === undefined || data.soLuotDanhGia === null ? null : data.soLuotDanhGia;
+        this._soLanCanhBao = data.soLanCanhBao === undefined || data.soLanCanhBao === null ? null : data.soLanCanhBao;
     }
 
     get diemUyTinId(): number | null | undefined {
@@ -44,15 +44,15 @@ export class DiemUyTinModel {
     }
 
     updateDiemHienTai(newDiemHienTai: number | null | undefined): void {
-        this._diemHienTai = newDiemHienTai ?? null;
+        this._diemHienTai = newDiemHienTai === undefined || newDiemHienTai === null ? null : newDiemHienTai;
     }
 
     updateSoLuotDanhGia(newSoLuotDanhGia: number | null | undefined): void {
-        this._soLuotDanhGia = newSoLuotDanhGia ?? null;
+        this._soLuotDanhGia = newSoLuotDanhGia === undefined || newSoLuotDanhGia === null ? null : newSoLuotDanhGia;
     }
 
     updateSoLanCanhBao(newSoLanCanhBao: number | null | undefined): void {
-        this._soLanCanhBao = newSoLanCanhBao ?? null;
+        this._soLanCanhBao = newSoLanCanhBao === undefined || newSoLanCanhBao === null ? null : newSoLanCanhBao;
     }
 
     static createDiemUyTinModel(data: Partial<DiemUyTin>): DiemUyTinModel {
@@ -61,10 +61,10 @@ export class DiemUyTinModel {
 
     static createDiemUyTinPayload(data: Partial<DiemUyTin>): Partial<DiemUyTin> {
         return {
-            nguoiDungId: data.nguoiDungId ?? 0,
-            diemHienTai: data.diemHienTai ?? null,
-            soLuotDanhGia: data.soLuotDanhGia ?? null,
-            soLanCanhBao: data.soLanCanhBao ?? null,
+            nguoiDungId: data.nguoiDungId === undefined || data.nguoiDungId === null ? 0 : data.nguoiDungId,
+            diemHienTai: data.diemHienTai === undefined || data.diemHienTai === null ? null : data.diemHienTai,
+            soLuotDanhGia: data.soLuotDanhGia === undefined || data.soLuotDanhGia === null ? null : data.soLuotDanhGia,
+            soLanCanhBao: data.soLanCanhBao === undefined || data.soLanCanhBao === null ? null : data.soLanCanhBao,
         };
     }
 }

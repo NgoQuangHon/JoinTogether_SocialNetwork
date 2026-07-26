@@ -14,7 +14,7 @@ export class ChiTietDanhGiaModel {
     constructor(data: Partial<ChiTietDanhGia> = {}) {
         this._danhGiaId = ChiTietDanhGiaValidator.validatePositiveNumber(data.danhGiaId, 'DanhGiaId');
         this._tieuChiDanhGiaId = ChiTietDanhGiaValidator.validatePositiveNumber(data.tieuChiDanhGiaId, 'TieuChiDanhGiaId');
-        this._diem = data.diem ?? null;
+        this._diem = data.diem === undefined || data.diem === null ? null : data.diem;
     }
 
     get danhGiaId(): number {
@@ -30,7 +30,7 @@ export class ChiTietDanhGiaModel {
     }
 
     updateDiem(newDiem: number | null | undefined): void {
-        this._diem = newDiem ?? null;
+        this._diem = newDiem === undefined || newDiem === null ? null : newDiem;
     }
 
     static createChiTietDanhGiaModel(data: Partial<ChiTietDanhGia>): ChiTietDanhGiaModel {
@@ -39,9 +39,9 @@ export class ChiTietDanhGiaModel {
 
     static createChiTietDanhGiaPayload(data: Partial<ChiTietDanhGia>): Partial<ChiTietDanhGia> {
         return {
-            danhGiaId: data.danhGiaId ?? 0,
-            tieuChiDanhGiaId: data.tieuChiDanhGiaId ?? 0,
-            diem: data.diem ?? null,
+            danhGiaId: data.danhGiaId === undefined || data.danhGiaId === null ? 0 : data.danhGiaId,
+            tieuChiDanhGiaId: data.tieuChiDanhGiaId === undefined || data.tieuChiDanhGiaId === null ? 0 : data.tieuChiDanhGiaId,
+            diem: data.diem === undefined || data.diem === null ? null : data.diem,
         };
     }
 }

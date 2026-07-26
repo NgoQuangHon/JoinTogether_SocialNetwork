@@ -14,7 +14,7 @@ export class HoSoSoThichModel {
     constructor(data: Partial<HoSoSoThich> = {}) {
         this._hoSoId = HoSoSoThichValidator.validatePositiveNumber(data.hoSoId, 'HoSoId');
         this._soThichId = HoSoSoThichValidator.validatePositiveNumber(data.soThichId, 'SoThichId');
-        this._mucDoQuanTam = data.mucDoQuanTam ?? null;
+        this._mucDoQuanTam = data.mucDoQuanTam === undefined || data.mucDoQuanTam === null ? null : data.mucDoQuanTam;
     }
 
     get hoSoId(): number {
@@ -30,7 +30,7 @@ export class HoSoSoThichModel {
     }
 
     updateMucDoQuanTam(newMucDoQuanTam: number | null | undefined): void {
-        this._mucDoQuanTam = newMucDoQuanTam ?? null;
+        this._mucDoQuanTam = newMucDoQuanTam === undefined || newMucDoQuanTam === null ? null : newMucDoQuanTam;
     }
 
     static createHoSoSoThichModel(data: Partial<HoSoSoThich>): HoSoSoThichModel {
@@ -39,9 +39,9 @@ export class HoSoSoThichModel {
 
     static createHoSoSoThichPayload(data: Partial<HoSoSoThich>): Partial<HoSoSoThich> {
         return {
-            hoSoId: data.hoSoId ?? 0,
-            soThichId: data.soThichId ?? 0,
-            mucDoQuanTam: data.mucDoQuanTam ?? null,
+            hoSoId: data.hoSoId === undefined || data.hoSoId === null ? 0 : data.hoSoId,
+            soThichId: data.soThichId === undefined || data.soThichId === null ? 0 : data.soThichId,
+            mucDoQuanTam: data.mucDoQuanTam === undefined || data.mucDoQuanTam === null ? null : data.mucDoQuanTam,
         };
     }
 }
