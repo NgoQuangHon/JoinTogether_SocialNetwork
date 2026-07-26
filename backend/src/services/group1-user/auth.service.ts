@@ -5,8 +5,10 @@ import { TaiKhoanRepository } from "../../repositories/group1-user/taiKhoan.repo
 import { NguoiDungModel } from "../../models/group1-user/nguoiDung.model";
 import { TaiKhoanModel } from "../../models/group1-user/taiKhoan.model";
 import { pool } from "../../config/db";
+import { JWT_SECRET, JWT_EXPIRES_IN } from "../../config/jwt";
+import { AppError, ConflictError, UnauthorizedError } from "../../utils/AppError";
 
-const JWT_SECRET = process.env.JWT_SECRET || "super-secret-key";
+const MIN_PASSWORD_LENGTH = 6;
 
 export class AuthService {
   private nguoiDungRepo = new NguoiDungRepository();
@@ -15,16 +17,31 @@ export class AuthService {
   async register(data: any): Promise<any> {
     const { hoTen, email, soDienThoai, tenDangNhap, matKhau } = data;
 
+    // Validate các trường bắt buộc trước khi đụng tới DB/bcrypt,
+    // tránh lỗi khó hiểu như bcrypt.hash(undefined) khi client gửi thiếu field.
+    if (!hoTen || !email || !tenDangNhap || !matKhau) {
+      throw new AppError(
+        "Vui lòng cung cấp đầy đủ họ tên, email, tên đăng nhập và mật khẩu.",
+        400,
+      );
+    }
+    if (typeof matKhau !== "string" || matKhau.length < MIN_PASSWORD_LENGTH) {
+      throw new AppError(
+        `Mật khẩu phải có ít nhất ${MIN_PASSWORD_LENGTH} ký tự.`,
+        400,
+      );
+    }
+
     // Check for existing users
     const existingEmail = await this.nguoiDungRepo.findByEmail(email);
     if (existingEmail) {
-      throw new Error("Email đã được sử dụng.");
+      throw new ConflictError("Email đã được sử dụng.");
     }
 
     const existingUsername =
       await this.taiKhoanRepo.findByUsername(tenDangNhap);
     if (existingUsername) {
-      throw new Error("Tên đăng nhập đã được sử dụng.");
+      throw new ConflictError("Tên đăng nhập đã được sử dụng.");
     }
 
     const client = await pool.connect();
@@ -83,27 +100,27 @@ export class AuthService {
     const { tenDangNhap, matKhau } = data;
 
     if (!tenDangNhap || !matKhau) {
-      throw new Error("Vui lòng cung cấp tên đăng nhập và mật khẩu.");
+      throw new AppError("Vui lòng cung cấp tên đăng nhập và mật khẩu.", 400);
     }
 
     const taiKhoan = await this.taiKhoanRepo.findByUsername(tenDangNhap);
     if (!taiKhoan) {
-      throw new Error("Tên đăng nhập hoặc mật khẩu không chính xác.");
+      throw new UnauthorizedError("Tên đăng nhập hoặc mật khẩu không chính xác.");
     }
 
     const isMatch = await bcrypt.compare(matKhau, taiKhoan.matKhauMaHoa);
     if (!isMatch) {
-      throw new Error("Tên đăng nhập hoặc mật khẩu không chính xác.");
+      throw new UnauthorizedError("Tên đăng nhập hoặc mật khẩu không chính xác.");
     }
 
     if (taiKhoan.trangThai !== "ACTIVE") {
-      throw new Error("Tài khoản đã bị khóa hoặc chưa kích hoạt.");
+      throw new UnauthorizedError("Tài khoản đã bị khóa hoặc chưa kích hoạt.");
     }
 
     const token = jwt.sign(
       { taiKhoanId: taiKhoan.taiKhoanId, nguoiDungId: taiKhoan.nguoiDungId },
       JWT_SECRET,
-      { expiresIn: "1d" },
+      { expiresIn: JWT_EXPIRES_IN } as jwt.SignOptions,
     );
 
     return {

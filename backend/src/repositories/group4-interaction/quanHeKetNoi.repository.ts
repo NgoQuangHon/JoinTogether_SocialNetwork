@@ -1,8 +1,8 @@
-import { pool } from "../../config/db";
+import { pool, Queryable } from "../../config/db";
 import { QuanHeKetNoi } from "../../models/group4-interaction/quanHeKetNoi.model";
 
 export class QuanHeKetNoiRepository {
-  async create(data: Partial<QuanHeKetNoi>): Promise<QuanHeKetNoi> {
+  async create(data: Partial<QuanHeKetNoi>, executor: Queryable = pool): Promise<QuanHeKetNoi> {
     const query = `
       INSERT INTO quan_he_ket_noi (nguoi_dung_id_1, nguoi_dung_id_2, trang_thai)
       VALUES ($1, $2, $3)
@@ -13,7 +13,7 @@ export class QuanHeKetNoiRepository {
         ngay_ket_noi AS "ngayKetNoi",
         trang_thai AS "trangThai"
     `;
-    const result = await pool.query(query, [
+    const result = await executor.query(query, [
       data.nguoiDungId1,
       data.nguoiDungId2,
       data.trangThai ?? 'ACTIVE',

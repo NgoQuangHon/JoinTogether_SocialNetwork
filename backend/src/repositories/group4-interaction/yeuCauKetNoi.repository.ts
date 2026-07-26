@@ -1,4 +1,4 @@
-import { pool } from "../../config/db";
+import { pool, Queryable } from "../../config/db";
 import { YeuCauKetNoi } from "../../models/group4-interaction/yeuCauKetNoi.model";
 
 export class YeuCauKetNoiRepository {
@@ -74,7 +74,7 @@ export class YeuCauKetNoiRepository {
     return result.rows.length > 0 ? result.rows[0] : null;
   }
 
-  async updateStatus(id: number, trangThai: string): Promise<YeuCauKetNoi | null> {
+  async updateStatus(id: number, trangThai: string, executor: Queryable = pool): Promise<YeuCauKetNoi | null> {
     const query = `
       UPDATE yeu_cau_ket_noi
       SET trang_thai = $1
@@ -86,7 +86,7 @@ export class YeuCauKetNoiRepository {
         loi_nhan AS "loiNhan",
         trang_thai AS "trangThai"
     `;
-    const result = await pool.query(query, [trangThai, id]);
+    const result = await executor.query(query, [trangThai, id]);
     return result.rows.length > 0 ? result.rows[0] : null;
   }
 

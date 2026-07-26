@@ -3,6 +3,7 @@ import { DanhMucHoatDongRepository } from "../../repositories/group3-activity/da
 import { DiaDiemRepository } from "../../repositories/group3-activity/diaDiem.repository";
 import { HinhAnhHoatDongRepository } from "../../repositories/group3-activity/hinhAnhHoatDong.repository";
 import { HoatDongModel } from "../../models/group3-activity/hoatDong.model";
+import { NotFoundError } from "../../utils/AppError";
 
 export class ActivityService {
   private hoatDongRepo = new HoatDongRepository();
@@ -40,7 +41,7 @@ export class ActivityService {
   async getActivityById(id: number): Promise<any> {
     const activity = await this.hoatDongRepo.findById(id);
     if (!activity) {
-      throw new Error("Hoạt động không tồn tại.");
+      throw new NotFoundError("Hoạt động không tồn tại.");
     }
 
     const images = await this.hinhAnhRepo.findByHoatDongId(id);
@@ -50,7 +51,7 @@ export class ActivityService {
   async updateActivity(id: number, data: any): Promise<any> {
     const existing = await this.hoatDongRepo.findById(id);
     if (!existing) {
-      throw new Error("Hoạt động không tồn tại.");
+      throw new NotFoundError("Hoạt động không tồn tại.");
     }
 
     const updated = await this.hoatDongRepo.update(id, {
@@ -65,7 +66,7 @@ export class ActivityService {
   async deleteActivity(id: number): Promise<void> {
     const existing = await this.hoatDongRepo.findById(id);
     if (!existing) {
-      throw new Error("Hoạt động không tồn tại.");
+      throw new NotFoundError("Hoạt động không tồn tại.");
     }
     await this.hoatDongRepo.delete(id);
   }
@@ -83,7 +84,7 @@ export class ActivityService {
   async updateCategory(id: number, data: any): Promise<any> {
     const existing = await this.danhMucRepo.findById(id);
     if (!existing) {
-      throw new Error("Danh mục không tồn tại.");
+      throw new NotFoundError("Danh mục không tồn tại.");
     }
     return await this.danhMucRepo.update(id, data);
   }
@@ -91,7 +92,7 @@ export class ActivityService {
   async deleteCategory(id: number): Promise<void> {
     const existing = await this.danhMucRepo.findById(id);
     if (!existing) {
-      throw new Error("Danh mục không tồn tại.");
+      throw new NotFoundError("Danh mục không tồn tại.");
     }
     await this.danhMucRepo.delete(id);
   }
@@ -109,7 +110,7 @@ export class ActivityService {
   async updateLocation(id: number, data: any): Promise<any> {
     const existing = await this.diaDiemRepo.findById(id);
     if (!existing) {
-      throw new Error("Địa điểm không tồn tại.");
+      throw new NotFoundError("Địa điểm không tồn tại.");
     }
     return await this.diaDiemRepo.update(id, data);
   }
@@ -117,7 +118,7 @@ export class ActivityService {
   async deleteLocation(id: number): Promise<void> {
     const existing = await this.diaDiemRepo.findById(id);
     if (!existing) {
-      throw new Error("Địa điểm không tồn tại.");
+      throw new NotFoundError("Địa điểm không tồn tại.");
     }
     await this.diaDiemRepo.delete(id);
   }
@@ -127,7 +128,7 @@ export class ActivityService {
   async addImage(hoatDongId: number, data: any): Promise<any> {
     const activity = await this.hoatDongRepo.findById(hoatDongId);
     if (!activity) {
-      throw new Error("Hoạt động không tồn tại.");
+      throw new NotFoundError("Hoạt động không tồn tại.");
     }
     return await this.hinhAnhRepo.create({ ...data, hoatDongId });
   }
@@ -135,7 +136,7 @@ export class ActivityService {
   async deleteImage(id: number): Promise<void> {
     const image = await this.hinhAnhRepo.findById(id);
     if (!image) {
-      throw new Error("Hình ảnh không tồn tại.");
+      throw new NotFoundError("Hình ảnh không tồn tại.");
     }
     await this.hinhAnhRepo.delete(id);
   }

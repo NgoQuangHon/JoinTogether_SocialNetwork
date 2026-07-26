@@ -1,15 +1,9 @@
 import { NextFunction, Request, Response } from "express";
 import { pool } from "../config/db";
-
-type AuthenticatedUser = {
-  taiKhoanId?: number;
-  nguoiDungId?: number;
-  role?: string;
-  roles?: string[];
-};
+import { AuthenticatedUser } from "../types/express";
 
 function getUser(req: Request): AuthenticatedUser | null {
-  return ((req as any).user as AuthenticatedUser | undefined) ?? null;
+  return req.user ?? null;
 }
 
 function parseId(value: unknown): number | null {
@@ -19,12 +13,12 @@ function parseId(value: unknown): number | null {
 
 function forbidden(
   res: Response,
-  message = "Ban khong co quyen thuc hien hanh dong nay.",
+  message = "Bạn không có quyền thực hiện hành động này.",
 ): void {
   res.status(403).json({ success: false, message });
 }
 
-function badRequest(res: Response, message = "ID khong hop le."): void {
+function badRequest(res: Response, message = "ID không hợp lệ."): void {
   res.status(400).json({ success: false, message });
 }
 
@@ -89,7 +83,7 @@ export function requireAdmin(
     return;
   }
 
-  forbidden(res, "Chi quan tri vien moi co quyen thuc hien hanh dong nay.");
+  forbidden(res, "Chỉ quản trị viên mới có quyền thực hiện hành động này.");
 }
 
 export function requireActivityOwner(paramName = "id") {
@@ -108,7 +102,7 @@ export function requireActivityOwner(paramName = "id") {
       }
 
       if (!hoatDongId) {
-        badRequest(res, "ID hoat dong khong hop le.");
+        badRequest(res, "ID hoạt động không hợp lệ.");
         return;
       }
 
@@ -117,9 +111,9 @@ export function requireActivityOwner(paramName = "id") {
         return;
       }
 
-      forbidden(res, "Chi nguoi to chuc moi co quyen thay doi hoat dong nay.");
-    } catch (error: any) {
-      res.status(500).json({ success: false, message: error.message });
+      forbidden(res, "Chỉ người tổ chức mới có quyền thay đổi hoạt động này.");
+    } catch (error) {
+      next(error);
     }
   };
 }
@@ -140,7 +134,7 @@ export function requireCriteriaOwner(paramName = "id") {
       }
 
       if (!tieuChiId) {
-        badRequest(res, "ID tieu chi khong hop le.");
+        badRequest(res, "ID tiêu chí không hợp lệ.");
         return;
       }
 
@@ -157,7 +151,7 @@ export function requireCriteriaOwner(paramName = "id") {
       if (result.rows.length === 0) {
         res
           .status(404)
-          .json({ success: false, message: "Tieu chi khong ton tai." });
+          .json({ success: false, message: "Tiêu chí không tồn tại." });
         return;
       }
 
@@ -166,9 +160,9 @@ export function requireCriteriaOwner(paramName = "id") {
         return;
       }
 
-      forbidden(res, "Chi nguoi to chuc moi co quyen thay doi tieu chi nay.");
-    } catch (error: any) {
-      res.status(500).json({ success: false, message: error.message });
+      forbidden(res, "Chỉ người tổ chức mới có quyền thay đổi tiêu chí này.");
+    } catch (error) {
+      next(error);
     }
   };
 }
@@ -189,7 +183,7 @@ export function requireImageOwner(paramName = "id") {
       }
 
       if (!hinhAnhId) {
-        badRequest(res, "ID hinh anh khong hop le.");
+        badRequest(res, "ID hình ảnh không hợp lệ.");
         return;
       }
 
@@ -206,7 +200,7 @@ export function requireImageOwner(paramName = "id") {
       if (result.rows.length === 0) {
         res
           .status(404)
-          .json({ success: false, message: "Hinh anh khong ton tai." });
+          .json({ success: false, message: "Hình ảnh không tồn tại." });
         return;
       }
 
@@ -215,9 +209,9 @@ export function requireImageOwner(paramName = "id") {
         return;
       }
 
-      forbidden(res, "Chi nguoi to chuc moi co quyen thay doi hinh anh nay.");
-    } catch (error: any) {
-      res.status(500).json({ success: false, message: error.message });
+      forbidden(res, "Chỉ người tổ chức mới có quyền thay đổi hình ảnh này.");
+    } catch (error) {
+      next(error);
     }
   };
 }
@@ -238,7 +232,7 @@ export function requireActivityMember(paramName = "hoatDongId") {
       }
 
       if (!hoatDongId) {
-        badRequest(res, "ID hoat dong khong hop le.");
+        badRequest(res, "ID hoạt động không hợp lệ.");
         return;
       }
 
@@ -251,9 +245,9 @@ export function requireActivityMember(paramName = "hoatDongId") {
         return;
       }
 
-      forbidden(res, "Chi thanh vien hoat dong moi co quyen truy cap.");
-    } catch (error: any) {
-      res.status(500).json({ success: false, message: error.message });
+      forbidden(res, "Chỉ thành viên hoạt động mới có quyền truy cập.");
+    } catch (error) {
+      next(error);
     }
   };
 }
@@ -274,7 +268,7 @@ export function requireChatRoomMember(paramName = "phongId") {
       }
 
       if (!phongId) {
-        badRequest(res, "ID phong tro chuyen khong hop le.");
+        badRequest(res, "ID phòng trò chuyện không hợp lệ.");
         return;
       }
 
@@ -290,7 +284,7 @@ export function requireChatRoomMember(paramName = "phongId") {
       if (result.rows.length === 0) {
         res
           .status(404)
-          .json({ success: false, message: "Phong tro chuyen khong ton tai." });
+          .json({ success: false, message: "Phòng trò chuyện không tồn tại." });
         return;
       }
 
@@ -306,10 +300,10 @@ export function requireChatRoomMember(paramName = "phongId") {
 
       forbidden(
         res,
-        "Chi thanh vien hoat dong moi co quyen truy cap phong tro chuyen.",
+        "Chỉ thành viên hoạt động mới có quyền truy cập phòng trò chuyện.",
       );
-    } catch (error: any) {
-      res.status(500).json({ success: false, message: error.message });
+    } catch (error) {
+      next(error);
     }
   };
 }
@@ -338,12 +332,12 @@ export function requireReviewParticipant(
       }
 
       if (!hoatDongId || !nguoiDuocDanhGiaId) {
-        badRequest(res, "ID hoat dong hoac nguoi duoc danh gia khong hop le.");
+        badRequest(res, "ID hoạt động hoặc người được đánh giá không hợp lệ.");
         return;
       }
 
       if (user.nguoiDungId === nguoiDuocDanhGiaId) {
-        forbidden(res, "Khong the tu danh gia chinh minh.");
+        forbidden(res, "Không thể tự đánh giá chính mình.");
         return;
       }
 
@@ -361,10 +355,10 @@ export function requireReviewParticipant(
 
       forbidden(
         res,
-        "Chi nguoi tham gia cung hoat dong moi co the danh gia nhau.",
+        "Chỉ người tham gia cùng hoạt động mới có thể đánh giá nhau.",
       );
-    } catch (error: any) {
-      res.status(500).json({ success: false, message: error.message });
+    } catch (error) {
+      next(error);
     }
   };
 }
