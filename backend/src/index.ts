@@ -5,7 +5,10 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import { connectDB, pool } from "./config/db";
-import { notFoundHandler, errorHandler } from "./middlewares/errorHandler.middleware";
+import {
+  notFoundHandler,
+  errorHandler,
+} from "./middlewares/errorHandler.middleware";
 
 const app = express();
 
@@ -72,4 +75,3 @@ async function start() {
 }
 
 start();
-
