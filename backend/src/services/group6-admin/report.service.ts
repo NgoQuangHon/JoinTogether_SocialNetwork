@@ -7,7 +7,11 @@ import { LichSuDiemUyTinRepository } from "../../repositories/group5-review/lich
 import { NhatKyQuanTriRepository } from "../../repositories/group6-admin/nhatKyQuanTri.repository";
 import { ThongBaoRepository } from "../../repositories/group4-interaction/thongBao.repository";
 import { NguoiDungRepository } from "../../repositories/group1-user/nguoiDung.repository";
-import { BadRequestError, ConflictError, NotFoundError } from "../../utils/AppError";
+import {
+  BadRequestError,
+  ConflictError,
+  NotFoundError,
+} from "../../utils/AppError";
 
 export class ReportService {
   private baoCaoRepo = new BaoCaoViPhamRepository();
@@ -36,7 +40,9 @@ export class ReportService {
     }
 
     // Kiểm tra người bị báo cáo tồn tại
-    const reportedUser = await this.nguoiDungRepo.findById(data.nguoiBiBaoCaoId);
+    const reportedUser = await this.nguoiDungRepo.findById(
+      data.nguoiBiBaoCaoId,
+    );
     if (!reportedUser) {
       throw new NotFoundError("Người dùng bị báo cáo không tồn tại.");
     }
@@ -113,7 +119,9 @@ export class ReportService {
 
     // Trừ điểm uy tín nếu cần (hành vi vi phạm)
     if (data.truDiem && baoCao.nguoiBiBaoCaoId) {
-      const updatedDiem = await this.diemUyTinRepo.tangSoLanCanhBao(baoCao.nguoiBiBaoCaoId);
+      const updatedDiem = await this.diemUyTinRepo.tangSoLanCanhBao(
+        baoCao.nguoiBiBaoCaoId,
+      );
       if (updatedDiem) {
         const diemUyTinId = updatedDiem.diemUyTinId!;
         await this.lichSuRepo.create({
@@ -148,13 +156,20 @@ export class ReportService {
     return await this.loaiViPhamRepo.findAll();
   }
 
-  async createLoaiViPham(data: { tenLoai: string; moTa?: string; mucDo?: string }): Promise<any> {
+  async createLoaiViPham(data: {
+    tenLoai: string;
+    moTa?: string;
+    mucDo?: string;
+  }): Promise<any> {
     return await this.loaiViPhamRepo.create(data);
   }
 
   // ==================== UC6.3: QUẢN LÝ VI PHẠM ====================
 
-  async updateLoaiViPham(id: number, data: { tenLoai?: string; moTa?: string; mucDo?: string }): Promise<any> {
+  async updateLoaiViPham(
+    id: number,
+    data: { tenLoai?: string; moTa?: string; mucDo?: string },
+  ): Promise<any> {
     const existing = await this.loaiViPhamRepo.findById(id);
     if (!existing) {
       throw new NotFoundError("Loại vi phạm không tồn tại.");
@@ -172,8 +187,10 @@ export class ReportService {
 
   async getViolationStats(): Promise<any> {
     const stats = await this.loaiViPhamRepo.getStats();
-    const totalReports = stats.reduce((sum: number, item: any) => sum + item.soLuongBaoCao, 0);
+    const totalReports = stats.reduce(
+      (sum: number, item: any) => sum + item.soLuongBaoCao,
+      0,
+    );
     return { total: totalReports, details: stats };
   }
 }
-
