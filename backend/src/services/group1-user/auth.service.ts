@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { NguoiDungRepository } from "../../repositories/group1-user/nguoiDung.repository";
 import { TaiKhoanRepository } from "../../repositories/group1-user/taiKhoan.repository";
+import { VaiTroRepository } from "../../repositories/group1-user/vaiTro.repository";
 import { NguoiDungModel } from "../../models/group1-user/nguoiDung.model";
 import { TaiKhoanModel } from "../../models/group1-user/taiKhoan.model";
 import { pool } from "../../config/db";
@@ -13,6 +14,7 @@ const MIN_PASSWORD_LENGTH = 6;
 export class AuthService {
   private nguoiDungRepo = new NguoiDungRepository();
   private taiKhoanRepo = new TaiKhoanRepository();
+  private vaiTroRepo = new VaiTroRepository();
 
   async register(data: any): Promise<any> {
     const { hoTen, email, soDienThoai, tenDangNhap, matKhau } = data;
@@ -77,13 +79,18 @@ export class AuthService {
                 VALUES ($1, $2, $3, $4, $5)
                 RETURNING tai_khoan_id as "taiKhoanId"
             `;
-      await client.query(taiKhoanQuery, [
+      const taiKhoanResult = await client.query(taiKhoanQuery, [
         taiKhoanModel.nguoiDungId,
         taiKhoanModel.tenDangNhap,
         taiKhoanModel.matKhauMaHoa,
         "ACTIVE",
         false,
       ]);
+
+      const taiKhoanId = taiKhoanResult.rows[0].taiKhoanId;
+
+      // Gán vai trò mặc định USER cho tài khoản mới
+      await this.vaiTroRepo.assignRoleToTaiKhoan(taiKhoanId, "USER", client);
 
       await client.query("COMMIT");
 
@@ -117,8 +124,18 @@ export class AuthService {
       throw new UnauthorizedError("Tài khoản đã bị khóa hoặc chưa kích hoạt.");
     }
 
+    // Lấy danh sách vai trò của tài khoản
+    const roles = await this.vaiTroRepo.findRolesByTaiKhoanId(taiKhoan.taiKhoanId!);
+    const userRoles = roles.length > 0 ? roles : ["USER"];
+    const primaryRole = userRoles[0];
+
     const token = jwt.sign(
-      { taiKhoanId: taiKhoan.taiKhoanId, nguoiDungId: taiKhoan.nguoiDungId },
+      {
+        taiKhoanId: taiKhoan.taiKhoanId,
+        nguoiDungId: taiKhoan.nguoiDungId,
+        roles: userRoles,
+        role: primaryRole,
+      },
       JWT_SECRET,
       { expiresIn: JWT_EXPIRES_IN } as jwt.SignOptions,
     );
@@ -127,6 +144,8 @@ export class AuthService {
       message: "Đăng nhập thành công",
       token,
       nguoiDungId: taiKhoan.nguoiDungId,
+      roles: userRoles,
+      role: primaryRole,
     };
   }
 }

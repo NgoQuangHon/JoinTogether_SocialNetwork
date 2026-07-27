@@ -41,6 +41,18 @@ CREATE TABLE quyen_han (
     mo_ta TEXT
 );
 
+CREATE TABLE tai_khoan_vai_tro (
+    tai_khoan_id BIGINT NOT NULL REFERENCES tai_khoan(tai_khoan_id) ON DELETE CASCADE,
+    vai_tro_id BIGINT NOT NULL REFERENCES vai_tro(vai_tro_id) ON DELETE CASCADE,
+    PRIMARY KEY (tai_khoan_id, vai_tro_id)
+);
+
+CREATE TABLE vai_tro_quyen_han (
+    vai_tro_id BIGINT NOT NULL REFERENCES vai_tro(vai_tro_id) ON DELETE CASCADE,
+    quyen_han_id BIGINT NOT NULL REFERENCES quyen_han(quyen_han_id) ON DELETE CASCADE,
+    PRIMARY KEY (vai_tro_id, quyen_han_id)
+);
+
 -- ============================================================
 -- 2. NHÓM HỒ SƠ & SỞ THÍCH
 -- ============================================================
@@ -280,3 +292,26 @@ CREATE TABLE nhat_ky_quan_tri (
     doi_tuong_tac_dong VARCHAR(100),
     thoi_gian_thuc_hien TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
+
+-- ============================================================
+-- 7. KHỞI TẠO DỮ LIỆU MẪU VAI TRÒ & CHỈ MỤC (INDEXES)
+-- ============================================================
+
+INSERT INTO vai_tro (ten_vai_tro, mo_ta) VALUES
+    ('ADMIN', 'Quản trị viên hệ thống'),
+    ('USER', 'Người dùng thông thường')
+ON CONFLICT (ten_vai_tro) DO NOTHING;
+
+-- Chỉ mục tối ưu hiệu năng truy vấn
+CREATE INDEX IF NOT EXISTS idx_tai_khoan_vai_tro_tk ON tai_khoan_vai_tro(tai_khoan_id);
+CREATE INDEX IF NOT EXISTS idx_hoat_dong_nguoi_to_chuc ON hoat_dong(nguoi_to_chuc_id);
+CREATE INDEX IF NOT EXISTS idx_hoat_dong_danh_muc ON hoat_dong(danh_muc_hoat_dong_id);
+CREATE INDEX IF NOT EXISTS idx_hoat_dong_thoi_gian ON hoat_dong(thoi_gian_bat_dau, thoi_gian_ket_thuc);
+CREATE INDEX IF NOT EXISTS idx_thanh_vien_hoat_dong ON thanh_vien_hoat_dong(hoat_dong_id, nguoi_dung_id);
+CREATE INDEX IF NOT EXISTS idx_yeu_cau_tham_gia ON yeu_cau_tham_gia(hoat_dong_id, nguoi_dung_id, trang_thai);
+CREATE INDEX IF NOT EXISTS idx_tin_nhan_phong ON tin_nhan(phong_id, thoi_gian_gui);
+CREATE INDEX IF NOT EXISTS idx_thong_bao_nguoi_nhan ON thong_bao(nguoi_nhan_id);
+CREATE INDEX IF NOT EXISTS idx_yeu_cau_ket_noi ON yeu_cau_ket_noi(nguoi_gui_id, nguoi_nhan_id, trang_thai);
+CREATE INDEX IF NOT EXISTS idx_quan_he_ket_noi ON quan_he_ket_noi(nguoi_dung_id_1, nguoi_dung_id_2);
+CREATE INDEX IF NOT EXISTS idx_danh_gia ON danh_gia(hoat_dong_id, nguoi_duoc_danh_gia_id);
+CREATE INDEX IF NOT EXISTS idx_bao_cao_vi_pham ON bao_cao_vi_pham(nguoi_bi_bao_cao_id);

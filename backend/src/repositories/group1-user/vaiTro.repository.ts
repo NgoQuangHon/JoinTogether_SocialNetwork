@@ -1,4 +1,4 @@
-import { pool } from "../../config/db";
+import { pool, Queryable } from "../../config/db";
 import { VaiTro } from "../../models/group1-user/vaiTro.model";
 
 export class VaiTroRepository {
@@ -79,5 +79,30 @@ export class VaiTroRepository {
     const result = await pool.query(query, [id]);
     return (result.rowCount === undefined || result.rowCount === null ? 0 : result.rowCount) > 0;
   }
+
+  async findRolesByTaiKhoanId(taiKhoanId: number, executor: Queryable = pool): Promise<string[]> {
+    const query = `
+      SELECT vt.ten_vai_tro AS "tenVaiTro"
+      FROM vai_tro vt
+      JOIN tai_khoan_vai_tro tkvt ON vt.vai_tro_id = tkvt.vai_tro_id
+      WHERE tkvt.tai_khoan_id = $1
+    `;
+    const result = await executor.query(query, [taiKhoanId]);
+    return result.rows.map((row: any) => row.tenVaiTro);
+  }
+
+  async assignRoleToTaiKhoan(
+    taiKhoanId: number,
+    tenVaiTro: string,
+    executor: Queryable = pool,
+  ): Promise<void> {
+    const query = `
+      INSERT INTO tai_khoan_vai_tro (tai_khoan_id, vai_tro_id)
+      SELECT $1, vai_tro_id FROM vai_tro WHERE ten_vai_tro = $2
+      ON CONFLICT DO NOTHING
+    `;
+    await executor.query(query, [taiKhoanId, tenVaiTro]);
+  }
 }
+
 
