@@ -44,10 +44,10 @@ export class DiaDiemRepository {
         duong_dan_truc_tuyen AS "duongDanTrucTuyen"
     `;
     const result = await pool.query(query, [
-      data.tenDiaDiem ?? null,
-      data.diaChi ?? null,
-      data.hinhThuc ?? null,
-      data.duongDanTrucTuyen ?? null,
+      data.tenDiaDiem === undefined || data.tenDiaDiem === null ? null : data.tenDiaDiem,
+      data.diaChi === undefined || data.diaChi === null ? null : data.diaChi,
+      data.hinhThuc === undefined || data.hinhThuc === null ? null : data.hinhThuc,
+      data.duongDanTrucTuyen === undefined || data.duongDanTrucTuyen === null ? null : data.duongDanTrucTuyen,
     ]);
     return result.rows[0];
   }
@@ -83,6 +83,6 @@ export class DiaDiemRepository {
   async delete(id: number): Promise<boolean> {
     const query = `DELETE FROM dia_diem WHERE dia_diem_id = $1`;
     const result = await pool.query(query, [id]);
-    return (result.rowCount ?? 0) > 0;
+    return (result.rowCount === undefined || result.rowCount === null ? 0 : result.rowCount) > 0;
   }
 }

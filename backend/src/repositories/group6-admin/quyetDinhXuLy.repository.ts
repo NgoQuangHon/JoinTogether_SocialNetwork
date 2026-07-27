@@ -16,7 +16,7 @@ export class QuyetDinhXuLyRepository {
     const result = await pool.query(query, [
       data.baoCaoId,
       data.nguoiXuLyId,
-      data.ketQua ?? null,
+      data.ketQua === undefined || data.ketQua === null ? null : data.ketQua,
     ]);
     return result.rows[0];
   }

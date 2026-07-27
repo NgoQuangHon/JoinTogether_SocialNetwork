@@ -18,12 +18,12 @@ export class TaiKhoanModel {
     private _daXacThuc?: boolean | null;
 
     constructor(data: Partial<TaiKhoan> = {}) {
-        this._taiKhoanId = data.taiKhoanId ?? null;
+        this._taiKhoanId = data.taiKhoanId === undefined || data.taiKhoanId === null ? null : data.taiKhoanId;
         this._nguoiDungId = TaiKhoanValidator.validatePositiveNumber(data.nguoiDungId, 'NguoiDungId');
         this._tenDangNhap = TaiKhoanValidator.validateRequiredString(data.tenDangNhap, 'Tên đăng nhập');
         this._matKhauMaHoa = TaiKhoanValidator.validateRequiredString(data.matKhauMaHoa, 'Mật khẩu mã hóa');
-        this._trangThai = data.trangThai ?? null;
-        this._daXacThuc = data.daXacThuc ?? false;
+        this._trangThai = data.trangThai === undefined || data.trangThai === null ? null : data.trangThai;
+        this._daXacThuc = data.daXacThuc === undefined || data.daXacThuc === null ? false : data.daXacThuc;
     }
 
     get taiKhoanId(): number | null | undefined {
@@ -59,7 +59,7 @@ export class TaiKhoanModel {
     }
 
     updateTrangThai(newTrangThai: string | null | undefined): void {
-        this._trangThai = newTrangThai ?? null;
+        this._trangThai = newTrangThai === undefined || newTrangThai === null ? null : newTrangThai;
     }
 
     markAsVerified(daXacThuc: boolean): void {
@@ -72,11 +72,11 @@ export class TaiKhoanModel {
 
     static createTaiKhoanPayload(data: Partial<TaiKhoan>): Partial<TaiKhoan> {
         return {
-            nguoiDungId: data.nguoiDungId ?? 0,
-            tenDangNhap: data.tenDangNhap ?? '',
-            matKhauMaHoa: data.matKhauMaHoa ?? '',
-            trangThai: data.trangThai ?? null,
-            daXacThuc: data.daXacThuc ?? false,
+            nguoiDungId: data.nguoiDungId === undefined || data.nguoiDungId === null ? 0 : data.nguoiDungId,
+            tenDangNhap: data.tenDangNhap === undefined || data.tenDangNhap === null ? '' : data.tenDangNhap,
+            matKhauMaHoa: data.matKhauMaHoa === undefined || data.matKhauMaHoa === null ? '' : data.matKhauMaHoa,
+            trangThai: data.trangThai === undefined || data.trangThai === null ? null : data.trangThai,
+            daXacThuc: data.daXacThuc === undefined || data.daXacThuc === null ? false : data.daXacThuc,
         };
     }
 }

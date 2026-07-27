@@ -13,7 +13,7 @@ export class QuyenHanRepository {
     `;
     const result = await pool.query(query, [
       data.tenQuyen,
-      data.moTa ?? null,
+      data.moTa === undefined || data.moTa === null ? null : data.moTa,
     ]);
     return result.rows[0];
   }
@@ -77,7 +77,7 @@ export class QuyenHanRepository {
   async delete(id: number): Promise<boolean> {
     const query = `DELETE FROM quyen_han WHERE quyen_han_id = $1`;
     const result = await pool.query(query, [id]);
-    return (result.rowCount ?? 0) > 0;
+    return (result.rowCount === undefined || result.rowCount === null ? 0 : result.rowCount) > 0;
   }
 }
 

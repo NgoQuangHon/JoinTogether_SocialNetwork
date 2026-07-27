@@ -16,11 +16,11 @@ export class YeuCauThamGiaModel {
     private _thoiGianGui?: Date | string | null;
 
     constructor(data: Partial<YeuCauThamGia> = {}) {
-        this._yeuCauId = data.yeuCauId ?? null;
+        this._yeuCauId = data.yeuCauId === undefined || data.yeuCauId === null ? null : data.yeuCauId;
         this._hoatDongId = YeuCauThamGiaValidator.validatePositiveNumber(data.hoatDongId, 'HoatDongId');
         this._nguoiDungId = YeuCauThamGiaValidator.validatePositiveNumber(data.nguoiDungId, 'NguoiDungId');
-        this._trangThai = data.trangThai ?? null;
-        this._thoiGianGui = data.thoiGianGui ?? null;
+        this._trangThai = data.trangThai === undefined || data.trangThai === null ? null : data.trangThai;
+        this._thoiGianGui = data.thoiGianGui === undefined || data.thoiGianGui === null ? null : data.thoiGianGui;
     }
 
     get yeuCauId(): number | null | undefined {
@@ -44,11 +44,11 @@ export class YeuCauThamGiaModel {
     }
 
     updateTrangThai(newTrangThai: string | null | undefined): void {
-        this._trangThai = newTrangThai ?? null;
+        this._trangThai = newTrangThai === undefined || newTrangThai === null ? null : newTrangThai;
     }
 
     sendRequest(thoiGianGui: Date | string | null | undefined): void {
-        this._thoiGianGui = thoiGianGui ?? null;
+        this._thoiGianGui = thoiGianGui === undefined || thoiGianGui === null ? null : thoiGianGui;
     }
 
     static createYeuCauThamGiaModel(data: Partial<YeuCauThamGia>): YeuCauThamGiaModel {
@@ -57,10 +57,10 @@ export class YeuCauThamGiaModel {
 
     static createYeuCauThamGiaPayload(data: Partial<YeuCauThamGia>): Partial<YeuCauThamGia> {
         return {
-            hoatDongId: data.hoatDongId ?? 0,
-            nguoiDungId: data.nguoiDungId ?? 0,
-            trangThai: data.trangThai ?? null,
-            thoiGianGui: data.thoiGianGui ?? null,
+            hoatDongId: data.hoatDongId === undefined || data.hoatDongId === null ? 0 : data.hoatDongId,
+            nguoiDungId: data.nguoiDungId === undefined || data.nguoiDungId === null ? 0 : data.nguoiDungId,
+            trangThai: data.trangThai === undefined || data.trangThai === null ? null : data.trangThai,
+            thoiGianGui: data.thoiGianGui === undefined || data.thoiGianGui === null ? null : data.thoiGianGui,
         };
     }
 }

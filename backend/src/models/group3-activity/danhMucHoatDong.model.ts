@@ -12,9 +12,9 @@ export class DanhMucHoatDongModel {
     private _moTa?: string | null;
 
     constructor(data: Partial<DanhMucHoatDong> = {}) {
-        this._danhMucHoatDongId = data.danhMucHoatDongId ?? null;
+        this._danhMucHoatDongId = data.danhMucHoatDongId === undefined || data.danhMucHoatDongId === null ? null : data.danhMucHoatDongId;
         this._tenDanhMuc = DanhMucHoatDongValidator.validateRequiredString(data.tenDanhMuc, 'Tên danh mục hoạt động');
-        this._moTa = data.moTa ?? null;
+        this._moTa = data.moTa === undefined || data.moTa === null ? null : data.moTa;
     }
 
     get danhMucHoatDongId(): number | null | undefined {
@@ -34,7 +34,7 @@ export class DanhMucHoatDongModel {
     }
 
     updateMoTa(newMoTa: string | null | undefined): void {
-        this._moTa = newMoTa ?? null;
+        this._moTa = newMoTa === undefined || newMoTa === null ? null : newMoTa;
     }
 
     static createDanhMucHoatDongModel(data: Partial<DanhMucHoatDong>): DanhMucHoatDongModel {
@@ -43,8 +43,8 @@ export class DanhMucHoatDongModel {
 
     static createDanhMucHoatDongPayload(data: Partial<DanhMucHoatDong>): Partial<DanhMucHoatDong> {
         return {
-            tenDanhMuc: data.tenDanhMuc ?? '',
-            moTa: data.moTa ?? null,
+            tenDanhMuc: data.tenDanhMuc === undefined || data.tenDanhMuc === null ? '' : data.tenDanhMuc,
+            moTa: data.moTa === undefined || data.moTa === null ? null : data.moTa,
         };
     }
 }

@@ -16,11 +16,11 @@ export class ThongBaoModel {
     private _loaiThongBao?: string | null;
 
     constructor(data: Partial<ThongBao> = {}) {
-        this._thongBaoId = data.thongBaoId ?? null;
+        this._thongBaoId = data.thongBaoId === undefined || data.thongBaoId === null ? null : data.thongBaoId;
         this._nguoiNhanId = ThongBaoValidator.validatePositiveNumber(data.nguoiNhanId, 'NguoiNhanId');
-        this._tieuDe = data.tieuDe ?? null;
-        this._noiDung = data.noiDung ?? null;
-        this._loaiThongBao = data.loaiThongBao ?? null;
+        this._tieuDe = data.tieuDe === undefined || data.tieuDe === null ? null : data.tieuDe;
+        this._noiDung = data.noiDung === undefined || data.noiDung === null ? null : data.noiDung;
+        this._loaiThongBao = data.loaiThongBao === undefined || data.loaiThongBao === null ? null : data.loaiThongBao;
     }
 
     get thongBaoId(): number | null | undefined {
@@ -44,15 +44,15 @@ export class ThongBaoModel {
     }
 
     updateTieuDe(newTieuDe: string | null | undefined): void {
-        this._tieuDe = newTieuDe ?? null;
+        this._tieuDe = newTieuDe === undefined || newTieuDe === null ? null : newTieuDe;
     }
 
     updateNoiDung(newNoiDung: string | null | undefined): void {
-        this._noiDung = newNoiDung ?? null;
+        this._noiDung = newNoiDung === undefined || newNoiDung === null ? null : newNoiDung;
     }
 
     updateLoaiThongBao(newLoaiThongBao: string | null | undefined): void {
-        this._loaiThongBao = newLoaiThongBao ?? null;
+        this._loaiThongBao = newLoaiThongBao === undefined || newLoaiThongBao === null ? null : newLoaiThongBao;
     }
 
     static createThongBaoModel(data: Partial<ThongBao>): ThongBaoModel {
@@ -61,10 +61,10 @@ export class ThongBaoModel {
 
     static createThongBaoPayload(data: Partial<ThongBao>): Partial<ThongBao> {
         return {
-            nguoiNhanId: data.nguoiNhanId ?? 0,
-            tieuDe: data.tieuDe ?? null,
-            noiDung: data.noiDung ?? null,
-            loaiThongBao: data.loaiThongBao ?? null,
+            nguoiNhanId: data.nguoiNhanId === undefined || data.nguoiNhanId === null ? 0 : data.nguoiNhanId,
+            tieuDe: data.tieuDe === undefined || data.tieuDe === null ? null : data.tieuDe,
+            noiDung: data.noiDung === undefined || data.noiDung === null ? null : data.noiDung,
+            loaiThongBao: data.loaiThongBao === undefined || data.loaiThongBao === null ? null : data.loaiThongBao,
         };
     }
 }

@@ -16,11 +16,11 @@ export class BaoCaoViPhamModel {
     private _noiDung?: string | null;
 
     constructor(data: Partial<BaoCaoViPham> = {}) {
-        this._baoCaoId = data.baoCaoId ?? null;
-        this._nguoiBaoCaoId = data.nguoiBaoCaoId ?? null;
-        this._nguoiBiBaoCaoId = data.nguoiBiBaoCaoId ?? null;
-        this._loaiViPhamId = data.loaiViPhamId ?? null;
-        this._noiDung = data.noiDung ?? null;
+        this._baoCaoId = data.baoCaoId === undefined || data.baoCaoId === null ? null : data.baoCaoId;
+        this._nguoiBaoCaoId = data.nguoiBaoCaoId === undefined || data.nguoiBaoCaoId === null ? null : data.nguoiBaoCaoId;
+        this._nguoiBiBaoCaoId = data.nguoiBiBaoCaoId === undefined || data.nguoiBiBaoCaoId === null ? null : data.nguoiBiBaoCaoId;
+        this._loaiViPhamId = data.loaiViPhamId === undefined || data.loaiViPhamId === null ? null : data.loaiViPhamId;
+        this._noiDung = data.noiDung === undefined || data.noiDung === null ? null : data.noiDung;
     }
 
     get baoCaoId(): number | null | undefined {
@@ -44,7 +44,7 @@ export class BaoCaoViPhamModel {
     }
 
     updateNoiDung(newNoiDung: string | null | undefined): void {
-        this._noiDung = newNoiDung ?? null;
+        this._noiDung = newNoiDung === undefined || newNoiDung === null ? null : newNoiDung;
     }
 
     static createBaoCaoViPhamModel(data: Partial<BaoCaoViPham>): BaoCaoViPhamModel {
@@ -53,10 +53,10 @@ export class BaoCaoViPhamModel {
 
     static createBaoCaoViPhamPayload(data: Partial<BaoCaoViPham>): Partial<BaoCaoViPham> {
         return {
-            nguoiBaoCaoId: data.nguoiBaoCaoId ?? null,
-            nguoiBiBaoCaoId: data.nguoiBiBaoCaoId ?? null,
-            loaiViPhamId: data.loaiViPhamId ?? null,
-            noiDung: data.noiDung ?? null,
+            nguoiBaoCaoId: data.nguoiBaoCaoId === undefined || data.nguoiBaoCaoId === null ? null : data.nguoiBaoCaoId,
+            nguoiBiBaoCaoId: data.nguoiBiBaoCaoId === undefined || data.nguoiBiBaoCaoId === null ? null : data.nguoiBiBaoCaoId,
+            loaiViPhamId: data.loaiViPhamId === undefined || data.loaiViPhamId === null ? null : data.loaiViPhamId,
+            noiDung: data.noiDung === undefined || data.noiDung === null ? null : data.noiDung,
         };
     }
 }

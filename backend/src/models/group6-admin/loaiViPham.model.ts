@@ -14,10 +14,10 @@ export class LoaiViPhamModel {
     private _mucDo?: string | null;
 
     constructor(data: Partial<LoaiViPham> = {}) {
-        this._loaiViPhamId = data.loaiViPhamId ?? null;
+        this._loaiViPhamId = data.loaiViPhamId === undefined || data.loaiViPhamId === null ? null : data.loaiViPhamId;
         this._tenLoai = LoaiViPhamValidator.validateRequiredString(data.tenLoai, 'Tên loại');
-        this._moTa = data.moTa ?? null;
-        this._mucDo = data.mucDo ?? null;
+        this._moTa = data.moTa === undefined || data.moTa === null ? null : data.moTa;
+        this._mucDo = data.mucDo === undefined || data.mucDo === null ? null : data.mucDo;
     }
 
     get loaiViPhamId(): number | null | undefined {
@@ -41,11 +41,11 @@ export class LoaiViPhamModel {
     }
 
     updateMoTa(newMoTa: string | null | undefined): void {
-        this._moTa = newMoTa ?? null;
+        this._moTa = newMoTa === undefined || newMoTa === null ? null : newMoTa;
     }
 
     updateMucDo(newMucDo: string | null | undefined): void {
-        this._mucDo = newMucDo ?? null;
+        this._mucDo = newMucDo === undefined || newMucDo === null ? null : newMucDo;
     }
 
     static createLoaiViPhamModel(data: Partial<LoaiViPham>): LoaiViPhamModel {
@@ -54,9 +54,9 @@ export class LoaiViPhamModel {
 
     static createLoaiViPhamPayload(data: Partial<LoaiViPham>): Partial<LoaiViPham> {
         return {
-            tenLoai: data.tenLoai ?? '',
-            moTa: data.moTa ?? null,
-            mucDo: data.mucDo ?? null,
+            tenLoai: data.tenLoai === undefined || data.tenLoai === null ? '' : data.tenLoai,
+            moTa: data.moTa === undefined || data.moTa === null ? null : data.moTa,
+            mucDo: data.mucDo === undefined || data.mucDo === null ? null : data.mucDo,
         };
     }
 }

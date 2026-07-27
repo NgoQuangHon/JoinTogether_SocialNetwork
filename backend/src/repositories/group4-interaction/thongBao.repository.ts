@@ -15,9 +15,9 @@ export class ThongBaoRepository {
     `;
     const result = await pool.query(query, [
       data.nguoiNhanId,
-      data.tieuDe ?? null,
-      data.noiDung ?? null,
-      data.loaiThongBao ?? 'CHUNG',
+      data.tieuDe === undefined || data.tieuDe === null ? null : data.tieuDe,
+      data.noiDung === undefined || data.noiDung === null ? null : data.noiDung,
+      data.loaiThongBao === undefined || data.loaiThongBao === null ? 'CHUNG' : data.loaiThongBao,
     ]);
     return result.rows[0];
   }
@@ -57,6 +57,6 @@ export class ThongBaoRepository {
   async delete(id: number): Promise<boolean> {
     const query = `DELETE FROM thong_bao WHERE thong_bao_id = $1`;
     const result = await pool.query(query, [id]);
-    return (result.rowCount ?? 0) > 0;
+    return (result.rowCount === undefined || result.rowCount === null ? 0 : result.rowCount) > 0;
   }
 }

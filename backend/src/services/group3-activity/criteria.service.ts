@@ -25,8 +25,8 @@ export class CriteriaService {
     return await this.tieuChiRepo.create({
       hoatDongId: model.hoatDongId,
       tenTieuChi: model.tenTieuChi,
-      giaTriYeuCau: model.giaTriYeuCau ?? null,
-      batBuoc: model.batBuoc ?? false,
+      giaTriYeuCau: model.giaTriYeuCau === undefined || model.giaTriYeuCau === null ? null : model.giaTriYeuCau,
+      batBuoc: model.batBuoc === undefined || model.batBuoc === null ? false : model.batBuoc,
     });
   }
 

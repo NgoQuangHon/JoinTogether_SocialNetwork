@@ -14,10 +14,10 @@ export class SoThichModel {
     private _moTa?: string | null;
 
     constructor(data: Partial<SoThich> = {}) {
-        this._soThichId = data.soThichId ?? null;
-        this._danhMucSoThichId = data.danhMucSoThichId ?? null;
+        this._soThichId = data.soThichId === undefined || data.soThichId === null ? null : data.soThichId;
+        this._danhMucSoThichId = data.danhMucSoThichId === undefined || data.danhMucSoThichId === null ? null : data.danhMucSoThichId;
         this._tenSoThich = SoThichValidator.validateRequiredString(data.tenSoThich, 'Tên sở thích');
-        this._moTa = data.moTa ?? null;
+        this._moTa = data.moTa === undefined || data.moTa === null ? null : data.moTa;
     }
 
     get soThichId(): number | null | undefined {
@@ -41,7 +41,7 @@ export class SoThichModel {
     }
 
     updateMoTa(newMoTa: string | null | undefined): void {
-        this._moTa = newMoTa ?? null;
+        this._moTa = newMoTa === undefined || newMoTa === null ? null : newMoTa;
     }
 
     static createSoThichModel(data: Partial<SoThich>): SoThichModel {
@@ -50,9 +50,9 @@ export class SoThichModel {
 
     static createSoThichPayload(data: Partial<SoThich>): Partial<SoThich> {
         return {
-            danhMucSoThichId: data.danhMucSoThichId ?? null,
-            tenSoThich: data.tenSoThich ?? '',
-            moTa: data.moTa ?? null,
+            danhMucSoThichId: data.danhMucSoThichId === undefined || data.danhMucSoThichId === null ? null : data.danhMucSoThichId,
+            tenSoThich: data.tenSoThich === undefined || data.tenSoThich === null ? '' : data.tenSoThich,
+            moTa: data.moTa === undefined || data.moTa === null ? null : data.moTa,
         };
     }
 }

@@ -22,14 +22,14 @@ export class HoSoNguoiDungModel {
     private _anhDaiDien?: string | null;
 
     constructor(data: Partial<HoSoNguoiDung> = {}) {
-        this._hoSoId = data.hoSoId ?? null;
+        this._hoSoId = data.hoSoId === undefined || data.hoSoId === null ? null : data.hoSoId;
         this._nguoiDungId = HoSoNguoiDungValidator.validatePositiveNumber(data.nguoiDungId, 'NguoiDungId');
-        this._tieuSu = data.tieuSu ?? null;
-        this._ngaySinh = data.ngaySinh ?? null;
-        this._khuVuc = data.khuVuc ?? null;
-        this._mucTieuThamGia = data.mucTieuThamGia ?? null;
-        this._thoiGianRanh = data.thoiGianRanh ?? null;
-        this._anhDaiDien = data.anhDaiDien ?? null;
+        this._tieuSu = data.tieuSu === undefined || data.tieuSu === null ? null : data.tieuSu;
+        this._ngaySinh = data.ngaySinh === undefined || data.ngaySinh === null ? null : data.ngaySinh;
+        this._khuVuc = data.khuVuc === undefined || data.khuVuc === null ? null : data.khuVuc;
+        this._mucTieuThamGia = data.mucTieuThamGia === undefined || data.mucTieuThamGia === null ? null : data.mucTieuThamGia;
+        this._thoiGianRanh = data.thoiGianRanh === undefined || data.thoiGianRanh === null ? null : data.thoiGianRanh;
+        this._anhDaiDien = data.anhDaiDien === undefined || data.anhDaiDien === null ? null : data.anhDaiDien;
     }
 
     get hoSoId(): number | null | undefined {
@@ -65,27 +65,27 @@ export class HoSoNguoiDungModel {
     }
 
     updateTieuSu(newTieuSu: string | null | undefined): void {
-        this._tieuSu = newTieuSu ?? null;
+        this._tieuSu = newTieuSu === undefined || newTieuSu === null ? null : newTieuSu;
     }
 
     updateNgaySinh(newNgaySinh: Date | string | null | undefined): void {
-        this._ngaySinh = newNgaySinh ?? null;
+        this._ngaySinh = newNgaySinh === undefined || newNgaySinh === null ? null : newNgaySinh;
     }
 
     updateKhuVuc(newKhuVuc: string | null | undefined): void {
-        this._khuVuc = newKhuVuc ?? null;
+        this._khuVuc = newKhuVuc === undefined || newKhuVuc === null ? null : newKhuVuc;
     }
 
     updateMucTieuThamGia(newMucTieuThamGia: string | null | undefined): void {
-        this._mucTieuThamGia = newMucTieuThamGia ?? null;
+        this._mucTieuThamGia = newMucTieuThamGia === undefined || newMucTieuThamGia === null ? null : newMucTieuThamGia;
     }
 
     updateThoiGianRanh(newThoiGianRanh: string | null | undefined): void {
-        this._thoiGianRanh = newThoiGianRanh ?? null;
+        this._thoiGianRanh = newThoiGianRanh === undefined || newThoiGianRanh === null ? null : newThoiGianRanh;
     }
 
     updateAnhDaiDien(newAnhDaiDien: string | null | undefined): void {
-        this._anhDaiDien = newAnhDaiDien ?? null;
+        this._anhDaiDien = newAnhDaiDien === undefined || newAnhDaiDien === null ? null : newAnhDaiDien;
     }
 
     static createHoSoNguoiDungModel(data: Partial<HoSoNguoiDung>): HoSoNguoiDungModel {
@@ -94,13 +94,13 @@ export class HoSoNguoiDungModel {
 
     static createHoSoNguoiDungPayload(data: Partial<HoSoNguoiDung>): Partial<HoSoNguoiDung> {
         return {
-            nguoiDungId: data.nguoiDungId ?? 0,
-            tieuSu: data.tieuSu ?? null,
-            ngaySinh: data.ngaySinh ?? null,
-            khuVuc: data.khuVuc ?? null,
-            mucTieuThamGia: data.mucTieuThamGia ?? null,
-            thoiGianRanh: data.thoiGianRanh ?? null,
-            anhDaiDien: data.anhDaiDien ?? null,
+            nguoiDungId: data.nguoiDungId === undefined || data.nguoiDungId === null ? 0 : data.nguoiDungId,
+            tieuSu: data.tieuSu === undefined || data.tieuSu === null ? null : data.tieuSu,
+            ngaySinh: data.ngaySinh === undefined || data.ngaySinh === null ? null : data.ngaySinh,
+            khuVuc: data.khuVuc === undefined || data.khuVuc === null ? null : data.khuVuc,
+            mucTieuThamGia: data.mucTieuThamGia === undefined || data.mucTieuThamGia === null ? null : data.mucTieuThamGia,
+            thoiGianRanh: data.thoiGianRanh === undefined || data.thoiGianRanh === null ? null : data.thoiGianRanh,
+            anhDaiDien: data.anhDaiDien === undefined || data.anhDaiDien === null ? null : data.anhDaiDien,
         };
     }
 }

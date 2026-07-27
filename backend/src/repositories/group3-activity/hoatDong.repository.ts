@@ -17,13 +17,13 @@ export class HoatDongRepository {
         thoi_gian_ket_thuc AS "thoiGianKetThuc"
     `;
     const values = [
-      data.nguoiToChucId ?? null,
-      data.danhMucHoatDongId ?? null,
-      data.diaDiemId ?? null,
+      data.nguoiToChucId === undefined || data.nguoiToChucId === null ? null : data.nguoiToChucId,
+      data.danhMucHoatDongId === undefined || data.danhMucHoatDongId === null ? null : data.danhMucHoatDongId,
+      data.diaDiemId === undefined || data.diaDiemId === null ? null : data.diaDiemId,
       data.tenHoatDong,
-      data.moTa ?? null,
-      data.thoiGianBatDau ?? null,
-      data.thoiGianKetThuc ?? null,
+      data.moTa === undefined || data.moTa === null ? null : data.moTa,
+      data.thoiGianBatDau === undefined || data.thoiGianBatDau === null ? null : data.thoiGianBatDau,
+      data.thoiGianKetThuc === undefined || data.thoiGianKetThuc === null ? null : data.thoiGianKetThuc,
     ];
     const result = await pool.query(query, values);
     return result.rows[0];
@@ -141,7 +141,7 @@ export class HoatDongRepository {
   async delete(id: number): Promise<boolean> {
     const query = `DELETE FROM hoat_dong WHERE hoat_dong_id = $1`;
     const result = await pool.query(query, [id]);
-    return (result.rowCount ?? 0) > 0;
+    return (result.rowCount === undefined || result.rowCount === null ? 0 : result.rowCount) > 0;
   }
 
   async search(filters: {
@@ -183,8 +183,8 @@ export class HoatDongRepository {
 
     const whereClause =
       conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
-    const limit = filters.limit ?? 20;
-    const offset = filters.offset ?? 0;
+    const limit = filters.limit === undefined || filters.limit === null ? 20 : filters.limit;
+    const offset = filters.offset === undefined || filters.offset === null ? 0 : filters.offset;
 
     const countQuery = `SELECT COUNT(*) as total FROM hoat_dong hd ${whereClause}`;
     const countResult = await pool.query(countQuery, values);

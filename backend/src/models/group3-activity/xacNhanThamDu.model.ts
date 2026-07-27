@@ -14,10 +14,10 @@ export class XacNhanThamDuModel {
     private _thoiGianCheckIn?: Date | string | null;
 
     constructor(data: Partial<XacNhanThamDu> = {}) {
-        this._xacNhanId = data.xacNhanId ?? null;
+        this._xacNhanId = data.xacNhanId === undefined || data.xacNhanId === null ? null : data.xacNhanId;
         this._thanhVienId = XacNhanThamDuValidator.validatePositiveNumber(data.thanhVienId, 'ThanhVienId');
-        this._trangThaiThamDu = data.trangThaiThamDu ?? null;
-        this._thoiGianCheckIn = data.thoiGianCheckIn ?? null;
+        this._trangThaiThamDu = data.trangThaiThamDu === undefined || data.trangThaiThamDu === null ? null : data.trangThaiThamDu;
+        this._thoiGianCheckIn = data.thoiGianCheckIn === undefined || data.thoiGianCheckIn === null ? null : data.thoiGianCheckIn;
     }
 
     get xacNhanId(): number | null | undefined {
@@ -37,11 +37,11 @@ export class XacNhanThamDuModel {
     }
 
     updateTrangThaiThamDu(newTrangThaiThamDu: string | null | undefined): void {
-        this._trangThaiThamDu = newTrangThaiThamDu ?? null;
+        this._trangThaiThamDu = newTrangThaiThamDu === undefined || newTrangThaiThamDu === null ? null : newTrangThaiThamDu;
     }
 
     checkIn(thoiGianCheckIn: Date | string | null | undefined): void {
-        this._thoiGianCheckIn = thoiGianCheckIn ?? null;
+        this._thoiGianCheckIn = thoiGianCheckIn === undefined || thoiGianCheckIn === null ? null : thoiGianCheckIn;
     }
 
     static createXacNhanThamDuModel(data: Partial<XacNhanThamDu>): XacNhanThamDuModel {
@@ -50,9 +50,9 @@ export class XacNhanThamDuModel {
 
     static createXacNhanThamDuPayload(data: Partial<XacNhanThamDu>): Partial<XacNhanThamDu> {
         return {
-            thanhVienId: data.thanhVienId ?? 0,
-            trangThaiThamDu: data.trangThaiThamDu ?? null,
-            thoiGianCheckIn: data.thoiGianCheckIn ?? null,
+            thanhVienId: data.thanhVienId === undefined || data.thanhVienId === null ? 0 : data.thanhVienId,
+            trangThaiThamDu: data.trangThaiThamDu === undefined || data.trangThaiThamDu === null ? null : data.trangThaiThamDu,
+            thoiGianCheckIn: data.thoiGianCheckIn === undefined || data.thoiGianCheckIn === null ? null : data.thoiGianCheckIn,
         };
     }
 }

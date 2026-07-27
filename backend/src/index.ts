@@ -14,10 +14,12 @@ const app = express();
 
 const PORT = process.env.PORT || 5000;
 
+const corsOrigin = process.env.CORS_ORIGIN?.split(",");
+
 app.use(helmet());
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN?.split(",") ?? "*",
+    origin: corsOrigin === undefined || corsOrigin === null ? "*" : corsOrigin,
   }),
 );
 app.use(express.json({ limit: "1mb" }));

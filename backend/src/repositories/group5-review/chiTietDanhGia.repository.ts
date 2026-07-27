@@ -14,7 +14,7 @@ export class ChiTietDanhGiaRepository {
     const result = await pool.query(query, [
       data.danhGiaId,
       data.tieuChiDanhGiaId,
-      data.diem ?? null,
+      data.diem === undefined || data.diem === null ? null : data.diem,
     ]);
     return result.rows[0];
   }
@@ -37,7 +37,7 @@ export class ChiTietDanhGiaRepository {
   async deleteByDanhGiaId(danhGiaId: number): Promise<boolean> {
     const query = `DELETE FROM chi_tiet_danh_gia WHERE danh_gia_id = $1`;
     const result = await pool.query(query, [danhGiaId]);
-    return (result.rowCount ?? 0) > 0;
+    return (result.rowCount === undefined || result.rowCount === null ? 0 : result.rowCount) > 0;
   }
 }
 

@@ -14,10 +14,10 @@ export class TieuChiDanhGiaModel {
     private _diemToiDa?: number | null;
 
     constructor(data: Partial<TieuChiDanhGia> = {}) {
-        this._tieuChiDanhGiaId = data.tieuChiDanhGiaId ?? null;
+        this._tieuChiDanhGiaId = data.tieuChiDanhGiaId === undefined || data.tieuChiDanhGiaId === null ? null : data.tieuChiDanhGiaId;
         this._tenTieuChi = TieuChiDanhGiaValidator.validateRequiredString(data.tenTieuChi, 'Tên tiêu chí');
-        this._trongSo = data.trongSo ?? null;
-        this._diemToiDa = data.diemToiDa ?? null;
+        this._trongSo = data.trongSo === undefined || data.trongSo === null ? null : data.trongSo;
+        this._diemToiDa = data.diemToiDa === undefined || data.diemToiDa === null ? null : data.diemToiDa;
     }
 
     get tieuChiDanhGiaId(): number | null | undefined {
@@ -41,11 +41,11 @@ export class TieuChiDanhGiaModel {
     }
 
     updateTrongSo(newTrongSo: number | null | undefined): void {
-        this._trongSo = newTrongSo ?? null;
+        this._trongSo = newTrongSo === undefined || newTrongSo === null ? null : newTrongSo;
     }
 
     updateDiemToiDa(newDiemToiDa: number | null | undefined): void {
-        this._diemToiDa = newDiemToiDa ?? null;
+        this._diemToiDa = newDiemToiDa === undefined || newDiemToiDa === null ? null : newDiemToiDa;
     }
 
     static createTieuChiDanhGiaModel(data: Partial<TieuChiDanhGia>): TieuChiDanhGiaModel {
@@ -54,9 +54,9 @@ export class TieuChiDanhGiaModel {
 
     static createTieuChiDanhGiaPayload(data: Partial<TieuChiDanhGia>): Partial<TieuChiDanhGia> {
         return {
-            tenTieuChi: data.tenTieuChi ?? '',
-            trongSo: data.trongSo ?? null,
-            diemToiDa: data.diemToiDa ?? null,
+            tenTieuChi: data.tenTieuChi === undefined || data.tenTieuChi === null ? '' : data.tenTieuChi,
+            trongSo: data.trongSo === undefined || data.trongSo === null ? null : data.trongSo,
+            diemToiDa: data.diemToiDa === undefined || data.diemToiDa === null ? null : data.diemToiDa,
         };
     }
 }

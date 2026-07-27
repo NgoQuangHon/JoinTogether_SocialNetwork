@@ -16,7 +16,7 @@ export class YeuCauThamGiaRepository {
     const result = await pool.query(query, [
       data.hoatDongId,
       data.nguoiDungId,
-      data.trangThai ?? 'PENDING',
+      data.trangThai === undefined || data.trangThai === null ? 'PENDING' : data.trangThai,
     ]);
     return result.rows[0];
   }

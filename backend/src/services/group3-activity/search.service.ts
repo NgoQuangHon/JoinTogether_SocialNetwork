@@ -26,7 +26,7 @@ export class SearchService {
 
     await this.lichSuRepo.create({
       nguoiDungId,
-      tuKhoaTimKiem: filters.keyword ?? null,
+      tuKhoaTimKiem: filters.keyword === undefined || filters.keyword === null ? null : filters.keyword,
       boLocTimKiem: Object.keys(boLoc).length > 0 ? JSON.stringify(boLoc) : null,
     });
 

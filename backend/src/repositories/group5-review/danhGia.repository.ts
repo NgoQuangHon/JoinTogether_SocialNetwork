@@ -18,8 +18,8 @@ export class DanhGiaRepository {
       data.hoatDongId,
       data.nguoiDanhGiaId,
       data.nguoiDuocDanhGiaId,
-      data.nhanXet ?? null,
-      data.diemTong ?? null,
+      data.nhanXet === undefined || data.nhanXet === null ? null : data.nhanXet,
+      data.diemTong === undefined || data.diemTong === null ? null : data.diemTong,
     ]);
     return result.rows[0];
   }
@@ -133,7 +133,7 @@ export class DanhGiaRepository {
   async delete(id: number): Promise<boolean> {
     const query = `DELETE FROM danh_gia WHERE danh_gia_id = $1`;
     const result = await pool.query(query, [id]);
-    return (result.rowCount ?? 0) > 0;
+    return (result.rowCount === undefined || result.rowCount === null ? 0 : result.rowCount) > 0;
   }
 }
 

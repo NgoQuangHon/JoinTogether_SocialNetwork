@@ -68,8 +68,8 @@ export class ReviewService {
           hoatDongId,
           nguoiDanhGiaId,
           nguoiDuocDanhGiaId,
-          nhanXet: data.nhanXet ?? null,
-          diemTong: data.diemTong ?? null,
+          nhanXet: data.nhanXet === undefined || data.nhanXet === null ? null : data.nhanXet,
+          diemTong: data.diemTong === undefined || data.diemTong === null ? null : data.diemTong,
         },
         client,
       );

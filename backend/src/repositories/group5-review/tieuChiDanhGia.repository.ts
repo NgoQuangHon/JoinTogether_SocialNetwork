@@ -14,8 +14,8 @@ export class TieuChiDanhGiaRepository {
     `;
     const result = await pool.query(query, [
       data.tenTieuChi,
-      data.trongSo ?? null,
-      data.diemToiDa ?? null,
+      data.trongSo === undefined || data.trongSo === null ? null : data.trongSo,
+      data.diemToiDa === undefined || data.diemToiDa === null ? null : data.diemToiDa,
     ]);
     return result.rows[0];
   }
@@ -86,7 +86,7 @@ export class TieuChiDanhGiaRepository {
   async delete(id: number): Promise<boolean> {
     const query = `DELETE FROM tieu_chi_danh_gia WHERE tieu_chi_danh_gia_id = $1`;
     const result = await pool.query(query, [id]);
-    return (result.rowCount ?? 0) > 0;
+    return (result.rowCount === undefined || result.rowCount === null ? 0 : result.rowCount) > 0;
   }
 }
 

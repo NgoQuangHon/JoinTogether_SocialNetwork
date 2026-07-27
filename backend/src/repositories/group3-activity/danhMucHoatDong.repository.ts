@@ -37,7 +37,7 @@ export class DanhMucHoatDongRepository {
         ten_danh_muc AS "tenDanhMuc",
         mo_ta AS "moTa"
     `;
-    const result = await pool.query(query, [data.tenDanhMuc, data.moTa ?? null]);
+    const result = await pool.query(query, [data.tenDanhMuc, data.moTa === undefined || data.moTa === null ? null : data.moTa]);
     return result.rows[0];
   }
 
@@ -68,6 +68,6 @@ export class DanhMucHoatDongRepository {
   async delete(id: number): Promise<boolean> {
     const query = `DELETE FROM danh_muc_hoat_dong WHERE danh_muc_hoat_dong_id = $1`;
     const result = await pool.query(query, [id]);
-    return (result.rowCount ?? 0) > 0;
+    return (result.rowCount === undefined || result.rowCount === null ? 0 : result.rowCount) > 0;
   }
 }

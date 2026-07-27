@@ -16,7 +16,7 @@ export class NhatKyQuanTriRepository {
     const result = await pool.query(query, [
       data.nguoiQuanTriId,
       data.hanhDong,
-      data.doiTuongTacDong ?? null,
+      data.doiTuongTacDong === undefined || data.doiTuongTacDong === null ? null : data.doiTuongTacDong,
     ]);
     return result.rows[0];
   }

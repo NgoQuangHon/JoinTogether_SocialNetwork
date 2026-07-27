@@ -15,7 +15,7 @@ export class TinNhanRepository {
     `;
     const result = await pool.query(query, [
       data.phongId,
-      data.nguoiGuiId ?? null,
+      data.nguoiGuiId === undefined || data.nguoiGuiId === null ? null : data.nguoiGuiId,
       data.noiDung,
     ]);
     return result.rows[0];
@@ -58,13 +58,13 @@ export class TinNhanRepository {
   async delete(id: number): Promise<boolean> {
     const query = `DELETE FROM tin_nhan WHERE tin_nhan_id = $1`;
     const result = await pool.query(query, [id]);
-    return (result.rowCount ?? 0) > 0;
+    return (result.rowCount === undefined || result.rowCount === null ? 0 : result.rowCount) > 0;
   }
 
   async deleteByPhongId(phongId: number): Promise<boolean> {
     const query = `DELETE FROM tin_nhan WHERE phong_id = $1`;
     const result = await pool.query(query, [phongId]);
-    return (result.rowCount ?? 0) > 0;
+    return (result.rowCount === undefined || result.rowCount === null ? 0 : result.rowCount) > 0;
   }
 }
 

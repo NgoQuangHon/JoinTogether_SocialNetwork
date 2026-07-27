@@ -3,7 +3,7 @@ import { pool } from "../config/db";
 import { AuthenticatedUser } from "../types/express";
 
 function getUser(req: Request): AuthenticatedUser | null {
-  return req.user ?? null;
+  return req.user === undefined || req.user === null ? null : req.user;
 }
 
 function parseId(value: unknown): number | null {
@@ -37,7 +37,7 @@ async function isActivityOwner(
     [hoatDongId, nguoiDungId],
   );
 
-  return (result.rowCount ?? 0) > 0;
+  return (result.rowCount === undefined || result.rowCount === null ? 0 : result.rowCount) > 0;
 }
 
 async function isActivityMember(
@@ -55,7 +55,7 @@ async function isActivityMember(
     [hoatDongId, nguoiDungId],
   );
 
-  return (result.rowCount ?? 0) > 0;
+  return (result.rowCount === undefined || result.rowCount === null ? 0 : result.rowCount) > 0;
 }
 
 export function requireAdmin(
@@ -71,9 +71,9 @@ export function requireAdmin(
 
   const roles = new Set([
     user.role?.toUpperCase(),
-    ...(user.roles ?? []).map((role) => role.toUpperCase()),
+    ...(user.roles === undefined || user.roles === null ? [] : user.roles).map((role) => role.toUpperCase()),
   ]);
-  const adminUserIds = (process.env.ADMIN_USER_IDS ?? "")
+  const adminUserIds = (process.env.ADMIN_USER_IDS === undefined || process.env.ADMIN_USER_IDS === null ? "" : process.env.ADMIN_USER_IDS)
     .split(",")
     .map((id) => Number(id.trim()))
     .filter((id) => Number.isInteger(id) && id > 0);
@@ -320,10 +320,10 @@ export function requireReviewParticipant(
     try {
       const user = getUser(req);
       const hoatDongId = parseId(
-        req.params[activityParamName] ?? req.body?.[activityParamName],
+        req.params[activityParamName] === undefined || req.params[activityParamName] === null ? req.body?.[activityParamName] : req.params[activityParamName],
       );
       const nguoiDuocDanhGiaId = parseId(
-        req.params[reviewedUserParamName] ?? req.body?.[reviewedUserParamName],
+        req.params[reviewedUserParamName] === undefined || req.params[reviewedUserParamName] === null ? req.body?.[reviewedUserParamName] : req.params[reviewedUserParamName],
       );
 
       if (!user?.nguoiDungId) {
