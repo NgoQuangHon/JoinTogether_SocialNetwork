@@ -1,18 +1,12 @@
-// src/services/auth.service.ts
-
 import api from './api';
+import type { LoginRequest, RegisterRequest, ApiResponse, LoginResponseData } from '../types/auth';
 
-export const login = async (email: string, password: string) => {
-    const response = await api.post('/auth/login', {
-        email,
-        password,
-    });
-
-    return response.data;
+export const loginApi = async (data: LoginRequest): Promise<ApiResponse<LoginResponseData>> => {
+  const response = await api.post<ApiResponse<LoginResponseData>>('/auth/login', data);
+  return response.data;
 };
 
-export const register = async (data: any) => {
-    const response = await api.post('/auth/register', data);
-
-    return response.data;
+export const registerApi = async (data: RegisterRequest): Promise<ApiResponse> => {
+  const response = await api.post<ApiResponse>('/auth/register', data);
+  return response.data;
 };

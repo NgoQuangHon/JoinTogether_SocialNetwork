@@ -13,4 +13,11 @@ export class LichSuDiemUyTinValidator {
         }
         return num;
     }
+    static validateRequiredNumber(value: number | string | null | undefined, fieldName: string): number {
+        const num = typeof value === 'string' ? Number(value) : value;
+        if (typeof num !== 'number' || isNaN(num)) {
+            throw new Error(`${fieldName} phải là một số hợp lệ.`);
+        }
+        return num;
+    }
 }

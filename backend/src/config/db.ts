@@ -28,7 +28,7 @@ export const pool = new Pool({
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     parseInt8: true,
-});
+} as any);
 
 export async function connectDB() {
     try {
