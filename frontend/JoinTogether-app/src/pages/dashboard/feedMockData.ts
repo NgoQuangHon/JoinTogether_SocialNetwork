@@ -85,6 +85,35 @@ export const nguoiDongHanhDeXuatList: NguoiDongHanhDeXuat[] = [
   { id: 4, hoTen: 'Bảo Châu', soThich: 'Yoga, Cà phê', avatarMau: '#8ed8cc', avatarChu: 'C' },
 ];
 
+export interface BaiViet {
+  id: number;
+  tacGia: { hoTen: string; avatarMau: string; avatarChu: string };
+  thoiGian: string;
+  hoatDongLienQuan?: string;
+  noiDung: string;
+  hinhAnhMau?: string;
+  soLuotThich: number;
+  soBinhLuan: number;
+  soLuotChiaSe: number;
+  daThich: boolean;
+}
+
+export interface GoiYKetNoi {
+  id: number;
+  nguoiDung: { hoTen: string; avatarMau: string; avatarChu: string };
+  phanTramPhuHop: number;
+  moTaChung: string;
+}
+
+export interface HoatDongSapDienRa {
+  id: number;
+  tenHoatDong: string;
+  ngay: string;
+  gio: string;
+  soNguoiThamGia: number;
+  trangThai: "sap-dien-ra" | "con-cho" | "sap-day";
+}
+
 export const hoatDongNoiBatList: HoatDongNoiBat[] = [
   {
     id: 1,
@@ -99,5 +128,63 @@ export const hoatDongNoiBatList: HoatDongNoiBat[] = [
     nhanCongDong: 'CỘNG ĐỒNG',
     nhanThoiGian: 'Chủ nhật, 09/08',
     mauAnh: 'linear-gradient(165deg, #8ed8cc, #4baa9a 55%, #2f6d63)',
+  },
+];
+
+export const goiYKetNoiList: GoiYKetNoi[] = [
+  {
+    id: 1,
+    nguoiDung: { hoTen: 'Minh Anh', avatarMau: '#6fbf73', avatarChu: 'M' },
+    phanTramPhuHop: 92,
+    moTaChung: 'Thích chạy bộ, gym, cà phê sách',
+  },
+  {
+    id: 2,
+    nguoiDung: { hoTen: 'Quốc Trung', avatarMau: '#66c2b2', avatarChu: 'Q' },
+    phanTramPhuHop: 87,
+    moTaChung: 'Đam mê nhiếp ảnh, thích dã ngoại',
+  },
+];
+
+export const hoatDongSapDienRaList: HoatDongSapDienRa[] = [
+  {
+    id: 1,
+    tenHoatDong: 'Giao lưu bóng rổ',
+    ngay: '15/08',
+    gio: '17:30',
+    soNguoiThamGia: 6,
+    trangThai: 'con-cho',
+  },
+  {
+    id: 2,
+    tenHoatDong: 'Học nhóm Toán',
+    ngay: '17/08',
+    gio: '09:00',
+    soNguoiThamGia: 7,
+    trangThai: 'sap-day',
+  },
+];
+
+export const baiVietMauBanDau: BaiViet[] = [
+  {
+    id: 1,
+    tacGia: { hoTen: 'Nguyễn Văn A', avatarMau: '#6fbf73', avatarChu: 'A' },
+    thoiGian: '2 giờ trước',
+    hoatDongLienQuan: 'Giao lưu bóng rổ',
+    noiDung: 'Buổi giao lưu hôm nay thật tuyệt vời!',
+    soLuotThich: 12,
+    soBinhLuan: 3,
+    soLuotChiaSe: 1,
+    daThich: false,
+  },
+  {
+    id: 2,
+    tacGia: { hoTen: 'Trần Thị B', avatarMau: '#66c2b2', avatarChu: 'B' },
+    thoiGian: '5 giờ trước',
+    noiDung: 'Có ai muốn đi đạp xe cuối tuần này không?',
+    soLuotThich: 8,
+    soBinhLuan: 5,
+    soLuotChiaSe: 2,
+    daThich: true,
   },
 ];

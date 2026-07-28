@@ -7,30 +7,21 @@ import {
   hoatDongGanBanList,
   nguoiDongHanhDeXuatList,
   hoatDongNoiBatList,
+  goiYKetNoiList,
+  hoatDongSapDienRaList,
+  baiVietMauBanDau,
   type DanhMuc,
   type HoatDongGanBan,
   type NguoiDongHanhDeXuat,
   type HoatDongNoiBat,
-} from './feedMockData';
-  goiYKetNoiList,
-  hoatDongSapDienRaList,
   type BaiViet,
+  type GoiYKetNoi,
+  type HoatDongSapDienRa,
 } from "./feedMockData";
 
 // ==================== COMPONENT DÙNG CHUNG ====================
-// Các component này được tái sử dụng ở cả layout mobile lẫn desktop,
-// phần trình bày khác nhau được xử lý hoàn toàn bằng CSS theo ngữ cảnh
-// (.mobile-view / .desktop-view), tránh lệch dữ liệu giữa 2 phiên bản.
 
-function Avatar({
-  mau,
-  chu,
-  kichThuoc = 44,
-}: {
-  mau: string;
-  chu: string;
-  kichThuoc?: number;
-}) {
+function Avatar({ mau, chu, kichThuoc = 44 }: { mau: string; chu: string; kichThuoc?: number }) {
   return (
     <div
       className="avatar-tron"
@@ -65,19 +56,13 @@ function AIBanner() {
   );
 }
 
-function CategoryChips({
-  chon,
-  onChon,
-}: {
-  chon: string;
-  onChon: (id: string) => void;
-}) {
+function CategoryChips({ chon, onChon }: { chon: string; onChon: (id: string) => void }) {
   return (
     <div className="category-row">
       {danhMucList.map((dm: DanhMuc) => (
         <button
           key={dm.id}
-          className={`category-chip ${chon === dm.id ? 'category-chip-active' : ''}`}
+          className={`category-chip ${chon === dm.id ? "category-chip-active" : ""}`}
           onClick={() => onChon(dm.id)}
         >
           {dm.ten}
@@ -118,6 +103,8 @@ function CompanionCard({ ng }: { ng: NguoiDongHanhDeXuat }) {
       <button className="btn-connect-outline">Kết nối</button>
     </div>
   );
+}
+
 function nhanTrangThai(trangThai: "sap-dien-ra" | "con-cho" | "sap-day") {
   switch (trangThai) {
     case "con-cho":
@@ -148,24 +135,24 @@ function DanhSachDieuHuong({ role, onDongMenu }: { role: string | null; onDongMe
         <span className="nav-icon">📊</span>
         Trang chủ
       </a>
-      <a href="#" className="nav-item">
+      <a href="/profile" className="nav-item" onClick={onDongMenu}>
         <span className="nav-icon">👤</span>
         Hồ sơ
       </a>
-      <a href="#" className="nav-item">
+      <a href="#" className="nav-item" onClick={onDongMenu}>
         <span className="nav-icon">🔗</span>
         Kết nối
       </a>
-      <a href="#" className="nav-item">
+      <a href="#" className="nav-item" onClick={onDongMenu}>
         <span className="nav-icon">💬</span>
         Tin nhắn
       </a>
-      <a href="#" className="nav-item">
+      <a href="#" className="nav-item" onClick={onDongMenu}>
         <span className="nav-icon">⭐</span>
         Đánh giá
       </a>
-      {role === 'ADMIN' && (
-        <a href="#" className="nav-item">
+      {role === "ADMIN" && (
+        <a href="#" className="nav-item" onClick={onDongMenu}>
           <span className="nav-icon">⚙️</span>
           Quản trị
         </a>
@@ -180,7 +167,7 @@ export default function DashboardPage() {
   const { logout, role, nguoiDungId } = useAuth();
   const navigate = useNavigate();
   const [menuMo, setMenuMo] = useState(false);
-  const [danhMucChon, setDanhMucChon] = useState('tat-ca');
+  const [danhMucChon, setDanhMucChon] = useState("tat-ca");
   const [baiVietList, setBaiVietList] = useState<BaiViet[]>(baiVietMauBanDau);
   const [noiDungMoi, setNoiDungMoi] = useState("");
 
@@ -193,154 +180,192 @@ export default function DashboardPage() {
     setBaiVietList((truoc) =>
       truoc.map((bv) =>
         bv.id === id
-          ? {
-              ...bv,
-              daThich: !bv.daThich,
-              soLuotThich: bv.soLuotThich + (bv.daThich ? -1 : 1),
-            }
-          : bv,
-      ),
+          ? { ...bv, daThich: !bv.daThich, soLuotThich: bv.soLuotThich + (bv.daThich ? -1 : 1) }
+          : bv
+      )
     );
   };
 
   const dangPhepDang = noiDungMoi.trim().length > 0;
 
-  return (
-    <>
-      {/* ==================== PHIÊN BẢN MOBILE (≤ 899px) ==================== */}
-      <div className="mobile-view">
-        <div className="app-outer">
-          <div className="phone-shell">
-            <header className="app-header">
-              <button className="icon-btn" onClick={() => setMenuMo(true)} aria-label="Mở menu">
-                ☰
-              </button>
-              <span className="app-title">JoinTogether</span>
-              <button className="icon-btn icon-btn-bell" aria-label="Thông báo">
-                🔔
-                <span className="bell-dot" />
-              </button>
-            </header>
+  const mobileView = (
+    <div className="mobile-view">
+      <div className="app-outer">
+        <div className="phone-shell">
+          {/* HEADER MOBILE */}
+          <header className="app-header">
+            <button className="icon-btn" onClick={() => setMenuMo(true)} aria-label="Mở menu">
+              ☰
+            </button>
+            <span className="app-title">JoinTogether</span>
+            <button className="icon-btn icon-btn-bell" aria-label="Thông báo">
+              🔔
+              <span className="bell-dot" />
+            </button>
+          </header>
 
-            {menuMo && (
-              <>
-                <div className="drawer-overlay" onClick={() => setMenuMo(false)} />
-                <nav className="drawer-panel">
-                  <div className="drawer-brand">
-                    <div className="brand-icon">🌿</div>
-                    <span className="brand-name">JoinTogether</span>
-                  </div>
-                  <DanhSachDieuHuong role={role} onDongMenu={() => setMenuMo(false)} />
-                  <button className="logout-btn" onClick={handleLogout}>
-                    🚪 Đăng xuất
-                  </button>
-                </nav>
-              </>
-            )}
-        <nav className="sidebar-nav">
-          <a href="/dashboard" className="nav-item active">
-            <span className="nav-icon">📊</span>
-            Bảng tin
-          </a>
-          <a href="/profile" className="nav-item">
-            <span className="nav-icon">👤</span>
-            Hồ sơ
-          </a>
-          <a href="#" className="nav-item">
-            <span className="nav-icon">🎯</span>
-            Hoạt động
-          </a>
-          <a href="#" className="nav-item">
-            <span className="nav-icon">🔗</span>
-            Kết nối
-          </a>
-          <a href="#" className="nav-item">
-            <span className="nav-icon">💬</span>
-            Tin nhắn
-          </a>
-          <a href="#" className="nav-item">
-            <span className="nav-icon">⭐</span>
-            Đánh giá
-          </a>
-          {role === "ADMIN" && (
-            <a href="#" className="nav-item">
-              <span className="nav-icon">⚙️</span>
-              Quản trị
-            </a>
+          {/* DRAWER MOBILE */}
+          {menuMo && (
+            <>
+              <div className="drawer-overlay" onClick={() => setMenuMo(false)} />
+              <nav className="drawer-panel">
+                <div className="drawer-brand">
+                  <div className="brand-icon">🌿</div>
+                  <span className="brand-name">JoinTogether</span>
+                </div>
+                <DanhSachDieuHuong role={role} onDongMenu={() => setMenuMo(false)} />
+                <button className="logout-btn" onClick={handleLogout}>
+                  🚪 Đăng xuất
+                </button>
+              </nav>
+            </>
           )}
-        </nav>
 
-            <div className="app-body">
-              <div className="search-bar">
-                <span className="search-icon">🔍</span>
-                <input type="text" placeholder="Tìm kiếm hoạt động, bạn bè..." />
+          {/* BODY MOBILE */}
+          <div className="app-body">
+            <div className="search-bar">
+              <span className="search-icon">🔍</span>
+              <input type="text" placeholder="Tìm kiếm hoạt động, bạn bè..." />
+            </div>
+
+            <AIBanner />
+            <CategoryChips chon={danhMucChon} onChon={setDanhMucChon} />
+
+            <section className="section-block">
+              <div className="section-heading">
+                <h3>Hoạt động gần bạn</h3>
+                <a href="#" className="section-link">XEM THÊM</a>
               </div>
+              <div className="hscroll">
+                {hoatDongGanBanList.map((hd) => (
+                  <ActivityCard key={hd.id} hd={hd} />
+                ))}
+              </div>
+            </section>
 
-              <AIBanner />
+            <section className="section-block">
+              <div className="section-heading">
+                <h3>Người đồng hành đề xuất</h3>
+              </div>
+              <div className="hscroll">
+                {nguoiDongHanhDeXuatList.map((ng) => (
+                  <CompanionCard key={ng.id} ng={ng} />
+                ))}
+              </div>
+            </section>
 
-              <CategoryChips chon={danhMucChon} onChon={setDanhMucChon} />
+            <section className="section-block section-block-last">
+              <div className="section-heading">
+                <h3>Hoạt động nổi bật</h3>
+              </div>
+              <div className="hscroll">
+                {hoatDongNoiBatList.map((hd) => (
+                  <FeaturedCard key={hd.id} hd={hd} />
+                ))}
+              </div>
+            </section>
+          </div>
 
-              <section className="section-block">
-                <div className="section-heading">
-                  <h3>Hoạt động gần bạn</h3>
-                  <a href="#" className="section-link">
-                    XEM THÊM
-                  </a>
-      {/* ==================== NỘI DUNG CHÍNH ==================== */}
+          {/* BOTTOM NAV MOBILE */}
+          <nav className="bottom-nav">
+            <button className="bottom-nav-item bottom-nav-active">
+              <span className="bottom-nav-icon">🏠</span>
+              Trang chủ
+            </button>
+            <button className="bottom-nav-item">
+              <span className="bottom-nav-icon">🎯</span>
+              Hoạt động
+            </button>
+            <button className="bottom-nav-item">
+              <span className="bottom-nav-icon">💬</span>
+              Tin nhắn
+            </button>
+            <button className="bottom-nav-item" onClick={() => setMenuMo(true)}>
+              <span className="bottom-nav-icon">👤</span>
+              Cá nhân
+            </button>
+          </nav>
+        </div>
+      </div>
+    </div>
+  );
+
+  const desktopView = (
+    <div className="desktop-view">
+      <aside className="sidebar">
+        <div className="drawer-brand">
+          <div className="brand-icon">🌿</div>
+          <span className="brand-name">JoinTogether</span>
+        </div>
+        <nav className="sidebar-nav">
+          <DanhSachDieuHuong role={role} />
+        </nav>
+        <div className="sidebar-footer">
+          <button className="logout-btn" onClick={handleLogout}>
+            🚪 Đăng xuất
+          </button>
+        </div>
+      </aside>
+
       <main className="main-content">
         <header className="topbar">
-          <h1>Bảng tin</h1>
-          <div className="topbar-search">
+          <h1>Trang chủ</h1>
+          <div className="search-bar topbar-search">
             <span className="search-icon">🔍</span>
-            <input
-              type="text"
-              placeholder="Tìm hoạt động, người đồng hành..."
-            />
+            <input type="text" placeholder="Tìm kiếm hoạt động, bạn bè..." />
           </div>
           <div className="topbar-user">
             <span className="user-badge">ID: {nguoiDungId}</span>
-            <Avatar mau="var(--primary-600)" chu="B" kichThuoc={38} />
+            <button className="icon-btn icon-btn-bell" aria-label="Thông báo">
+              🔔
+              <span className="bell-dot" />
+            </button>
+            <Avatar mau="var(--primary-600)" chu="B" kichThuoc={36} />
           </div>
         </header>
 
-        <div className="feed-layout">
-          {/* ==================== CỘT GIỮA: NEWSFEED ==================== */}
-          <div className="feed-main">
-            {/* -------- Hoạt động nổi bật (dạng story) -------- */}
-            <section className="story-row">
+        <div className="content-body">
+          <AIBanner />
+          <CategoryChips chon={danhMucChon} onChon={setDanhMucChon} />
+
+          <section className="section-block">
+            <div className="section-heading">
+              <h3>Hoạt động gần bạn</h3>
+              <a href="#" className="section-link">XEM THÊM</a>
+            </div>
+            <div className="grid-activities">
+              {hoatDongGanBanList.map((hd) => (
+                <ActivityCard key={hd.id} hd={hd} />
+              ))}
+            </div>
+          </section>
+
+          <section className="section-block">
+            <div className="section-heading">
+              <h3>Người đồng hành đề xuất</h3>
+            </div>
+            <div className="grid-companions">
+              {nguoiDongHanhDeXuatList.map((ng) => (
+                <CompanionCard key={ng.id} ng={ng} />
+              ))}
+            </div>
+          </section>
+
+          <section className="section-block">
+            <div className="section-heading">
+              <h3>Hoạt động nổi bật</h3>
+            </div>
+            <div className="grid-featured">
               {hoatDongNoiBatList.map((hd) => (
-                <div
-                  key={hd.id}
-                  className="story-card"
-                  style={{ background: hd.mauNen }}
-                >
-                  <span className="story-participants">
-                    {hd.soNguoiThamGia} người
-                  </span>
-                  <span className="story-title">{hd.tieuDe}</span>
-                </div>
-                <div className="hscroll">
-                  {hoatDongGanBanList.map((hd) => (
-                    <ActivityCard key={hd.id} hd={hd} />
-                  ))}
-                </div>
-              </section>
+                <FeaturedCard key={hd.id} hd={hd} />
+              ))}
+            </div>
+          </section>
 
-              <section className="section-block">
-                <div className="section-heading">
-                  <h3>Người đồng hành đề xuất</h3>
-                </div>
-                <div className="hscroll">
-                  {nguoiDongHanhDeXuatList.map((ng) => (
-                    <CompanionCard key={ng.id} ng={ng} />
-                  ))}
-                </div>
-              </section>
-
-              <section className="section-block section-block-last">
-                <div className="section-heading">
-                  <h3>Hoạt động nổi bật</h3>
-            {/* -------- Danh sách bài viết -------- */}
+          <section className="section-block section-block-last">
+            <div className="section-heading">
+              <h3>Bài viết gần đây</h3>
+            </div>
             {baiVietList.map((bv) => (
               <article key={bv.id} className="post-card">
                 <div className="post-header">
@@ -350,69 +375,17 @@ export default function DashboardPage() {
                     <p className="post-meta">
                       {bv.thoiGian}
                       {bv.hoatDongLienQuan && (
-                        <>
-                          {" "}
-                          ·{" "}
-                          <span className="post-tag">
-                            🎯 {bv.hoatDongLienQuan}
-                          </span>
-                        </>
+                        <> · <span className="post-tag">🎯 {bv.hoatDongLienQuan}</span></>
                       )}
                     </p>
                   </div>
                 </div>
-                <div className="featured-list">
-                  {hoatDongNoiBatList.map((hd) => (
-                    <FeaturedCard key={hd.id} hd={hd} />
-                  ))}
+                <p className="post-content">{bv.noiDung}</p>
+                {bv.hinhAnhMau && <div className="post-image" style={{ background: bv.hinhAnhMau }} />}
+                <div className="post-stats">
+                  <span>👍 {bv.soLuotThich} lượt thích</span>
+                  <span>{bv.soBinhLuan} bình luận · {bv.soLuotChiaSe} chia sẻ</span>
                 </div>
-              </section>
-            </div>
-
-            <nav className="bottom-nav">
-              <button className="bottom-nav-item bottom-nav-active">
-                <span className="bottom-nav-icon">🏠</span>
-                Trang chủ
-              </button>
-              <button className="bottom-nav-item">
-                <span className="bottom-nav-icon">🎯</span>
-                Hoạt động
-              </button>
-              <button className="bottom-nav-item">
-                <span className="bottom-nav-icon">💬</span>
-                Tin nhắn
-              </button>
-              <button className="bottom-nav-item" onClick={() => setMenuMo(true)}>
-                <span className="bottom-nav-icon">👤</span>
-                Cá nhân
-              </button>
-            </nav>
-          </div>
-        </div>
-      </div>
-
-      {/* ==================== PHIÊN BẢN DESKTOP (≥ 900px) ==================== */}
-      <div className="desktop-view">
-        <aside className="sidebar">
-          <div className="drawer-brand">
-            <div className="brand-icon">🌿</div>
-            <span className="brand-name">JoinTogether</span>
-          </div>
-                {bv.hinhAnhMau && (
-                  <div
-                    className="post-image"
-                    style={{ background: bv.hinhAnhMau }}
-                  />
-                )}
-
-          <nav className="sidebar-nav">
-            <DanhSachDieuHuong role={role} />
-          </nav>
-
-          <div className="sidebar-footer">
-            <button className="logout-btn" onClick={handleLogout}>
-              🚪 Đăng xuất
-            </button>
                 <div className="post-actions">
                   <button
                     className={`post-action-btn ${bv.daThich ? "post-action-active" : ""}`}
@@ -425,113 +398,16 @@ export default function DashboardPage() {
                 </div>
               </article>
             ))}
-          </div>
-        </aside>
+          </section>
+        </div>
+      </main>
+    </div>
+  );
 
-        <main className="main-content">
-          <header className="topbar">
-            <h1>Trang chủ</h1>
-            <div className="search-bar topbar-search">
-              <span className="search-icon">🔍</span>
-              <input type="text" placeholder="Tìm kiếm hoạt động, bạn bè..." />
-            </div>
-            <div className="topbar-user">
-              <span className="user-badge">ID: {nguoiDungId}</span>
-              <button className="icon-btn icon-btn-bell" aria-label="Thông báo">
-                🔔
-                <span className="bell-dot" />
-              </button>
-              <Avatar mau="var(--primary-600)" chu="B" kichThuoc={36} />
-            </div>
-          </header>
-
-          <div className="content-body">
-            <AIBanner />
-
-            <CategoryChips chon={danhMucChon} onChon={setDanhMucChon} />
-
-            <section className="section-block">
-              <div className="section-heading">
-                <h3>Hoạt động gần bạn</h3>
-                <a href="#" className="section-link">
-                  XEM THÊM
-                </a>
-              </div>
-              <div className="grid-activities">
-                {hoatDongGanBanList.map((hd) => (
-                  <ActivityCard key={hd.id} hd={hd} />
-                ))}
-              </div>
-            </section>
-
-            <section className="section-block">
-              <div className="section-heading">
-                <h3>Người đồng hành đề xuất</h3>
-              </div>
-              <div className="grid-companions">
-                {nguoiDongHanhDeXuatList.map((ng) => (
-                  <CompanionCard key={ng.id} ng={ng} />
-              <div className="widget-body">
-                {goiYKetNoiList.map((gy) => (
-                  <div key={gy.id} className="suggestion-item">
-                    <Avatar
-                      mau={gy.nguoiDung.avatarMau}
-                      chu={gy.nguoiDung.avatarChu}
-                      kichThuoc={40}
-                    />
-                    <div className="suggestion-info">
-                      <p className="suggestion-name">
-                        {gy.nguoiDung.hoTen}
-                        <span className="match-badge">
-                          {gy.phanTramPhuHop}% phù hợp
-                        </span>
-                      </p>
-                      <p className="suggestion-desc">{gy.moTaChung}</p>
-                    </div>
-                    <button className="btn-connect">Kết nối</button>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            <section className="section-block">
-              <div className="section-heading">
-                <h3>Hoạt động nổi bật</h3>
-              </div>
-              <div className="grid-featured">
-                {hoatDongNoiBatList.map((hd) => (
-                  <FeaturedCard key={hd.id} hd={hd} />
-                ))}
-              <div className="widget-body">
-                {hoatDongSapDienRaList.map((hd) => {
-                  const nhan = nhanTrangThai(hd.trangThai);
-                  return (
-                    <div key={hd.id} className="event-item">
-                      <div className="event-date">
-                        <span className="event-day">
-                          {hd.ngay.split("/")[0]}
-                        </span>
-                        <span className="event-month">
-                          Th{hd.ngay.split("/")[1]}
-                        </span>
-                      </div>
-                      <div className="event-info">
-                        <p className="event-name">{hd.tenHoatDong}</p>
-                        <p className="event-meta">
-                          {hd.gio} · {hd.soNguoiThamGia} người tham gia
-                        </p>
-                      </div>
-                      <span className={`badge ${nhan.className}`}>
-                        {nhan.text}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
-          </div>
-        </main>
-      </div>
+  return (
+    <>
+      {mobileView}
+      {desktopView}
     </>
   );
 }
