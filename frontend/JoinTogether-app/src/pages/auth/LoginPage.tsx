@@ -84,7 +84,7 @@ export default function LoginPage() {
         <span>Hoặc</span>
       </div>
 
-      <Link to="/register" className="outline-btn" style={{ textDecoration: 'none', display: 'block', textAlign: 'center' }}>
+      <Link to="/register" className="outline-btn">
         Tham gia JoinTogether
       </Link>
     </div>
