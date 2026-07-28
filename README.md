@@ -1,32 +1,71 @@
 # JoinTogether_SocialNetwork
 
-Nhớ chạy npm install lại (đã cài thêm cors, helmet) và set JWT_SECRET thật trong .env trước khi deploy.
+## 1. Yêu cầu
 
-## Testing
+- [Node.js](https://nodejs.org/) >= 18
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- Git
 
-All tests are in the `backend/` directory.
+## 2. Clone & cài đặt
+
+```bash
+git clone https://github.com/DinhTrongPhuc/JoinTogether_SocialNetwork.git
+cd JoinTogether_SocialNetwork
+
+# Backend
+cd backend
+npm install
+
+# Frontend
+cd ../frontend/JoinTogether-app
+npm install
+```
+
+## 3. Chạy database (Docker)
 
 ```bash
 cd backend
-
-# Install dependencies (first time)
-npm install
-
-# Run all tests
-npm test
-
-# Run tests with watch mode
-npm run test:watch
-
-# Run a specific test file
-npx jest --config jest.config.ts tests/integration/auth.test.ts
-
-# Run tests by name pattern
-npx jest --config jest.config.ts --testNamePattern="register"
+docker compose up -d
 ```
 
-**Test structure:**
-- `tests/unit/` — Unit tests for utilities and middlewares (AppError, authorization)
-- `tests/integration/` — Integration tests using supertest for all API endpoints (auth, profile, activity, connection, chat, review, report, account, role/permission, admin audit log)
+Lần đầu Docker sẽ tự chạy file `src/config/file.sql` để tạo các bảng.
 
-Tests mock the database layer (repositories and `pg.Pool`) so no actual database connection is required.
+## 4. Chạy backend
+
+```bash
+cd backend
+npm run dev
+```
+
+Backend chạy tại `http://localhost:5000`.
+
+## 5. Chạy frontend
+
+Mở terminal riêng:
+
+```bash
+cd frontend/JoinTogether-app
+npm run dev
+```
+
+Frontend chạy tại `http://localhost:5173`.
+
+## 6. Migration (khi có cập nhật database)
+
+Mỗi lần có file SQL mới trong `backend/src/config/migration_*.sql`, chạy:
+
+```bash
+Get-Content backend/src/config/migration_ten_file.sql | docker exec -i community_postgres psql -U postgres -d community_db
+```
+
+## Testing
+
+```bash
+cd backend
+npm test          # chạy tất cả test
+npm run test:watch
+```
+
+**Cấu trúc test:**
+- `tests/unit/` — Unit tests
+- `tests/integration/` — Integration tests (mock database, không cần Docker)
