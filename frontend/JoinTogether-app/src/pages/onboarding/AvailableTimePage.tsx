@@ -63,6 +63,12 @@ export default function AvailableTimePage() {
             <p className="subtitle">
               Chúc mừng bạn đã hoàn thành tất cả các bước. Hãy bắt đầu khám phá và kết nối với cộng đồng!
             </p>
+            <div className="progress-bar-wrap">
+              <div className="progress-bar">
+                <div className="progress-fill" style={{ width: '100%' }} />
+              </div>
+              <span className="progress-label">100%</span>
+            </div>
             <div className="step-summary">
               <div className="summary-item done">
                 <span className="summary-num">1</span>
