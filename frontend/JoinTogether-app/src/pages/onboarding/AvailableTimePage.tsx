@@ -53,63 +53,6 @@ export default function AvailableTimePage() {
     setShowComplete(true);
   };
 
-  if (showComplete) {
-    return (
-      <div className="onboarding-page">
-        <div className="onboarding-container">
-          <div className="complete-popup">
-            <div className="complete-icon">🎉</div>
-            <h1>Hồ sơ của bạn đã hoàn tất!</h1>
-            <p className="subtitle">
-              Chúc mừng bạn đã hoàn thành tất cả các bước. Hãy bắt đầu khám phá và kết nối với cộng đồng!
-            </p>
-            <div className="progress-bar-wrap">
-              <div className="progress-bar">
-                <div className="progress-fill" style={{ width: '100%' }} />
-              </div>
-              <span className="progress-label">100%</span>
-            </div>
-            <div className="step-summary">
-              <div className="summary-item done">
-                <span className="summary-num">1</span>
-                <span>Tài khoản</span>
-                <span className="summary-check">✓</span>
-              </div>
-              <div className="summary-item done">
-                <span className="summary-num">2</span>
-                <span>Hồ sơ</span>
-                <span className="summary-check">✓</span>
-              </div>
-              <div className="summary-item done">
-                <span className="summary-num">3</span>
-                <span>Sở thích</span>
-                <span className="summary-check">✓</span>
-              </div>
-              <div className="summary-item done">
-                <span className="summary-num">4</span>
-                <span>Mục tiêu</span>
-                <span className="summary-check">✓</span>
-              </div>
-              <div className="summary-item done">
-                <span className="summary-num">5</span>
-                <span>Thời gian rảnh</span>
-                <span className="summary-check">✓</span>
-              </div>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'center' }}>
-              <button className="primary-btn" onClick={() => navigate('/dashboard', { replace: true })}>
-                Khám phá ngay
-              </button>
-              <button className="outline-btn" onClick={() => navigate('/profile', { replace: true })} style={{ padding: '12px 24px', border: '2px solid var(--primary, #6fbf73)', borderRadius: 14, background: 'none', color: 'var(--primary-700, #4b9651)', fontWeight: 600, fontSize: 15, cursor: 'pointer' }}>
-                Xem lại hồ sơ và chỉnh sửa
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="onboarding-page">
       <div className="onboarding-container">
@@ -170,6 +113,59 @@ export default function AvailableTimePage() {
           </button>
         </div>
       </div>
+
+      {showComplete && (
+        <div className="modal-overlay" onClick={() => setShowComplete(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="complete-icon">🎉</div>
+            <h1>Hồ sơ của bạn đã hoàn tất!</h1>
+            <p className="subtitle">
+              Chúc mừng bạn đã hoàn thành tất cả các bước. Hãy bắt đầu khám phá và kết nối với cộng đồng!
+            </p>
+            <div className="progress-bar-wrap">
+              <div className="progress-bar">
+                <div className="progress-fill" style={{ width: '100%' }} />
+              </div>
+              <span className="progress-label">100%</span>
+            </div>
+            <div className="step-summary">
+              <div className="summary-item done">
+                <span className="summary-num">1</span>
+                <span>Tài khoản</span>
+                <span className="summary-check">✓</span>
+              </div>
+              <div className="summary-item done">
+                <span className="summary-num">2</span>
+                <span>Hồ sơ</span>
+                <span className="summary-check">✓</span>
+              </div>
+              <div className="summary-item done">
+                <span className="summary-num">3</span>
+                <span>Sở thích</span>
+                <span className="summary-check">✓</span>
+              </div>
+              <div className="summary-item done">
+                <span className="summary-num">4</span>
+                <span>Mục tiêu</span>
+                <span className="summary-check">✓</span>
+              </div>
+              <div className="summary-item done">
+                <span className="summary-num">5</span>
+                <span>Thời gian rảnh</span>
+                <span className="summary-check">✓</span>
+              </div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'center' }}>
+              <button className="primary-btn" onClick={() => navigate('/dashboard', { replace: true })}>
+                Khám phá ngay
+              </button>
+              <button className="outline-btn" onClick={() => navigate('/profile', { replace: true })} style={{ padding: '12px 24px', border: '2px solid var(--primary, #6fbf73)', borderRadius: 14, background: 'none', color: 'var(--primary-700, #4b9651)', fontWeight: 600, fontSize: 15, cursor: 'pointer' }}>
+                Xem lại hồ sơ và chỉnh sửa
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
