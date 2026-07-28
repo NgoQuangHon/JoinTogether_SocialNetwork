@@ -8,6 +8,13 @@ import MyActivitiesPage from './pages/activities/MyActivitiesPage';
 import ProfilePage from './pages/profile/ProfilePage';
 import EditProfilePage from './pages/editprofile/EditProfilePage';
 import InterestsPage from './pages/onboarding/InterestsPage';
+import ReportDetail from './pages/report/reportdetail/ReportDetail';
+import ReportReason from './pages/report/reportreason/ReportReason';
+import ReportDescription from './pages/report/reportdescription/ReportDescription';
+import ReportConfirm from './pages/report/reportconfirm/ReportConfirm';
+import ReportLoading from './pages/report/reportloading/ReportLoading';
+import ReportSuccess from './pages/report/reportsuccess/ReportSuccess';
+import ReportResult from './pages/report/reportresult/ReportResult';
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 
@@ -56,6 +63,68 @@ export default function App() {
                 element={
                     <ProtectedRoute>
                         <InterestsPage />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/report"
+                element={
+                    <ProtectedRoute>
+                        <ReportDetail />
+                    </ProtectedRoute>
+                }
+            />
+
+            <Route
+                path="/report/reason"
+                element={
+                    <ProtectedRoute>
+                        <ReportReason />
+                    </ProtectedRoute>
+                }
+            />
+
+            <Route
+                path="/report/description"
+                element={
+                    <ProtectedRoute>
+                        <ReportDescription />
+                    </ProtectedRoute>
+                }
+            />
+
+            <Route
+                path="/report/confirm"
+                element={
+                    <ProtectedRoute>
+                        <ReportConfirm />
+                    </ProtectedRoute>
+                }
+            />
+
+            <Route
+                path="/report/loading"
+                element={
+                    <ProtectedRoute>
+                        <ReportLoading />
+                    </ProtectedRoute>
+                }
+            />
+
+            <Route
+                path="/report/success"
+                element={
+                    <ProtectedRoute>
+                        <ReportSuccess />
+                    </ProtectedRoute>
+                }
+            />
+
+            <Route
+                path="/report/result"
+                element={
+                    <ProtectedRoute>
+                        <ReportResult />
                     </ProtectedRoute>
                 }
             />

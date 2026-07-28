@@ -1,0 +1,303 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+
+:root {
+    --primary: #6fbf73;
+    --secondary: #66c2b2;
+    --primary-light: #eaf7eb;
+    --secondary-light: #eaf7f4;
+
+    --background: #f7f9f8;
+    --surface: #ffffff;
+
+    --text: #2f3a33;
+    --text-light: #78847c;
+
+    --border: #dde7df;
+
+    --shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Roboto', sans-serif;
+}
+
+body {
+    background: var(--background);
+}
+
+.report-result-page {
+    min-height: 100vh;
+
+    background: var(--background);
+}
+
+.result-header {
+    position: sticky;
+
+    top: 0;
+
+    background: white;
+
+    padding: 18px 22px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 18px;
+
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.back-button {
+    width: 42px;
+
+    height: 42px;
+
+    border: none;
+
+    border-radius: 50%;
+
+    cursor: pointer;
+
+    background: var(--primary-light);
+
+    color: var(--primary);
+
+    font-size: 22px;
+}
+
+.result-header h1 {
+    font-size: 24px;
+
+    color: var(--text);
+}
+
+.result-container {
+    width: min(900px, 92%);
+
+    margin: auto;
+
+    padding: 36px 0 60px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 24px;
+}
+
+.status-card {
+    display: flex;
+
+    align-items: center;
+
+    gap: 22px;
+
+    background: linear-gradient(135deg, var(--primary-light), var(--secondary-light));
+
+    border-radius: 18px;
+
+    padding: 28px;
+
+    box-shadow: var(--shadow);
+}
+
+.status-icon {
+    width: 70px;
+
+    height: 70px;
+
+    border-radius: 50%;
+
+    background: white;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    font-size: 32px;
+}
+
+.status-card h2 {
+    color: var(--primary);
+
+    margin-bottom: 8px;
+}
+
+.status-card p {
+    color: var(--text-light);
+}
+
+.information-card,
+.timeline-card {
+    background: white;
+
+    border-radius: 18px;
+
+    padding: 28px;
+
+    box-shadow: var(--shadow);
+}
+
+.information-card h3,
+.timeline-card h3 {
+    color: var(--primary);
+
+    margin-bottom: 20px;
+}
+
+.info-row {
+    display: flex;
+
+    justify-content: space-between;
+
+    padding: 14px 0;
+
+    border-bottom: 1px solid var(--border);
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-row span {
+    color: var(--text-light);
+}
+
+.timeline {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 20px;
+}
+
+.timeline-item {
+    display: flex;
+
+    gap: 18px;
+}
+
+.timeline-dot {
+    width: 18px;
+
+    height: 18px;
+
+    border-radius: 50%;
+
+    background: #d5ddd7;
+
+    margin-top: 4px;
+
+    flex-shrink: 0;
+}
+
+.timeline-dot.active {
+    background: var(--primary);
+
+    box-shadow: 0 0 0 6px rgba(111, 191, 115, 0.15);
+}
+
+.timeline-content h4 {
+    color: var(--text);
+
+    margin-bottom: 6px;
+}
+
+.timeline-content span {
+    color: var(--text-light);
+}
+
+.notice-card {
+    display: flex;
+
+    gap: 16px;
+
+    align-items: center;
+
+    background: #fffdf5;
+
+    border-left: 6px solid #f4b740;
+
+    border-radius: 16px;
+
+    padding: 22px;
+}
+
+.notice-card span {
+    font-size: 28px;
+}
+
+.notice-card p {
+    color: var(--text-light);
+
+    line-height: 1.7;
+}
+
+.button-group {
+    display: flex;
+
+    gap: 16px;
+}
+
+.primary-button,
+.secondary-button {
+    flex: 1;
+
+    padding: 15px;
+
+    border-radius: 12px;
+
+    font-size: 16px;
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition: 0.3s;
+}
+
+.primary-button {
+    border: none;
+
+    color: white;
+
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+}
+
+.secondary-button {
+    background: white;
+
+    border: 2px solid var(--primary);
+
+    color: var(--primary);
+}
+
+.primary-button:hover,
+.secondary-button:hover {
+    transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+    .status-card {
+        flex-direction: column;
+
+        text-align: center;
+    }
+
+    .info-row {
+        flex-direction: column;
+
+        gap: 6px;
+    }
+
+    .button-group {
+        flex-direction: column;
+    }
+}
