@@ -16,8 +16,14 @@ export default function VerifyEmailPage() {
   const [success, setSuccess] = useState(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
+  const container = (content: React.ReactNode) => (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--background, #f7f9f8)', padding: 20 }}>
+      {content}
+    </div>
+  );
+
   if (!taiKhoanId) {
-    return (
+    return container(
       <div className="auth-card">
         <h2>Liên kết không hợp lệ</h2>
         <p className="subtitle">Vui lòng đăng ký tài khoản trước.</p>
@@ -26,7 +32,7 @@ export default function VerifyEmailPage() {
   }
 
   if (success) {
-    return (
+    return container(
       <div className="auth-card verify-success">
         <div className="success-icon">✅</div>
         <h2>Tài khoản đã được kích hoạt!</h2>
@@ -116,7 +122,7 @@ export default function VerifyEmailPage() {
     }
   };
 
-  return (
+  return container(
     <div className="auth-card">
       <h2>Xác thực email</h2>
       <p className="subtitle">
