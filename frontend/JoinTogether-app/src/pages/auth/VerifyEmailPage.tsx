@@ -51,15 +51,15 @@ export default function VerifyEmailPage() {
           <div className="step-item step-active">
             <div className="step-number">2</div>
             <div className="step-info">
-              <strong>Hồ sơ</strong>
+              <strong>Hồ sơ cá nhân</strong>
               <span>Điền thông tin cá nhân</span>
             </div>
           </div>
           <div className="step-item">
             <div className="step-number">3</div>
             <div className="step-info">
-              <strong>Sở thích</strong>
-              <span>Chọn lĩnh vực quan tâm</span>
+              <strong>Sở thích & Mục tiêu</strong>
+              <span>Chọn sở thích, mục tiêu, thời gian rảnh</span>
             </div>
           </div>
         </div>

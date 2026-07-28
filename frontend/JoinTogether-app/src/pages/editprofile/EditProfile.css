@@ -188,6 +188,37 @@ textarea {
   color: var(--text-light, #607d8b);
 }
 
+/* ================= PROGRESS ================= */
+
+.profile-progress-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.profile-progress-bar {
+  flex: 1;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--border, #e4ece6);
+  overflow: hidden;
+}
+
+.profile-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--primary, #6fbf73), var(--secondary, #66c2b2));
+  transition: width 0.4s ease;
+}
+
+.profile-progress-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--primary-700, #4b9651);
+  white-space: nowrap;
+}
+
 /* ================= BUTTON ================= */
 
 .edit-actions {

@@ -35,6 +35,12 @@ export default function EditProfilePage() {
       .finally(() => setLoading(false));
   }, []);
 
+  const requiredFields = [tieuSu, khuVuc, ngaySinh];
+  const allFields = [tieuSu, khuVuc, ngaySinh, mucTieuThamGia, thoiGianRanh];
+  const filledCount = allFields.filter((v) => v.trim().length > 0).length;
+  const progressPct = Math.round((filledCount / allFields.length) * 100);
+  const canSave = requiredFields.every((v) => v.trim().length > 0);
+
   const handleSave = async () => {
     setSaving(true);
     setError('');
@@ -90,13 +96,20 @@ export default function EditProfilePage() {
             <button className="avatar-button" type="button">✏️</button>
           </div>
 
+          <div className="profile-progress-wrap">
+            <div className="profile-progress-bar">
+              <div className="profile-progress-fill" style={{ width: `${progressPct}%` }} />
+            </div>
+            <span className="profile-progress-label">{progressPct}%</span>
+          </div>
+
           <div className="form-group">
-            <label>Khu vực</label>
+            <label>Khu vực <span style={{ color: 'var(--error, #f44336)' }}>*</span></label>
             <input type="text" value={khuVuc} onChange={(e) => setKhuVuc(e.target.value)} placeholder="Ví dụ: Hà Nội" />
           </div>
 
           <div className="form-group">
-            <label>Ngày sinh</label>
+            <label>Ngày sinh <span style={{ color: 'var(--error, #f44336)' }}>*</span></label>
             <input type="date" value={ngaySinh} onChange={(e) => setNgaySinh(e.target.value)} />
           </div>
 
@@ -112,15 +125,15 @@ export default function EditProfilePage() {
 
           <div className="form-group">
             <div className="bio-header">
-              <label>Giới thiệu bản thân</label>
+              <label>Giới thiệu bản thân <span style={{ color: 'var(--error, #f44336)' }}>*</span></label>
               <span>{tieuSu.length}/500</span>
             </div>
             <textarea maxLength={500} value={tieuSu} onChange={(e) => setTieuSu(e.target.value)} placeholder="Hãy viết đôi điều về bạn..." />
           </div>
 
           <div className="edit-actions">
-            <button className="save-btn" onClick={handleSave} disabled={saving}>
-              {saving ? 'Đang lưu...' : 'Lưu thông tin'}
+            <button className="save-btn" onClick={handleSave} disabled={!canSave || saving}>
+              {saving ? 'Đang lưu...' : !canSave ? 'Vui lòng điền đầy đủ thông tin' : 'Lưu thông tin'}
             </button>
           </div>
         </section>

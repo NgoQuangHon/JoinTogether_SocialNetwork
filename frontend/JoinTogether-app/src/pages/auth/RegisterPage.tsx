@@ -81,9 +81,13 @@ export default function RegisterPage() {
 
         <input
           type="tel"
-          placeholder="Số điện thoại (không bắt buộc)"
+          placeholder="Số điện thoại"
           {...register("soDienThoai")}
+          className={errors.soDienThoai ? "input-error" : ""}
         />
+        {errors.soDienThoai && (
+          <p className="field-error">{errors.soDienThoai.message}</p>
+        )}
 
         <input
           type="text"

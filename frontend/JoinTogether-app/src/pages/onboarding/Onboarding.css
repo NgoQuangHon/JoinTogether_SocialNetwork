@@ -24,6 +24,22 @@
   margin: 20px 0 8px;
 }
 
+.onboarding-section {
+  margin-bottom: 32px;
+}
+
+.section-title {
+  font-size: 18px;
+  color: var(--primary-800, #3d7d43);
+  margin-bottom: 4px;
+}
+
+.section-desc {
+  font-size: 13px;
+  color: var(--text-light, #607d8b);
+  margin-bottom: 14px;
+}
+
 .step-indicator {
   display: flex;
   align-items: center;
