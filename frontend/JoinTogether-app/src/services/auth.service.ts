@@ -10,3 +10,8 @@ export const registerApi = async (data: RegisterRequest): Promise<ApiResponse> =
   const response = await api.post<ApiResponse>('/auth/register', data);
   return response.data;
 };
+
+export const verifyEmailApi = async (taiKhoanId: number, maXacThuc: string): Promise<ApiResponse> => {
+  const response = await api.post<ApiResponse>('/auth/verify-email', { taiKhoanId, maXacThuc });
+  return response.data;
+};

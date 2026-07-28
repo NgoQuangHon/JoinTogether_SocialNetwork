@@ -10,6 +10,7 @@ export class AuthController {
     res.status(201).json({
       success: true,
       message: result.message,
+      data: result.data,
     });
   });
 
@@ -18,6 +19,15 @@ export class AuthController {
     res.status(200).json({
       success: true,
       data: result,
+    });
+  });
+
+  public verifyEmail = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const { taiKhoanId, maXacThuc } = req.body;
+    await this.authService.verifyEmail(taiKhoanId, maXacThuc);
+    res.status(200).json({
+      success: true,
+      message: "Tài khoản đã được kích hoạt thành công.",
     });
   });
 }

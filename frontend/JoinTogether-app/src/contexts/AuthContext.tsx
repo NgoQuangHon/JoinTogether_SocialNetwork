@@ -1,11 +1,11 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import { loginApi, registerApi } from '../services/auth.service';
-import type { AuthState, LoginRequest, RegisterRequest } from '../types/auth';
+import type { AuthState, LoginRequest, RegisterRequest, ApiResponse } from '../types/auth';
 
 interface AuthContextValue extends AuthState {
   isLoading: boolean;
   login: (data: LoginRequest) => Promise<void>;
-  register: (data: RegisterRequest) => Promise<void>;
+  register: (data: RegisterRequest) => Promise<ApiResponse>;
   logout: () => void;
 }
 
@@ -51,13 +51,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const register = useCallback(async (data: RegisterRequest) => {
+  const register = useCallback(async (data: RegisterRequest): Promise<ApiResponse> => {
     setIsLoading(true);
     try {
       const res = await registerApi(data);
       if (!res.success) {
         throw new Error(res.message || 'Đăng ký thất bại');
       }
+      return res;
     } finally {
       setIsLoading(false);
     }
