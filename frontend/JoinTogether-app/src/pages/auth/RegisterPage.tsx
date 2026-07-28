@@ -41,11 +41,10 @@ export default function RegisterPage() {
       await registerUser(payload);
       navigate('/login', { replace: true });
     } catch (err: unknown) {
+      const errObj = err as { response?: { data?: { message?: string } } };
       const msg =
-        err instanceof Error
-          ? err.message
-          : (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-            'Đăng ký thất bại';
+        errObj?.response?.data?.message ||
+        (err instanceof Error ? err.message : 'Đăng ký thất bại');
       setError(msg);
     }
   };

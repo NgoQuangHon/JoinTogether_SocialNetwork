@@ -31,11 +31,10 @@ export default function LoginPage() {
       await login(data);
       navigate('/dashboard', { replace: true });
     } catch (err: unknown) {
+      const errObj = err as { response?: { data?: { message?: string } } };
       const msg =
-        err instanceof Error
-          ? err.message
-          : (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-            'Đăng nhập thất bại';
+        errObj?.response?.data?.message ||
+        (err instanceof Error ? err.message : 'Đăng nhập thất bại');
       setError(msg);
     }
   };
