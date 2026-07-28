@@ -45,6 +45,9 @@
   font-size: 18px;
   font-weight: 700;
   color: var(--primary-800, #3d7d43);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .nav-item {
