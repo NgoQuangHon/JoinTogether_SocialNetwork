@@ -1,7 +1,10 @@
 import { Router } from "express";
 import { ChatController } from "../../controllers/group4-interaction/chat.controller";
 import { authenticateToken } from "../../middlewares/auth.middleware";
-import { requireActivityMember } from "../../middlewares/authorization.middleware";
+import {
+  requireActivityMember,
+  requireChatRoomMember,
+} from "../../middlewares/authorization.middleware";
 
 const chatRouter = Router();
 const chatController = new ChatController();
@@ -25,6 +28,7 @@ chatRouter.get(
 chatRouter.post(
   "/rooms/:phongId/messages",
   authenticateToken,
+  requireChatRoomMember("phongId"),
   chatController.sendMessage,
 );
 
@@ -32,6 +36,7 @@ chatRouter.post(
 chatRouter.get(
   "/rooms/:phongId/messages",
   authenticateToken,
+  requireChatRoomMember("phongId"),
   chatController.getMessages,
 );
 

@@ -1,10 +1,10 @@
 import { Pool, PoolClient } from 'pg';
 import dotenv from 'dotenv';
 
-dotenv.config();
+dotenv.config({ quiet: process.env.NODE_ENV === 'test' });
 
 if (!process.env.DB_HOST) {
-    dotenv.config({ path: 'src/.env' });
+    dotenv.config({ path: 'src/.env', quiet: process.env.NODE_ENV === 'test' });
 }
 
 const requiredEnvVars = ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD'];
