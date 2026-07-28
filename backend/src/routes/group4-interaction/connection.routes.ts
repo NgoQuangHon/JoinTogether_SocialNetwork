@@ -22,6 +22,13 @@ connectionRouter.get(
   connectionController.getPendingRequests,
 );
 
+// Suggestions
+connectionRouter.get(
+  "/suggestions",
+  authenticateToken,
+  connectionController.getSuggestions,
+);
+
 // Connections
 connectionRouter.get(
   "/",

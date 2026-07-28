@@ -1,0 +1,121 @@
+.cam-detail-modal {
+  max-width: 640px;
+}
+
+.cam-detail-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 65vh;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.cam-detail-thumb img {
+  width: 100%;
+  max-height: 240px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.cam-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.cam-detail-header h3 {
+  font-size: 20px;
+  color: #222;
+  flex: 1;
+}
+
+.cam-detail-status {
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  padding: 4px 12px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.cam-detail-cat {
+  font-size: 14px;
+  color: #6fbf73;
+  font-weight: 600;
+  margin: -8px 0 4px;
+}
+
+.cam-detail-section {
+  margin-top: 4px;
+}
+
+.cam-detail-section h5 {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cam-detail-section p {
+  font-size: 14px;
+  color: #444;
+  line-height: 1.6;
+}
+
+.cam-detail-section ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.cam-detail-section ul li {
+  font-size: 14px;
+  color: #444;
+  padding: 3px 0;
+  padding-left: 16px;
+  position: relative;
+}
+
+.cam-detail-section ul li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: #6fbf73;
+  font-weight: 700;
+}
+
+.cam-detail-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #eee;
+}
+
+.cam-detail-actions .cam-btn-primary,
+.cam-detail-actions .cam-btn-outline {
+  flex: 1;
+  text-align: center;
+}
+
+.cam-btn-danger {
+  border-color: #f44336 !important;
+  color: #f44336 !important;
+}
+
+.cam-btn-danger:hover {
+  background: #ffebee !important;
+}
+
+.cam-detail-cancelled {
+  text-align: center;
+  color: #f44336;
+  font-weight: 600;
+  font-size: 14px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #eee;
+}

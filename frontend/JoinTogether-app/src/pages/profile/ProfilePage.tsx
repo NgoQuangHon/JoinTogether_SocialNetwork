@@ -118,16 +118,9 @@ export default function ProfilePage() {
 
                 <ul className="sidebar-menu">
                     <li className="active">👤 Hồ sơ</li>
-                    <li
-                        onClick={() => {
-                            setIsSidebarOpen(false);
-                            navigate('/dashboard');
-                        }}
-                    >
-                        📝 Bảng tin
-                    </li>
+                    <li onClick={() => { setIsSidebarOpen(false); navigate('/dashboard'); }}>📝 Bảng tin</li>
+                    <li onClick={() => { setIsSidebarOpen(false); navigate('/activities'); }}>📅 Hoạt động</li>
                     <li>🌱 Sở thích</li>
-                    <li>📅 Hoạt động</li>
                     <li>⭐ Đánh giá</li>
                     <li>⚙ Cài đặt</li>
                 </ul>

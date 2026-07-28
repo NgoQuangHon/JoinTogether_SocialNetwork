@@ -80,6 +80,14 @@ export class ConnectionController {
     },
   );
 
+  public getSuggestions = asyncHandler(
+    async (req: Request, res: Response): Promise<void> => {
+      const nguoiDungId = req.user!.nguoiDungId;
+      const result = await this.connectionService.getSuggestions(nguoiDungId);
+      res.status(200).json({ success: true, data: result });
+    },
+  );
+
   public removeConnection = asyncHandler(
     async (req: Request, res: Response): Promise<void> => {
       const nguoiDungId = req.user!.nguoiDungId;

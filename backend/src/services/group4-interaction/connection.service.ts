@@ -93,6 +93,30 @@ export class ConnectionService {
     return await this.quanHeRepo.findConnectionsByUser(nguoiDungId);
   }
 
+  async getSuggestions(nguoiDungId: number): Promise<any[]> {
+    const query = `
+      SELECT DISTINCT
+        nd.nguoi_dung_id AS "nguoiDungId",
+        nd.ho_ten AS "hoTen",
+        hs.anh_dai_dien AS "anhDaiDien",
+        hs.khu_vuc AS "khuVuc",
+        COUNT(hss.so_thich_id) OVER (PARTITION BY nd.nguoi_dung_id) AS "soSoThichChung"
+      FROM nguoi_dung nd
+      JOIN ho_so_nguoi_dung hs ON nd.nguoi_dung_id = hs.nguoi_dung_id
+      JOIN ho_so_so_thich hss ON hs.ho_so_id = hss.ho_so_id
+      WHERE hss.so_thich_id IN (
+        SELECT hss2.so_thich_id FROM ho_so_nguoi_dung hs2
+        JOIN ho_so_so_thich hss2 ON hs2.ho_so_id = hss2.ho_so_id
+        WHERE hs2.nguoi_dung_id = $1
+      )
+      AND nd.nguoi_dung_id != $1
+      ORDER BY "soSoThichChung" DESC
+      LIMIT 5
+    `;
+    const result = await pool.query(query, [nguoiDungId]);
+    return result.rows;
+  }
+
   async removeConnection(nguoiDungId: number, connectedUserId: number): Promise<void> {
     const removed = await this.quanHeRepo.delete(nguoiDungId, connectedUserId);
     if (!removed) {

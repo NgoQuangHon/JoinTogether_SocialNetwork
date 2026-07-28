@@ -1,7 +1,9 @@
+import { pool } from "../../config/db";
 import { HoatDongRepository } from "../../repositories/group3-activity/hoatDong.repository";
 import { DanhMucHoatDongRepository } from "../../repositories/group3-activity/danhMucHoatDong.repository";
 import { DiaDiemRepository } from "../../repositories/group3-activity/diaDiem.repository";
 import { HinhAnhHoatDongRepository } from "../../repositories/group3-activity/hinhAnhHoatDong.repository";
+import { TieuChiThamGiaRepository } from "../../repositories/group3-activity/tieuChiThamGia.repository";
 import { HoatDongModel } from "../../models/group3-activity/hoatDong.model";
 import { DanhMucHoatDongModel } from "../../models/group3-activity/danhMucHoatDong.model";
 import { DiaDiemModel } from "../../models/group3-activity/diaDiem.model";
@@ -13,17 +15,136 @@ export class ActivityService {
   private danhMucRepo = new DanhMucHoatDongRepository();
   private diaDiemRepo = new DiaDiemRepository();
   private hinhAnhRepo = new HinhAnhHoatDongRepository();
+  private tieuChiRepo = new TieuChiThamGiaRepository();
 
   // ==================== ACTIVITIES ====================
 
-  async createActivity(nguoiToChucId: number, data: any): Promise<any> {
-    const payload = HoatDongModel.createHoatDongPayload({ ...data, nguoiToChucId });
+  async getFeaturedActivities(): Promise<any[]> {
+    const activities = await this.hoatDongRepo.findFeatured();
+    for (const activity of activities) {
+      const images = await this.hinhAnhRepo.findByHoatDongId(activity.hoatDongId);
+      activity.hinhAnh = images;
+    }
+    return activities;
+  }
 
-    return await this.hoatDongRepo.create({
-      ...payload,
-      thoiGianBatDau: payload.thoiGianBatDau ? new Date(payload.thoiGianBatDau) : null,
-      thoiGianKetThuc: payload.thoiGianKetThuc ? new Date(payload.thoiGianKetThuc) : null,
-    });
+  async getMyActivities(nguoiDungId: number): Promise<any[]> {
+    const activities = await this.hoatDongRepo.findByNguoiToChucId(nguoiDungId);
+    for (const activity of activities) {
+      const images = await this.hinhAnhRepo.findByHoatDongId(activity.hoatDongId);
+      activity.hinhAnh = images;
+    }
+    return activities;
+  }
+
+  async cancelActivity(id: number, nguoiDungId: number): Promise<any> {
+    const activity = await this.hoatDongRepo.findById(id);
+    if (!activity) {
+      throw new NotFoundError("Hoạt động không tồn tại.");
+    }
+    if (activity.nguoiToChucId !== nguoiDungId) {
+      throw new Error("Bạn không có quyền hủy hoạt động này.");
+    }
+    return await this.hoatDongRepo.cancelActivity(id);
+  }
+
+  async createActivity(nguoiToChucId: number, data: any): Promise<any> {
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+
+      // 1. Create location if provided
+      let diaDiemId = null;
+      if (data.tenDiaDiem || data.diaChi) {
+        const location = await this.diaDiemRepo.create({
+          tenDiaDiem: data.tenDiaDiem || null,
+          diaChi: data.diaChi || null,
+          hinhThuc: data.hinhThuc || null,
+          duongDanTrucTuyen: null,
+        });
+        diaDiemId = location.diaDiemId;
+      }
+
+      // 2. Create activity
+      const payload = HoatDongModel.createHoatDongPayload({ ...data, nguoiToChucId, diaDiemId });
+      const activity = await this.hoatDongRepo.create({
+        ...payload,
+        thoiGianBatDau: payload.thoiGianBatDau ? new Date(payload.thoiGianBatDau) : null,
+        thoiGianKetThuc: payload.thoiGianKetThuc ? new Date(payload.thoiGianKetThuc) : null,
+      });
+
+      const hoatDongId = activity.hoatDongId!;
+
+      if (data.thumbnail) {
+        await this.hinhAnhRepo.create({
+          hoatDongId: hoatDongId,
+          duongDan: data.thumbnail,
+          moTa: "Ảnh đại diện",
+          laAnhDaiDien: true,
+        });
+      }
+
+      if (data.hinhAnh && Array.isArray(data.hinhAnh)) {
+        for (const url of data.hinhAnh.slice(0, 5)) {
+          await this.hinhAnhRepo.create({
+            hoatDongId: hoatDongId,
+            duongDan: url,
+            moTa: null,
+            laAnhDaiDien: false,
+          });
+        }
+      }
+
+      if (data.soLuongToiDa) {
+        await this.tieuChiRepo.create({
+          hoatDongId: hoatDongId,
+          tenTieuChi: "Số lượng tối đa",
+          giaTriYeuCau: String(data.soLuongToiDa),
+          batBuoc: true,
+        });
+      }
+      if (data.doTuoiTu || data.doTuoiDen) {
+        await this.tieuChiRepo.create({
+          hoatDongId: hoatDongId,
+          tenTieuChi: "Độ tuổi phù hợp",
+          giaTriYeuCau: `${data.doTuoiTu || 0} - ${data.doTuoiDen || 99}`,
+          batBuoc: false,
+        });
+      }
+      if (data.gioiTinhPhuHop) {
+        await this.tieuChiRepo.create({
+          hoatDongId: hoatDongId,
+          tenTieuChi: "Giới tính phù hợp",
+          giaTriYeuCau: data.gioiTinhPhuHop,
+          batBuoc: false,
+        });
+      }
+      if (data.mucDoKinhNghiem) {
+        await this.tieuChiRepo.create({
+          hoatDongId: hoatDongId,
+          tenTieuChi: "Mức độ kinh nghiệm",
+          giaTriYeuCau: data.mucDoKinhNghiem,
+          batBuoc: false,
+        });
+      }
+      if (data.yeuCauKhac) {
+        await this.tieuChiRepo.create({
+          hoatDongId: hoatDongId,
+          tenTieuChi: "Yêu cầu khác",
+          giaTriYeuCau: data.yeuCauKhac,
+          batBuoc: false,
+        });
+      }
+
+      await client.query("COMMIT");
+
+      return await this.hoatDongRepo.findById(hoatDongId);
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 
   async getAllActivities(): Promise<any[]> {

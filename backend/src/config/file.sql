@@ -99,6 +99,23 @@ CREATE TABLE danh_muc_hoat_dong (
     mo_ta TEXT
 );
 
+INSERT INTO danh_muc_hoat_dong (ten_danh_muc) VALUES
+    ('Thể thao'),
+    ('Âm nhạc'),
+    ('Nhiếp ảnh'),
+    ('Ẩm thực'),
+    ('Du lịch'),
+    ('Học tập'),
+    ('Tình nguyện'),
+    ('Game'),
+    ('Sách & Văn học'),
+    ('Nghệ thuật'),
+    ('Kỹ năng sống'),
+    ('Công nghệ'),
+    ('Kinh doanh'),
+    ('Thiện nguyện'),
+    ('Dã ngoại');
+
 CREATE TABLE dia_diem (
     dia_diem_id BIGSERIAL PRIMARY KEY,
     ten_dia_diem VARCHAR(255),
@@ -115,7 +132,17 @@ CREATE TABLE hoat_dong (
     ten_hoat_dong VARCHAR(255) NOT NULL,
     mo_ta TEXT,
     thoi_gian_bat_dau TIMESTAMPTZ,
-    thoi_gian_ket_thuc TIMESTAMPTZ
+    thoi_gian_ket_thuc TIMESTAMPTZ,
+    so_luong_toi_da INTEGER,
+    do_tuoi_tu INTEGER,
+    do_tuoi_den INTEGER,
+    gioi_tinh_phu_hop VARCHAR(50),
+    muc_do_kinh_nghiem VARCHAR(100),
+    yeu_cau_khac TEXT,
+    noi_quy_chung TEXT,
+    luu_y_dac_biet TEXT,
+    do_dung_can_mang TEXT,
+    trang_thai VARCHAR(50) DEFAULT 'sap_dien_ra'
 );
 
 CREATE TABLE tieu_chi_tham_gia (
@@ -129,7 +156,7 @@ CREATE TABLE tieu_chi_tham_gia (
 CREATE TABLE hinh_anh_hoat_dong (
     hinh_anh_id BIGSERIAL PRIMARY KEY,
     hoat_dong_id BIGINT NOT NULL REFERENCES hoat_dong(hoat_dong_id) ON DELETE CASCADE,
-    duong_dan VARCHAR(500) NOT NULL,
+    duong_dan TEXT NOT NULL,
     mo_ta TEXT,
     la_anh_dai_dien BOOLEAN DEFAULT FALSE
 );
@@ -292,6 +319,18 @@ CREATE TABLE nhat_ky_quan_tri (
     hanh_dong VARCHAR(255) NOT NULL,
     doi_tuong_tac_dong VARCHAR(100),
     thoi_gian_thuc_hien TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE bai_viet (
+    bai_viet_id BIGSERIAL PRIMARY KEY,
+    nguoi_dung_id BIGINT NOT NULL REFERENCES nguoi_dung(nguoi_dung_id) ON DELETE CASCADE,
+    hoat_dong_id BIGINT REFERENCES hoat_dong(hoat_dong_id) ON DELETE SET NULL,
+    noi_dung TEXT NOT NULL,
+    hinh_anh TEXT,
+    so_luot_thich INTEGER DEFAULT 0,
+    so_binh_luan INTEGER DEFAULT 0,
+    so_luot_chia_se INTEGER DEFAULT 0,
+    thoi_gian_tao TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
 -- ============================================================

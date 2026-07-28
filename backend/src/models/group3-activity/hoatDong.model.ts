@@ -9,6 +9,16 @@ export interface HoatDong {
     moTa?: string | null;
     thoiGianBatDau?: Date | string | null;
     thoiGianKetThuc?: Date | string | null;
+    soLuongToiDa?: number | null;
+    doTuoiTu?: number | null;
+    doTuoiDen?: number | null;
+    gioiTinhPhuHop?: string | null;
+    mucDoKinhNghiem?: string | null;
+    yeuCauKhac?: string | null;
+    noiQuyChung?: string | null;
+    luuYDatBiet?: string | null;
+    doDungCanMang?: string | null;
+    trangThai?: string | null;
 }
 
 export class HoatDongModel {
@@ -20,6 +30,16 @@ export class HoatDongModel {
     private _moTa?: string | null;
     private _thoiGianBatDau?: Date | string | null;
     private _thoiGianKetThuc?: Date | string | null;
+    private _soLuongToiDa?: number | null;
+    private _doTuoiTu?: number | null;
+    private _doTuoiDen?: number | null;
+    private _gioiTinhPhuHop?: string | null;
+    private _mucDoKinhNghiem?: string | null;
+    private _yeuCauKhac?: string | null;
+    private _noiQuyChung?: string | null;
+    private _luuYDatBiet?: string | null;
+    private _doDungCanMang?: string | null;
+    private _trangThai?: string | null;
 
     constructor(data: Partial<HoatDong> = {}) {
         this._hoatDongId = data.hoatDongId === undefined || data.hoatDongId === null ? null : data.hoatDongId;
@@ -30,6 +50,16 @@ export class HoatDongModel {
         this._moTa = data.moTa === undefined || data.moTa === null ? null : data.moTa;
         this._thoiGianBatDau = data.thoiGianBatDau === undefined || data.thoiGianBatDau === null ? null : data.thoiGianBatDau;
         this._thoiGianKetThuc = data.thoiGianKetThuc === undefined || data.thoiGianKetThuc === null ? null : data.thoiGianKetThuc;
+        this._soLuongToiDa = (data.soLuongToiDa === undefined || data.soLuongToiDa === null) ? null : data.soLuongToiDa;
+        this._doTuoiTu = (data.doTuoiTu === undefined || data.doTuoiTu === null) ? null : data.doTuoiTu;
+        this._doTuoiDen = (data.doTuoiDen === undefined || data.doTuoiDen === null) ? null : data.doTuoiDen;
+        this._gioiTinhPhuHop = data.gioiTinhPhuHop === undefined || data.gioiTinhPhuHop === null ? null : data.gioiTinhPhuHop;
+        this._mucDoKinhNghiem = data.mucDoKinhNghiem === undefined || data.mucDoKinhNghiem === null ? null : data.mucDoKinhNghiem;
+        this._yeuCauKhac = data.yeuCauKhac === undefined || data.yeuCauKhac === null ? null : data.yeuCauKhac;
+        this._noiQuyChung = data.noiQuyChung === undefined || data.noiQuyChung === null ? null : data.noiQuyChung;
+        this._luuYDatBiet = data.luuYDatBiet === undefined || data.luuYDatBiet === null ? null : data.luuYDatBiet;
+        this._doDungCanMang = data.doDungCanMang === undefined || data.doDungCanMang === null ? null : data.doDungCanMang;
+        this._trangThai = data.trangThai === undefined || data.trangThai === null ? null : data.trangThai;
     }
 
     get hoatDongId(): number | null | undefined {
@@ -93,6 +123,16 @@ export class HoatDongModel {
             moTa: data.moTa === undefined || data.moTa === null ? null : data.moTa,
             thoiGianBatDau: data.thoiGianBatDau === undefined || data.thoiGianBatDau === null ? null : data.thoiGianBatDau,
             thoiGianKetThuc: data.thoiGianKetThuc === undefined || data.thoiGianKetThuc === null ? null : data.thoiGianKetThuc,
+            soLuongToiDa: (data.soLuongToiDa === undefined || data.soLuongToiDa === null) ? null : data.soLuongToiDa,
+            doTuoiTu: (data.doTuoiTu === undefined || data.doTuoiTu === null) ? null : data.doTuoiTu,
+            doTuoiDen: (data.doTuoiDen === undefined || data.doTuoiDen === null) ? null : data.doTuoiDen,
+            gioiTinhPhuHop: data.gioiTinhPhuHop === undefined || data.gioiTinhPhuHop === null ? null : data.gioiTinhPhuHop,
+            mucDoKinhNghiem: data.mucDoKinhNghiem === undefined || data.mucDoKinhNghiem === null ? null : data.mucDoKinhNghiem,
+            yeuCauKhac: data.yeuCauKhac === undefined || data.yeuCauKhac === null ? null : data.yeuCauKhac,
+            noiQuyChung: data.noiQuyChung === undefined || data.noiQuyChung === null ? null : data.noiQuyChung,
+            luuYDatBiet: data.luuYDatBiet === undefined || data.luuYDatBiet === null ? null : data.luuYDatBiet,
+            doDungCanMang: data.doDungCanMang === undefined || data.doDungCanMang === null ? null : data.doDungCanMang,
+            trangThai: data.trangThai === undefined || data.trangThai === null ? null : data.trangThai,
         };
     }
 }

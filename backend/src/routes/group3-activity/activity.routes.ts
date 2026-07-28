@@ -101,6 +101,25 @@ activityRouter.post(
 // --- Member/Join routes (must be before generic /:id CRUD) ---
 activityRouter.use("/", memberRouter);
 
+// --- Featured activities (must be before /:id routes) ---
+activityRouter.get(
+  "/featured",
+  authenticateToken,
+  activityController.getFeaturedActivities,
+);
+
+// --- My activities (must be before /:id routes) ---
+activityRouter.get(
+  "/my",
+  authenticateToken,
+  activityController.getMyActivities,
+);
+activityRouter.patch(
+  "/:id/cancel",
+  authenticateToken,
+  activityController.cancelActivity,
+);
+
 // --- Activity CRUD (parameterized /:id routes — must come AFTER all static routes!) ---
 activityRouter.post("/", authenticateToken, activityController.createActivity);
 activityRouter.get("/", authenticateToken, activityController.getAllActivities);

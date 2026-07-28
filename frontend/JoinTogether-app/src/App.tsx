@@ -4,6 +4,7 @@ import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import VerifyEmailPage from './pages/auth/VerifyEmailPage';
 import DashboardPage from './pages/dashboard/DashboardPage';
+import MyActivitiesPage from './pages/activities/MyActivitiesPage';
 import ProfilePage from './pages/profile/ProfilePage';
 import EditProfilePage from './pages/editprofile/EditProfilePage';
 import InterestsPage from './pages/onboarding/InterestsPage';
@@ -31,6 +32,14 @@ export default function App() {
                 element={
                     <ProtectedRoute>
                         <ProfilePage />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/activities"
+                element={
+                    <ProtectedRoute>
+                        <MyActivitiesPage />
                     </ProtectedRoute>
                 }
             />

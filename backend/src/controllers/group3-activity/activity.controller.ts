@@ -7,6 +7,27 @@ export class ActivityController {
 
   // ==================== ACTIVITIES ====================
 
+  public getMyActivities = asyncHandler(
+    async (req: Request, res: Response): Promise<void> => {
+      const nguoiDungId = req.user!.nguoiDungId;
+      const result = await this.activityService.getMyActivities(nguoiDungId);
+      res.status(200).json({ success: true, data: result });
+    },
+  );
+
+  public cancelActivity = asyncHandler(
+    async (req: Request, res: Response): Promise<void> => {
+      const id = parseInt(req.params.id as string, 10);
+      if (isNaN(id)) {
+        res.status(400).json({ success: false, message: "ID hoạt động không hợp lệ." });
+        return;
+      }
+      const nguoiDungId = req.user!.nguoiDungId;
+      const result = await this.activityService.cancelActivity(id, nguoiDungId);
+      res.status(200).json({ success: true, data: result, message: "Đã hủy hoạt động." });
+    },
+  );
+
   public createActivity = asyncHandler(
     async (req: Request, res: Response): Promise<void> => {
       const nguoiToChucId = req.user!.nguoiDungId;
@@ -15,6 +36,13 @@ export class ActivityController {
         req.body,
       );
       res.status(201).json({ success: true, data: result });
+    },
+  );
+
+  public getFeaturedActivities = asyncHandler(
+    async (_req: Request, res: Response): Promise<void> => {
+      const result = await this.activityService.getFeaturedActivities();
+      res.status(200).json({ success: true, data: result });
     },
   );
 
