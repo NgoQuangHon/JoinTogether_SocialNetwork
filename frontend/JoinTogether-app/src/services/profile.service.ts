@@ -3,7 +3,7 @@ import type { HoSoNguoiDung } from '../types/profile';
 import type { ApiResponse } from '../types/auth';
 
 export const getMyProfile = async (): Promise<ApiResponse<HoSoNguoiDung>> => {
-    const response = await api.get<ApiResponse<HoSoNguoiDung>>('/my-profile');
+    const response = await api.get<ApiResponse<HoSoNguoiDung>>('/profile/my-profile');
     return response.data;
 };
 
