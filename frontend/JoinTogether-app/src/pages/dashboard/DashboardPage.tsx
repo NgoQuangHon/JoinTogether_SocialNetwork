@@ -185,7 +185,7 @@ export default function DashboardPage() {
             <button className="icon-btn" onClick={() => setMenuMo(true)} aria-label="Mở menu">
               ☰
             </button>
-            <span className="app-title">JoinTogether</span>
+            <span className="app-title">🌿</span>
             <button className="icon-btn icon-btn-bell" aria-label="Thông báo">
               🔔
               <span className="bell-dot" />
@@ -197,8 +197,7 @@ export default function DashboardPage() {
               <div className="drawer-overlay" onClick={() => setMenuMo(false)} />
               <nav className="drawer-panel">
                 <div className="drawer-brand">
-                  <div className="brand-icon">🌿</div>
-                  <span className="brand-name">JoinTogether</span>
+                  <div className="brand-icon" style={{ width: 44, height: 44, fontSize: 22 }}>🌿</div>
                 </div>
                 <DanhSachDieuHuong role={role} onDongMenu={() => setMenuMo(false)} />
                 <button className="logout-btn" onClick={handleLogout}>
@@ -279,8 +278,7 @@ export default function DashboardPage() {
     <div className="desktop-view">
       <aside className="sidebar">
         <div className="drawer-brand">
-          <div className="brand-icon">🌿</div>
-          <span className="brand-name">JoinTogether</span>
+          <div className="brand-icon" style={{ width: 44, height: 44, fontSize: 22 }}>🌿</div>
         </div>
         <nav className="sidebar-nav">
           <DanhSachDieuHuong role={role} />
