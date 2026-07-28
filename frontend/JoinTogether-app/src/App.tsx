@@ -8,6 +8,10 @@ import MyActivitiesPage from './pages/activities/MyActivitiesPage';
 import ProfilePage from './pages/profile/ProfilePage';
 import EditProfilePage from './pages/editprofile/EditProfilePage';
 import InterestsPage from './pages/onboarding/InterestsPage';
+import ReviewPage from './pages/reviews/ReviewPage';
+import AIMatchPage from './pages/aimatch/AIMatchPage';
+import AdminLoginPage from './pages/admin/AdminLoginPage';
+import AdminDashboard from './pages/admin/AdminDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 
@@ -19,6 +23,8 @@ export default function App() {
                 <Route path="/register" element={<RegisterPage />} />
             </Route>
             <Route path="/verify-email" element={<VerifyEmailPage />} />
+
+            {/* User routes */}
             <Route
                 path="/dashboard"
                 element={
@@ -59,6 +65,27 @@ export default function App() {
                     </ProtectedRoute>
                 }
             />
+            <Route
+                path="/reviews"
+                element={
+                    <ProtectedRoute>
+                        <ReviewPage />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/ai-match"
+                element={
+                    <ProtectedRoute>
+                        <AIMatchPage />
+                    </ProtectedRoute>
+                }
+            />
+
+            {/* Admin routes */}
+            <Route path="/admin/login" element={<AdminLoginPage />} />
+            <Route path="/admin" element={<AdminDashboard />} />
+
             <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
     );
