@@ -90,9 +90,14 @@ export default function AvailableTimePage() {
                 <span className="summary-check">✓</span>
               </div>
             </div>
-            <button className="primary-btn" onClick={() => navigate('/dashboard', { replace: true })}>
-              Khám phá ngay
-            </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'center' }}>
+              <button className="primary-btn" onClick={() => navigate('/dashboard', { replace: true })}>
+                Khám phá ngay
+              </button>
+              <button className="outline-btn" onClick={() => navigate('/profile', { replace: true })} style={{ padding: '12px 24px', border: '2px solid var(--primary, #6fbf73)', borderRadius: 14, background: 'none', color: 'var(--primary-700, #4b9651)', fontWeight: 600, fontSize: 15, cursor: 'pointer' }}>
+                Xem lại hồ sơ và chỉnh sửa
+              </button>
+            </div>
           </div>
         </div>
       </div>
