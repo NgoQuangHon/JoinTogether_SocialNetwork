@@ -1,10 +1,11 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
-import AuthLayout from './pages/auth/AuthLayout';
-import LoginPage from './pages/auth/LoginPage';
-import RegisterPage from './pages/auth/RegisterPage';
-import DashboardPage from './pages/dashboard/DashboardPage';
-import ProtectedRoute from './components/ProtectedRoute';
-import './App.css';
+import { Routes, Route, Navigate } from "react-router-dom";
+import AuthLayout from "./pages/auth/AuthLayout";
+import LoginPage from "./pages/auth/LoginPage";
+import RegisterPage from "./pages/auth/RegisterPage";
+import DashboardPage from "./pages/dashboard/DashboardPage";
+import ProfilePage from "./pages/profile/ProfilePage";
+import ProtectedRoute from "./components/ProtectedRoute";
+import "./App.css";
 
 export default function App() {
   return (
@@ -18,6 +19,14 @@ export default function App() {
         element={
           <ProtectedRoute>
             <DashboardPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <ProfilePage />
           </ProtectedRoute>
         }
       />

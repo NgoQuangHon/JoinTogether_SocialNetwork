@@ -1,36 +1,49 @@
-import { useState } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import '../../styles/dashboard.css';
+import { useState } from "react";
+import { useAuth } from "../../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import "../../styles/dashboard.css";
 import {
   baiVietList as baiVietMauBanDau,
   hoatDongNoiBatList,
   goiYKetNoiList,
   hoatDongSapDienRaList,
   type BaiViet,
-} from './feedMockData';
+} from "./feedMockData";
 
 // ==================== HELPERS ====================
 
-function Avatar({ mau, chu, kichThuoc = 44 }: { mau: string; chu: string; kichThuoc?: number }) {
+function Avatar({
+  mau,
+  chu,
+  kichThuoc = 44,
+}: {
+  mau: string;
+  chu: string;
+  kichThuoc?: number;
+}) {
   return (
     <div
       className="avatar-tron"
-      style={{ background: mau, width: kichThuoc, height: kichThuoc, fontSize: kichThuoc * 0.42 }}
+      style={{
+        background: mau,
+        width: kichThuoc,
+        height: kichThuoc,
+        fontSize: kichThuoc * 0.42,
+      }}
     >
       {chu}
     </div>
   );
 }
 
-function nhanTrangThai(trangThai: 'sap-dien-ra' | 'con-cho' | 'sap-day') {
+function nhanTrangThai(trangThai: "sap-dien-ra" | "con-cho" | "sap-day") {
   switch (trangThai) {
-    case 'con-cho':
-      return { text: 'Còn chỗ', className: 'badge-success' };
-    case 'sap-day':
-      return { text: 'Sắp đầy', className: 'badge-warning' };
+    case "con-cho":
+      return { text: "Còn chỗ", className: "badge-success" };
+    case "sap-day":
+      return { text: "Sắp đầy", className: "badge-warning" };
     default:
-      return { text: 'Sắp diễn ra', className: 'badge-info' };
+      return { text: "Sắp diễn ra", className: "badge-info" };
   }
 }
 
@@ -40,18 +53,22 @@ export default function DashboardPage() {
   const { logout, nguoiDungId, role } = useAuth();
   const navigate = useNavigate();
   const [baiVietList, setBaiVietList] = useState<BaiViet[]>(baiVietMauBanDau);
-  const [noiDungMoi, setNoiDungMoi] = useState('');
+  const [noiDungMoi, setNoiDungMoi] = useState("");
 
   const handleLogout = () => {
     logout();
-    navigate('/login', { replace: true });
+    navigate("/login", { replace: true });
   };
 
   const toggleThich = (id: number) => {
     setBaiVietList((truoc) =>
       truoc.map((bv) =>
         bv.id === id
-          ? { ...bv, daThich: !bv.daThich, soLuotThich: bv.soLuotThich + (bv.daThich ? -1 : 1) }
+          ? {
+              ...bv,
+              daThich: !bv.daThich,
+              soLuotThich: bv.soLuotThich + (bv.daThich ? -1 : 1),
+            }
           : bv,
       ),
     );
@@ -73,7 +90,7 @@ export default function DashboardPage() {
             <span className="nav-icon">📊</span>
             Bảng tin
           </a>
-          <a href="#" className="nav-item">
+          <a href="/profile" className="nav-item">
             <span className="nav-icon">👤</span>
             Hồ sơ
           </a>
@@ -93,7 +110,7 @@ export default function DashboardPage() {
             <span className="nav-icon">⭐</span>
             Đánh giá
           </a>
-          {role === 'ADMIN' && (
+          {role === "ADMIN" && (
             <a href="#" className="nav-item">
               <span className="nav-icon">⚙️</span>
               Quản trị
@@ -114,7 +131,10 @@ export default function DashboardPage() {
           <h1>Bảng tin</h1>
           <div className="topbar-search">
             <span className="search-icon">🔍</span>
-            <input type="text" placeholder="Tìm hoạt động, người đồng hành..." />
+            <input
+              type="text"
+              placeholder="Tìm hoạt động, người đồng hành..."
+            />
           </div>
           <div className="topbar-user">
             <span className="user-badge">ID: {nguoiDungId}</span>
@@ -128,8 +148,14 @@ export default function DashboardPage() {
             {/* -------- Hoạt động nổi bật (dạng story) -------- */}
             <section className="story-row">
               {hoatDongNoiBatList.map((hd) => (
-                <div key={hd.id} className="story-card" style={{ background: hd.mauNen }}>
-                  <span className="story-participants">{hd.soNguoiThamGia} người</span>
+                <div
+                  key={hd.id}
+                  className="story-card"
+                  style={{ background: hd.mauNen }}
+                >
+                  <span className="story-participants">
+                    {hd.soNguoiThamGia} người
+                  </span>
                   <span className="story-title">{hd.tieuDe}</span>
                 </div>
               ))}
@@ -173,8 +199,11 @@ export default function DashboardPage() {
                       {bv.thoiGian}
                       {bv.hoatDongLienQuan && (
                         <>
-                          {' '}
-                          · <span className="post-tag">🎯 {bv.hoatDongLienQuan}</span>
+                          {" "}
+                          ·{" "}
+                          <span className="post-tag">
+                            🎯 {bv.hoatDongLienQuan}
+                          </span>
                         </>
                       )}
                     </p>
@@ -183,7 +212,12 @@ export default function DashboardPage() {
 
                 <p className="post-content">{bv.noiDung}</p>
 
-                {bv.hinhAnhMau && <div className="post-image" style={{ background: bv.hinhAnhMau }} />}
+                {bv.hinhAnhMau && (
+                  <div
+                    className="post-image"
+                    style={{ background: bv.hinhAnhMau }}
+                  />
+                )}
 
                 <div className="post-stats">
                   <span>👍 {bv.soLuotThich} lượt thích</span>
@@ -194,7 +228,7 @@ export default function DashboardPage() {
 
                 <div className="post-actions">
                   <button
-                    className={`post-action-btn ${bv.daThich ? 'post-action-active' : ''}`}
+                    className={`post-action-btn ${bv.daThich ? "post-action-active" : ""}`}
                     onClick={() => toggleThich(bv.id)}
                   >
                     👍 Thích
@@ -216,11 +250,17 @@ export default function DashboardPage() {
               <div className="widget-body">
                 {goiYKetNoiList.map((gy) => (
                   <div key={gy.id} className="suggestion-item">
-                    <Avatar mau={gy.nguoiDung.avatarMau} chu={gy.nguoiDung.avatarChu} kichThuoc={40} />
+                    <Avatar
+                      mau={gy.nguoiDung.avatarMau}
+                      chu={gy.nguoiDung.avatarChu}
+                      kichThuoc={40}
+                    />
                     <div className="suggestion-info">
                       <p className="suggestion-name">
                         {gy.nguoiDung.hoTen}
-                        <span className="match-badge">{gy.phanTramPhuHop}% phù hợp</span>
+                        <span className="match-badge">
+                          {gy.phanTramPhuHop}% phù hợp
+                        </span>
                       </p>
                       <p className="suggestion-desc">{gy.moTaChung}</p>
                     </div>
@@ -241,8 +281,12 @@ export default function DashboardPage() {
                   return (
                     <div key={hd.id} className="event-item">
                       <div className="event-date">
-                        <span className="event-day">{hd.ngay.split('/')[0]}</span>
-                        <span className="event-month">Th{hd.ngay.split('/')[1]}</span>
+                        <span className="event-day">
+                          {hd.ngay.split("/")[0]}
+                        </span>
+                        <span className="event-month">
+                          Th{hd.ngay.split("/")[1]}
+                        </span>
                       </div>
                       <div className="event-info">
                         <p className="event-name">{hd.tenHoatDong}</p>
@@ -250,7 +294,9 @@ export default function DashboardPage() {
                           {hd.gio} · {hd.soNguoiThamGia} người tham gia
                         </p>
                       </div>
-                      <span className={`badge ${nhan.className}`}>{nhan.text}</span>
+                      <span className={`badge ${nhan.className}`}>
+                        {nhan.text}
+                      </span>
                     </div>
                   );
                 })}
