@@ -1,13 +1,13 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useAuth } from '../../contexts/AuthContext';
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useAuth } from "../../contexts/AuthContext";
 
 const loginSchema = z.object({
-  tenDangNhap: z.string().min(1, 'Vui lòng nhập tên đăng nhập'),
-  matKhau: z.string().min(6, 'Mật khẩu phải có ít nhất 6 ký tự'),
+  tenDangNhap: z.string().min(1, "Vui lòng nhập tên đăng nhập"),
+  matKhau: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
@@ -15,7 +15,7 @@ type LoginForm = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const { login, isLoading } = useAuth();
   const navigate = useNavigate();
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const {
     register,
@@ -26,15 +26,15 @@ export default function LoginPage() {
   });
 
   const onSubmit = async (data: LoginForm) => {
-    setError('');
+    setError("");
     try {
       await login(data);
-      navigate('/dashboard', { replace: true });
+      navigate("/dashboard", { replace: true });
     } catch (err: unknown) {
       const errObj = err as { response?: { data?: { message?: string } } };
       const msg =
         errObj?.response?.data?.message ||
-        (err instanceof Error ? err.message : 'Đăng nhập thất bại');
+        (err instanceof Error ? err.message : "Đăng nhập thất bại");
       setError(msg);
     }
   };
@@ -42,7 +42,9 @@ export default function LoginPage() {
   return (
     <div className="auth-card">
       <h2>Chào mừng trở lại!</h2>
-      <p className="subtitle">Đăng nhập để tiếp tục hành trình cùng JoinTogether.</p>
+      <p className="subtitle">
+        Đăng nhập để tiếp tục hành trình cùng JoinTogether.
+      </p>
 
       {error && <div className="error-message">{error}</div>}
 
@@ -50,21 +52,25 @@ export default function LoginPage() {
         <input
           type="text"
           placeholder="Tên đăng nhập"
-          {...register('tenDangNhap')}
-          className={errors.tenDangNhap ? 'input-error' : ''}
+          {...register("tenDangNhap")}
+          className={errors.tenDangNhap ? "input-error" : ""}
         />
-        {errors.tenDangNhap && <p className="field-error">{errors.tenDangNhap.message}</p>}
+        {errors.tenDangNhap && (
+          <p className="field-error">{errors.tenDangNhap.message}</p>
+        )}
 
         <input
           type="password"
           placeholder="Mật khẩu"
-          {...register('matKhau')}
-          className={errors.matKhau ? 'input-error' : ''}
+          {...register("matKhau")}
+          className={errors.matKhau ? "input-error" : ""}
         />
-        {errors.matKhau && <p className="field-error">{errors.matKhau.message}</p>}
+        {errors.matKhau && (
+          <p className="field-error">{errors.matKhau.message}</p>
+        )}
 
         <button type="submit" className="primary-btn" disabled={isLoading}>
-          {isLoading ? 'Đang đăng nhập...' : 'Đăng nhập'}
+          {isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
         </button>
       </form>
 
@@ -84,8 +90,8 @@ export default function LoginPage() {
         <span>Hoặc</span>
       </div>
 
-      <Link to="/register" className="outline-btn" style={{ textDecoration: 'none', display: 'block', textAlign: 'center' }}>
-        Tham gia JoinTogether
+      <Link to="/register" className="outline-btn">
+        Đăng ký tham gia JoinTogether
       </Link>
     </div>
   );

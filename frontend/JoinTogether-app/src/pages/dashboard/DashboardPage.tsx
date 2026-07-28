@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import '../../styles/dashboard.css';
+import { useState } from "react";
+import { useAuth } from "../../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import "../../styles/dashboard.css";
 import {
   danhMucList,
   hoatDongGanBanList,
@@ -12,13 +12,25 @@ import {
   type NguoiDongHanhDeXuat,
   type HoatDongNoiBat,
 } from './feedMockData';
+  goiYKetNoiList,
+  hoatDongSapDienRaList,
+  type BaiViet,
+} from "./feedMockData";
 
 // ==================== COMPONENT DÙNG CHUNG ====================
 // Các component này được tái sử dụng ở cả layout mobile lẫn desktop,
 // phần trình bày khác nhau được xử lý hoàn toàn bằng CSS theo ngữ cảnh
 // (.mobile-view / .desktop-view), tránh lệch dữ liệu giữa 2 phiên bản.
 
-function Avatar({ mau, chu, kichThuoc = 44 }: { mau: string; chu: string; kichThuoc?: number }) {
+function Avatar({
+  mau,
+  chu,
+  kichThuoc = 44,
+}: {
+  mau: string;
+  chu: string;
+  kichThuoc?: number;
+}) {
   return (
     <div
       className="avatar-tron"
@@ -106,6 +118,15 @@ function CompanionCard({ ng }: { ng: NguoiDongHanhDeXuat }) {
       <button className="btn-connect-outline">Kết nối</button>
     </div>
   );
+function nhanTrangThai(trangThai: "sap-dien-ra" | "con-cho" | "sap-day") {
+  switch (trangThai) {
+    case "con-cho":
+      return { text: "Còn chỗ", className: "badge-success" };
+    case "sap-day":
+      return { text: "Sắp đầy", className: "badge-warning" };
+    default:
+      return { text: "Sắp diễn ra", className: "badge-info" };
+  }
 }
 
 function FeaturedCard({ hd }: { hd: HoatDongNoiBat }) {
@@ -160,11 +181,29 @@ export default function DashboardPage() {
   const navigate = useNavigate();
   const [menuMo, setMenuMo] = useState(false);
   const [danhMucChon, setDanhMucChon] = useState('tat-ca');
+  const [baiVietList, setBaiVietList] = useState<BaiViet[]>(baiVietMauBanDau);
+  const [noiDungMoi, setNoiDungMoi] = useState("");
 
   const handleLogout = () => {
     logout();
-    navigate('/login', { replace: true });
+    navigate("/login", { replace: true });
   };
+
+  const toggleThich = (id: number) => {
+    setBaiVietList((truoc) =>
+      truoc.map((bv) =>
+        bv.id === id
+          ? {
+              ...bv,
+              daThich: !bv.daThich,
+              soLuotThich: bv.soLuotThich + (bv.daThich ? -1 : 1),
+            }
+          : bv,
+      ),
+    );
+  };
+
+  const dangPhepDang = noiDungMoi.trim().length > 0;
 
   return (
     <>
@@ -198,6 +237,38 @@ export default function DashboardPage() {
                 </nav>
               </>
             )}
+        <nav className="sidebar-nav">
+          <a href="/dashboard" className="nav-item active">
+            <span className="nav-icon">📊</span>
+            Bảng tin
+          </a>
+          <a href="/profile" className="nav-item">
+            <span className="nav-icon">👤</span>
+            Hồ sơ
+          </a>
+          <a href="#" className="nav-item">
+            <span className="nav-icon">🎯</span>
+            Hoạt động
+          </a>
+          <a href="#" className="nav-item">
+            <span className="nav-icon">🔗</span>
+            Kết nối
+          </a>
+          <a href="#" className="nav-item">
+            <span className="nav-icon">💬</span>
+            Tin nhắn
+          </a>
+          <a href="#" className="nav-item">
+            <span className="nav-icon">⭐</span>
+            Đánh giá
+          </a>
+          {role === "ADMIN" && (
+            <a href="#" className="nav-item">
+              <span className="nav-icon">⚙️</span>
+              Quản trị
+            </a>
+          )}
+        </nav>
 
             <div className="app-body">
               <div className="search-bar">
@@ -215,6 +286,38 @@ export default function DashboardPage() {
                   <a href="#" className="section-link">
                     XEM THÊM
                   </a>
+      {/* ==================== NỘI DUNG CHÍNH ==================== */}
+      <main className="main-content">
+        <header className="topbar">
+          <h1>Bảng tin</h1>
+          <div className="topbar-search">
+            <span className="search-icon">🔍</span>
+            <input
+              type="text"
+              placeholder="Tìm hoạt động, người đồng hành..."
+            />
+          </div>
+          <div className="topbar-user">
+            <span className="user-badge">ID: {nguoiDungId}</span>
+            <Avatar mau="var(--primary-600)" chu="B" kichThuoc={38} />
+          </div>
+        </header>
+
+        <div className="feed-layout">
+          {/* ==================== CỘT GIỮA: NEWSFEED ==================== */}
+          <div className="feed-main">
+            {/* -------- Hoạt động nổi bật (dạng story) -------- */}
+            <section className="story-row">
+              {hoatDongNoiBatList.map((hd) => (
+                <div
+                  key={hd.id}
+                  className="story-card"
+                  style={{ background: hd.mauNen }}
+                >
+                  <span className="story-participants">
+                    {hd.soNguoiThamGia} người
+                  </span>
+                  <span className="story-title">{hd.tieuDe}</span>
                 </div>
                 <div className="hscroll">
                   {hoatDongGanBanList.map((hd) => (
@@ -237,6 +340,26 @@ export default function DashboardPage() {
               <section className="section-block section-block-last">
                 <div className="section-heading">
                   <h3>Hoạt động nổi bật</h3>
+            {/* -------- Danh sách bài viết -------- */}
+            {baiVietList.map((bv) => (
+              <article key={bv.id} className="post-card">
+                <div className="post-header">
+                  <Avatar mau={bv.tacGia.avatarMau} chu={bv.tacGia.avatarChu} />
+                  <div className="post-header-info">
+                    <p className="post-author">{bv.tacGia.hoTen}</p>
+                    <p className="post-meta">
+                      {bv.thoiGian}
+                      {bv.hoatDongLienQuan && (
+                        <>
+                          {" "}
+                          ·{" "}
+                          <span className="post-tag">
+                            🎯 {bv.hoatDongLienQuan}
+                          </span>
+                        </>
+                      )}
+                    </p>
+                  </div>
                 </div>
                 <div className="featured-list">
                   {hoatDongNoiBatList.map((hd) => (
@@ -275,6 +398,12 @@ export default function DashboardPage() {
             <div className="brand-icon">🌿</div>
             <span className="brand-name">JoinTogether</span>
           </div>
+                {bv.hinhAnhMau && (
+                  <div
+                    className="post-image"
+                    style={{ background: bv.hinhAnhMau }}
+                  />
+                )}
 
           <nav className="sidebar-nav">
             <DanhSachDieuHuong role={role} />
@@ -284,6 +413,18 @@ export default function DashboardPage() {
             <button className="logout-btn" onClick={handleLogout}>
               🚪 Đăng xuất
             </button>
+                <div className="post-actions">
+                  <button
+                    className={`post-action-btn ${bv.daThich ? "post-action-active" : ""}`}
+                    onClick={() => toggleThich(bv.id)}
+                  >
+                    👍 Thích
+                  </button>
+                  <button className="post-action-btn">💬 Bình luận</button>
+                  <button className="post-action-btn">↗️ Chia sẻ</button>
+                </div>
+              </article>
+            ))}
           </div>
         </aside>
 
@@ -330,6 +471,25 @@ export default function DashboardPage() {
               <div className="grid-companions">
                 {nguoiDongHanhDeXuatList.map((ng) => (
                   <CompanionCard key={ng.id} ng={ng} />
+              <div className="widget-body">
+                {goiYKetNoiList.map((gy) => (
+                  <div key={gy.id} className="suggestion-item">
+                    <Avatar
+                      mau={gy.nguoiDung.avatarMau}
+                      chu={gy.nguoiDung.avatarChu}
+                      kichThuoc={40}
+                    />
+                    <div className="suggestion-info">
+                      <p className="suggestion-name">
+                        {gy.nguoiDung.hoTen}
+                        <span className="match-badge">
+                          {gy.phanTramPhuHop}% phù hợp
+                        </span>
+                      </p>
+                      <p className="suggestion-desc">{gy.moTaChung}</p>
+                    </div>
+                    <button className="btn-connect">Kết nối</button>
+                  </div>
                 ))}
               </div>
             </section>
@@ -342,6 +502,31 @@ export default function DashboardPage() {
                 {hoatDongNoiBatList.map((hd) => (
                   <FeaturedCard key={hd.id} hd={hd} />
                 ))}
+              <div className="widget-body">
+                {hoatDongSapDienRaList.map((hd) => {
+                  const nhan = nhanTrangThai(hd.trangThai);
+                  return (
+                    <div key={hd.id} className="event-item">
+                      <div className="event-date">
+                        <span className="event-day">
+                          {hd.ngay.split("/")[0]}
+                        </span>
+                        <span className="event-month">
+                          Th{hd.ngay.split("/")[1]}
+                        </span>
+                      </div>
+                      <div className="event-info">
+                        <p className="event-name">{hd.tenHoatDong}</p>
+                        <p className="event-meta">
+                          {hd.gio} · {hd.soNguoiThamGia} người tham gia
+                        </p>
+                      </div>
+                      <span className={`badge ${nhan.className}`}>
+                        {nhan.text}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             </section>
           </div>
