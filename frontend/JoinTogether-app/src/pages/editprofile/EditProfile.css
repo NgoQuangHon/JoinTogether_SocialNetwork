@@ -1,0 +1,293 @@
+* {
+    box-sizing: border-box;
+}
+
+.edit-profile-page {
+    min-height: 100vh;
+
+    background: #f4faf4;
+
+    font-family: 'Inter', 'Roboto', sans-serif;
+}
+
+/* ================= HEADER ================= */
+
+.edit-header {
+    height: 72px;
+
+    background: white;
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    padding: 0 80px;
+
+    border-bottom: 1px solid #e4ece6;
+}
+
+.edit-logo {
+    font-size: 24px;
+
+    font-weight: 700;
+
+    color: #4e9f57;
+}
+
+.header-user {
+    display: flex;
+
+    align-items: center;
+
+    gap: 18px;
+}
+
+.header-user img {
+    width: 42px;
+
+    height: 42px;
+
+    border-radius: 50%;
+}
+
+/* ================= BACK BUTTON ================= */
+
+.back-hover-area {
+    position: fixed;
+
+    left: 0;
+
+    top: 0;
+
+    width: 45px;
+
+    height: 100vh;
+
+    z-index: 999;
+}
+
+.back-profile-btn {
+    position: absolute;
+
+    left: -190px;
+
+    top: 50%;
+
+    transform: translateY(-50%);
+
+    width: 190px;
+
+    height: 55px;
+
+    border: none;
+
+    border-radius: 0 30px 30px 0;
+
+    background: #6fbf73;
+
+    color: white;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 12px;
+
+    font-size: 16px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: 0.35s;
+
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.back-icon {
+    font-size: 32px;
+}
+
+.back-hover-area:hover .back-profile-btn {
+    left: 0;
+}
+
+.back-profile-btn:hover {
+    background: #4e9f57;
+}
+
+/* ================= CONTENT ================= */
+
+.edit-container {
+    width: 650px;
+
+    margin: 50px auto;
+}
+
+.edit-container h1 {
+    text-align: center;
+
+    color: #3d7d43;
+
+    margin-bottom: 30px;
+}
+
+/* ================= CARD ================= */
+
+.edit-card {
+    background: white;
+
+    border-radius: 24px;
+
+    padding: 40px;
+
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+/* ================= AVATAR ================= */
+
+.avatar-edit {
+    width: 150px;
+
+    height: 150px;
+
+    margin: 0 auto 35px;
+
+    position: relative;
+}
+
+.avatar-edit img {
+    width: 150px;
+
+    height: 150px;
+
+    border-radius: 50%;
+
+    border: 6px solid #6fbf73;
+}
+
+.avatar-button {
+    position: absolute;
+
+    right: 5px;
+
+    bottom: 10px;
+
+    width: 42px;
+
+    height: 42px;
+
+    border-radius: 50%;
+
+    border: none;
+
+    background: #66c2b2;
+
+    color: white;
+
+    cursor: pointer;
+}
+
+/* ================= FORM ================= */
+
+.form-group {
+    margin-bottom: 22px;
+}
+
+.form-group label {
+    display: block;
+
+    margin-bottom: 8px;
+
+    font-weight: 600;
+
+    color: #3d7d43;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+
+    padding: 14px;
+
+    border-radius: 14px;
+
+    border: 1px solid #dce8dd;
+
+    font-size: 15px;
+
+    outline: none;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    border-color: #66c2b2;
+
+    box-shadow: 0 0 0 3px rgba(102, 194, 178, 0.2);
+}
+
+textarea {
+    min-height: 140px;
+
+    resize: none;
+}
+
+.bio-header {
+    display: flex;
+
+    justify-content: space-between;
+}
+
+.bio-header span {
+    font-size: 13px;
+
+    color: #777;
+}
+
+/* ================= BUTTON ================= */
+
+.edit-actions {
+    display: flex;
+
+    justify-content: flex-end;
+
+    margin-top: 30px;
+}
+
+.save-btn {
+    padding: 14px 35px;
+
+    border: none;
+
+    border-radius: 14px;
+
+    background: #6fbf73;
+
+    color: white;
+
+    font-size: 16px;
+
+    font-weight: 700;
+
+    cursor: pointer;
+}
+
+.save-btn:hover {
+    background: #4e9f57;
+}
+
+@media (max-width: 768px) {
+    .edit-container {
+        width: 90%;
+    }
+
+    .edit-header {
+        padding: 0 20px;
+    }
+}
