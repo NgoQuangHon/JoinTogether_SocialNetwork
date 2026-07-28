@@ -127,7 +127,7 @@ export default function ProfilePage() {
                         <p>@{tenDangNhap}</p>
                         <span className="verified">✓ Tài khoản xác thực</span>
                     </div>
-                    <Link to="/profile/edit" className="edit-button" style={{ textDecoration: 'none' }}>
+                    <Link to="/profile" className="edit-button" style={{ textDecoration: 'none' }}>
                         Chỉnh sửa thông tin
                     </Link>
                 </section>

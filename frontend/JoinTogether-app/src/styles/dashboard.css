@@ -745,3 +745,350 @@
 .grid-featured .featured-card:hover {
   transform: translateY(-2px);
 }
+
+/* ==================== POST CARDS ==================== */
+
+.post-card {
+  background: var(--surface, #fff);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  border: 1px solid var(--border, #e4ece6);
+}
+
+.post-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.post-header-info {
+  flex: 1;
+}
+
+.post-author {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text, #263238);
+}
+
+.post-meta {
+  font-size: 12px;
+  color: var(--text-light, #607d8b);
+  margin-top: 2px;
+}
+
+.post-tag {
+  color: var(--secondary-dark, #4baa9a);
+  font-weight: 500;
+}
+
+.post-content {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text, #263238);
+  margin-bottom: 14px;
+}
+
+.post-image {
+  height: 200px;
+  border-radius: 12px;
+  margin-bottom: 14px;
+}
+
+.post-stats {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12.5px;
+  color: var(--text-light, #607d8b);
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border, #e4ece6);
+  margin-bottom: 12px;
+}
+
+.post-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.post-action-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px;
+  border: none;
+  background: none;
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--text-light, #607d8b);
+  cursor: pointer;
+  transition: 0.15s;
+}
+
+.post-action-btn:hover {
+  background: var(--background, #f7f9f8);
+}
+
+.post-action-active {
+  color: var(--primary-600, #5aae61);
+  font-weight: 600;
+}
+
+.btn-post {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 999px;
+  background: var(--primary, #6fbf73);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-post:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ==================== STORY CARDS ==================== */
+
+.story-row {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.story-row::-webkit-scrollbar {
+  display: none;
+}
+
+.story-card {
+  flex: 0 0 140px;
+  height: 180px;
+  border-radius: 16px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 6px;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+}
+
+.story-participants {
+  font-size: 11px;
+  font-weight: 600;
+  opacity: 0.8;
+}
+
+.story-title {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 18px;
+}
+
+/* ==================== COMPOSER ==================== */
+
+.composer-card {
+  background: var(--surface, #fff);
+  border-radius: 16px;
+  padding: 16px 20px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  border: 1px solid var(--border, #e4ece6);
+}
+
+.composer-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.composer-top input {
+  flex: 1;
+  border: none;
+  background: var(--background, #f7f9f8);
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  color: var(--text, #263238);
+}
+
+.composer-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.composer-action {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  color: var(--text-light, #607d8b);
+  cursor: pointer;
+}
+
+.composer-action-accent {
+  color: var(--secondary-dark, #4baa9a);
+}
+
+/* ==================== FEED SIDEBAR (RIGHT COLUMN) ==================== */
+
+.feed-layout {
+  display: flex;
+  gap: 28px;
+  padding: 28px 40px;
+}
+
+.feed-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.feed-sidebar {
+  width: 340px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.widget-card {
+  background: var(--surface, #fff);
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid var(--border, #e4ece6);
+}
+
+.widget-accent {
+  border-color: var(--secondary-light, #8ed8cc);
+  background: linear-gradient(135deg, var(--primary-50, #f4fbf5), #fafdfa);
+}
+
+.widget-header h3 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text, #263238);
+  margin-bottom: 16px;
+}
+
+.widget-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.suggestion-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.suggestion-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.suggestion-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text, #263238);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.match-badge {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--secondary-dark, #4baa9a);
+  background: rgba(102, 194, 178, 0.12);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.suggestion-desc {
+  font-size: 11.5px;
+  color: var(--text-light, #607d8b);
+  margin-top: 2px;
+}
+
+.btn-connect {
+  flex-shrink: 0;
+  border: none;
+  background: var(--primary, #6fbf73);
+  color: #fff;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+/* ==================== EVENT ITEMS ==================== */
+
+.event-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.event-date {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 44px;
+  flex-shrink: 0;
+}
+
+.event-day {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--primary-700, #4b9651);
+  line-height: 1;
+}
+
+.event-month {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-light, #607d8b);
+  text-transform: uppercase;
+}
+
+.event-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.event-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text, #263238);
+}
+
+.event-meta {
+  font-size: 11.5px;
+  color: var(--text-light, #607d8b);
+  margin-top: 2px;
+}
+
+/* ==================== BADGE OVERRIDES ==================== */
+
+.badge-info {
+  background: #e3f2fd;
+  color: #1976d2;
+}
