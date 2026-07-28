@@ -53,4 +53,5 @@ export interface HoatDongResponse {
   hinhAnh?: { duongDan: string; laAnhDaiDien: boolean }[];
   soLuongThanhVien?: number;
   trangThai?: string;
+  lyDoHuy?: string;
 }

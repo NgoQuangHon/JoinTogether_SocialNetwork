@@ -1,9 +1,11 @@
 import { Router } from "express";
 import { ConnectionController } from "../../controllers/group4-interaction/connection.controller";
+import { FollowController } from "../../controllers/group4-interaction/follow.controller";
 import { authenticateToken } from "../../middlewares/auth.middleware";
 
 const connectionRouter = Router();
 const connectionController = new ConnectionController();
+const followController = new FollowController();
 
 // Connection requests
 connectionRouter.post(
@@ -27,6 +29,23 @@ connectionRouter.get(
   "/suggestions",
   authenticateToken,
   connectionController.getSuggestions,
+);
+
+// Follow
+connectionRouter.post(
+  "/:id/follow",
+  authenticateToken,
+  followController.follow,
+);
+connectionRouter.delete(
+  "/:id/follow",
+  authenticateToken,
+  followController.unfollow,
+);
+connectionRouter.get(
+  "/:id/follow",
+  authenticateToken,
+  followController.checkFollowing,
 );
 
 // Connections

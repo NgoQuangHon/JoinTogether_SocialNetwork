@@ -37,7 +37,7 @@ export class ActivityService {
     return activities;
   }
 
-  async cancelActivity(id: number, nguoiDungId: number): Promise<any> {
+  async cancelActivity(id: number, nguoiDungId: number, lyDoHuy?: string): Promise<any> {
     const activity = await this.hoatDongRepo.findById(id);
     if (!activity) {
       throw new NotFoundError("Hoạt động không tồn tại.");
@@ -45,7 +45,7 @@ export class ActivityService {
     if (activity.nguoiToChucId !== nguoiDungId) {
       throw new Error("Bạn không có quyền hủy hoạt động này.");
     }
-    return await this.hoatDongRepo.cancelActivity(id);
+    return await this.hoatDongRepo.cancelActivity(id, lyDoHuy);
   }
 
   async createActivity(nguoiToChucId: number, data: any): Promise<any> {

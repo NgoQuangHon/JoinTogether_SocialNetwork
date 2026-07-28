@@ -19,6 +19,7 @@ export interface HoatDong {
     luuYDatBiet?: string | null;
     doDungCanMang?: string | null;
     trangThai?: string | null;
+    lyDoHuy?: string | null;
 }
 
 export class HoatDongModel {
@@ -40,6 +41,7 @@ export class HoatDongModel {
     private _luuYDatBiet?: string | null;
     private _doDungCanMang?: string | null;
     private _trangThai?: string | null;
+    private _lyDoHuy?: string | null;
 
     constructor(data: Partial<HoatDong> = {}) {
         this._hoatDongId = data.hoatDongId === undefined || data.hoatDongId === null ? null : data.hoatDongId;
@@ -60,6 +62,7 @@ export class HoatDongModel {
         this._luuYDatBiet = data.luuYDatBiet === undefined || data.luuYDatBiet === null ? null : data.luuYDatBiet;
         this._doDungCanMang = data.doDungCanMang === undefined || data.doDungCanMang === null ? null : data.doDungCanMang;
         this._trangThai = data.trangThai === undefined || data.trangThai === null ? null : data.trangThai;
+        this._lyDoHuy = data.lyDoHuy === undefined || data.lyDoHuy === null ? null : data.lyDoHuy;
     }
 
     get hoatDongId(): number | null | undefined {
@@ -133,6 +136,7 @@ export class HoatDongModel {
             luuYDatBiet: data.luuYDatBiet === undefined || data.luuYDatBiet === null ? null : data.luuYDatBiet,
             doDungCanMang: data.doDungCanMang === undefined || data.doDungCanMang === null ? null : data.doDungCanMang,
             trangThai: data.trangThai === undefined || data.trangThai === null ? null : data.trangThai,
+            lyDoHuy: data.lyDoHuy === undefined || data.lyDoHuy === null ? null : data.lyDoHuy,
         };
     }
 }

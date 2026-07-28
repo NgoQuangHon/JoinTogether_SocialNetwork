@@ -75,6 +75,7 @@ export class HoatDongRepository {
         hd.luu_y_dac_biet AS "luuYDatBiet",
         hd.do_dung_can_mang AS "doDungCanMang",
         hd.trang_thai AS "trangThai",
+        hd.ly_do_huy AS "lyDoHuy",
         (SELECT COUNT(*) FROM thanh_vien_hoat_dong tv WHERE tv.hoat_dong_id = hd.hoat_dong_id) AS "soLuongThanhVien"
       FROM hoat_dong hd
       LEFT JOIN nguoi_dung nd ON hd.nguoi_to_chuc_id = nd.nguoi_dung_id
@@ -113,7 +114,8 @@ export class HoatDongRepository {
         hd.noi_quy_chung AS "noiQuyChung",
         hd.luu_y_dac_biet AS "luuYDatBiet",
         hd.do_dung_can_mang AS "doDungCanMang",
-        hd.trang_thai AS "trangThai"
+        hd.trang_thai AS "trangThai",
+        hd.ly_do_huy AS "lyDoHuy"
       FROM hoat_dong hd
       LEFT JOIN nguoi_dung nd ON hd.nguoi_to_chuc_id = nd.nguoi_dung_id
       LEFT JOIN danh_muc_hoat_dong dm ON hd.danh_muc_hoat_dong_id = dm.danh_muc_hoat_dong_id
@@ -223,7 +225,8 @@ export class HoatDongRepository {
         noi_quy_chung AS "noiQuyChung",
         luu_y_dac_biet AS "luuYDatBiet",
         do_dung_can_mang AS "doDungCanMang",
-        trang_thai AS "trangThai"
+        trang_thai AS "trangThai",
+        ly_do_huy AS "lyDoHuy"
     `;
     const result = await pool.query(query, values);
     return result.rows.length > 0 ? result.rows[0] : null;
@@ -254,6 +257,7 @@ export class HoatDongRepository {
         hd.luu_y_dac_biet AS "luuYDatBiet",
         hd.do_dung_can_mang AS "doDungCanMang",
         hd.trang_thai AS "trangThai",
+        hd.ly_do_huy AS "lyDoHuy",
         (SELECT COUNT(*) FROM thanh_vien_hoat_dong tv WHERE tv.hoat_dong_id = hd.hoat_dong_id) AS "soLuongThanhVien"
       FROM hoat_dong hd
       LEFT JOIN nguoi_dung nd ON hd.nguoi_to_chuc_id = nd.nguoi_dung_id
@@ -266,16 +270,17 @@ export class HoatDongRepository {
     return result.rows;
   }
 
-  async cancelActivity(id: number): Promise<any> {
+  async cancelActivity(id: number, lyDoHuy?: string): Promise<any> {
     const query = `
       UPDATE hoat_dong
-      SET trang_thai = 'da_huy'
+      SET trang_thai = 'da_huy', ly_do_huy = $2
       WHERE hoat_dong_id = $1
       RETURNING
         hoat_dong_id AS "hoatDongId",
-        trang_thai AS "trangThai"
+        trang_thai AS "trangThai",
+        ly_do_huy AS "lyDoHuy"
     `;
-    const result = await pool.query(query, [id]);
+    const result = await pool.query(query, [id, lyDoHuy || null]);
     return result.rows.length > 0 ? result.rows[0] : null;
   }
 
@@ -295,6 +300,7 @@ export class HoatDongRepository {
         hd.thoi_gian_ket_thuc AS "thoiGianKetThuc",
         hd.so_luong_toi_da AS "soLuongToiDa",
         hd.trang_thai AS "trangThai",
+        hd.ly_do_huy AS "lyDoHuy",
         (SELECT COUNT(*) FROM thanh_vien_hoat_dong tv WHERE tv.hoat_dong_id = hd.hoat_dong_id) AS "soLuongThanhVien"
       FROM hoat_dong hd
       LEFT JOIN nguoi_dung nd ON hd.nguoi_to_chuc_id = nd.nguoi_dung_id

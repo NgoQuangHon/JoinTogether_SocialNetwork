@@ -17,8 +17,8 @@ export const getMyActivitiesApi = async (): Promise<ApiResponse<HoatDongResponse
   return response.data;
 };
 
-export const cancelActivityApi = async (id: number): Promise<ApiResponse<HoatDongResponse>> => {
-  const response = await api.patch<ApiResponse<HoatDongResponse>>(`/activities/${id}/cancel`);
+export const cancelActivityApi = async (id: number, lyDoHuy?: string): Promise<ApiResponse<HoatDongResponse>> => {
+  const response = await api.patch<ApiResponse<HoatDongResponse>>(`/activities/${id}/cancel`, { lyDoHuy });
   return response.data;
 };
 

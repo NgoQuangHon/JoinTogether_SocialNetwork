@@ -119,3 +119,88 @@
   padding-top: 16px;
   border-top: 1px solid #eee;
 }
+
+.cam-detail-cancelled-reason {
+  text-align: center;
+  color: #888;
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+/* Cancel confirmation modal */
+.cam-confirm-modal {
+  max-width: 420px;
+}
+
+.cam-confirm-body {
+  padding: 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cam-confirm-body p {
+  font-size: 15px;
+  color: #333;
+  line-height: 1.5;
+}
+
+.cam-confirm-reason {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cam-confirm-reason label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+}
+
+.cam-confirm-reason textarea {
+  width: 100%;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: none;
+  outline: none;
+  line-height: 1.4;
+}
+
+.cam-confirm-reason textarea:focus {
+  border-color: #6fbf73;
+}
+
+.cam-confirm-actions {
+  display: flex;
+  gap: 10px;
+  padding: 16px 24px;
+  border-top: 1px solid #eee;
+}
+
+.cam-confirm-actions button {
+  flex: 1;
+  text-align: center;
+}
+
+.cam-confirm-actions .cam-btn-danger {
+  background: #f44336;
+  color: #fff !important;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cam-confirm-actions .cam-btn-danger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cam-confirm-actions .cam-btn-danger:not(:disabled):hover {
+  background: #d32f2f;
+}

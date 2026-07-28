@@ -6,7 +6,7 @@ import CreateActivityModal from './CreateActivityModal';
 import ActivityDetailModal from './ActivityDetailModal';
 import NavItems from '../../components/NavItems';
 import { getMyActivitiesApi, getAllActivitiesApi, getFeaturedActivitiesApi } from '../../services/activity.service';
-import { getSuggestionsApi } from '../../services/connection.service';
+import { getSuggestionsApi, followUserApi, unfollowUserApi } from '../../services/connection.service';
 import { getPostsApi } from '../../services/post.service';
 import type { HoatDongResponse } from '../../types/activity';
 import type { BaiVietResponse } from '../../services/post.service';
@@ -85,12 +85,36 @@ function ActivityCard({ hd }: { hd: HoatDongResponse }) {
 }
 
 function CompanionCard({ ng }: { ng: any }) {
+  const [following, setFollowing] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleFollow = async () => {
+    setLoading(true);
+    try {
+      if (following) {
+        await unfollowUserApi(ng.nguoiDungId);
+        setFollowing(false);
+      } else {
+        await followUserApi(ng.nguoiDungId);
+        setFollowing(true);
+      }
+    } catch {}
+    finally { setLoading(false); }
+  };
+
   return (
     <div className="companion-card">
       <Avatar mau="#7c4dff" chu={(ng.hoTen || '?').charAt(0).toUpperCase()} kichThuoc={64} />
       <p className="companion-name">{ng.hoTen || ng.tenNguoiDung || 'Người dùng'}</p>
       <p className="companion-interest">{(ng.soThich || ng.danhSachSoThich || []).slice(0, 2).join(', ')}</p>
-      <button className="btn-connect-outline">Kết nối</button>
+      <div className="companion-completion">{ng.hoanThanhPhanTram || 0}% hoàn thiện</div>
+      <button
+        className={`btn-follow ${following ? 'btn-following' : ''}`}
+        onClick={handleFollow}
+        disabled={loading}
+      >
+        {loading ? '...' : following ? 'Đang theo dõi' : 'Theo dõi'}
+      </button>
     </div>
   );
 }

@@ -23,7 +23,8 @@ export class ActivityController {
         return;
       }
       const nguoiDungId = req.user!.nguoiDungId;
-      const result = await this.activityService.cancelActivity(id, nguoiDungId);
+      const { lyDoHuy } = req.body;
+      const result = await this.activityService.cancelActivity(id, nguoiDungId, lyDoHuy);
       res.status(200).json({ success: true, data: result, message: "Đã hủy hoạt động." });
     },
   );

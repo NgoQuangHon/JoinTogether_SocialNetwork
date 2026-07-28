@@ -1,0 +1,2 @@
+ALTER TABLE hoat_dong
+ADD COLUMN IF NOT EXISTS ly_do_huy TEXT;

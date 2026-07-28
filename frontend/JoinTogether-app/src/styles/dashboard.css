@@ -533,7 +533,13 @@
   line-height: 14px;
 }
 
-.btn-connect-outline {
+.companion-completion {
+  font-size: 10px;
+  color: var(--primary, #6fbf73);
+  font-weight: 600;
+}
+
+.btn-follow {
   margin-top: 2px;
   border: 1.5px solid var(--secondary-dark, #4baa9a);
   background: none;
@@ -542,12 +548,27 @@
   font-weight: 700;
   padding: 6px 16px;
   border-radius: 999px;
+  cursor: pointer;
   transition: 0.2s;
 }
 
-.btn-connect-outline:hover {
+.btn-follow:hover {
   background: var(--secondary-dark, #4baa9a);
   color: #fff;
+}
+
+.btn-follow:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-following {
+  background: var(--secondary-dark, #4baa9a);
+  color: #fff;
+}
+
+.btn-following:hover {
+  opacity: 0.85;
 }
 
 /* -------- Hoạt động nổi bật -------- */

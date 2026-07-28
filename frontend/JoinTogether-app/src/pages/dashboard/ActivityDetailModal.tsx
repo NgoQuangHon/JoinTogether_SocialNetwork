@@ -31,18 +31,22 @@ export default function ActivityDetailModal({
   onEdited: () => void;
 }) {
   const [showEdit, setShowEdit] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
   const [cancelling, setCancelling] = useState(false);
 
   const handleCancel = async () => {
-    if (!confirm('Bạn có chắc muốn hủy hoạt động này?')) return;
+    if (!cancelReason.trim()) return;
     setCancelling(true);
     try {
-      await cancelActivityApi(activity.hoatDongId);
+      await cancelActivityApi(activity.hoatDongId, cancelReason.trim());
       onCancel(activity.hoatDongId);
     } catch {
       alert('Hủy hoạt động thất bại.');
     } finally {
       setCancelling(false);
+      setShowCancelConfirm(false);
+      setCancelReason('');
     }
   };
 
@@ -173,10 +177,9 @@ export default function ActivityDetailModal({
           <div className="cam-detail-actions">
             <button
               className="cam-btn-outline cam-btn-danger"
-              onClick={handleCancel}
-              disabled={cancelling}
+              onClick={() => setShowCancelConfirm(true)}
             >
-              {cancelling ? 'Đang hủy...' : '🗑 Hủy hoạt động'}
+              🗑 Hủy hoạt động
             </button>
             <button className="cam-btn-primary" onClick={() => setShowEdit(true)}>
               ✏️ Chỉnh sửa
@@ -185,7 +188,52 @@ export default function ActivityDetailModal({
         )}
 
         {isCancelled && (
-          <p className="cam-detail-cancelled">Hoạt động này đã bị hủy.</p>
+          <div>
+            <p className="cam-detail-cancelled">Hoạt động này đã bị hủy.</p>
+            {activity.lyDoHuy && (
+              <p className="cam-detail-cancelled-reason">
+                Lý do: {activity.lyDoHuy}
+              </p>
+            )}
+          </div>
+        )}
+
+        {showCancelConfirm && (
+          <div className="cam-overlay" onClick={() => { setShowCancelConfirm(false); setCancelReason(''); }}>
+            <div className="cam-modal cam-confirm-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="cam-header">
+                <h2>Xác nhận hủy hoạt động</h2>
+                <button className="cam-close" onClick={() => { setShowCancelConfirm(false); setCancelReason(''); }}>✕</button>
+              </div>
+              <div className="cam-confirm-body">
+                <p>Bạn có chắc muốn hủy hoạt động "<strong>{activity.tenHoatDong}</strong>"?</p>
+                <div className="cam-confirm-reason">
+                  <label>Lý do hủy:</label>
+                  <textarea
+                    value={cancelReason}
+                    onChange={(e) => setCancelReason(e.target.value)}
+                    placeholder="Nhập lý do hủy..."
+                    rows={3}
+                  />
+                </div>
+              </div>
+              <div className="cam-confirm-actions">
+                <button
+                  className="cam-btn-outline"
+                  onClick={() => { setShowCancelConfirm(false); setCancelReason(''); }}
+                >
+                  Quay lại
+                </button>
+                <button
+                  className="cam-btn-danger"
+                  onClick={handleCancel}
+                  disabled={!cancelReason.trim() || cancelling}
+                >
+                  {cancelling ? 'Đang hủy...' : 'Xác nhận hủy'}
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>
