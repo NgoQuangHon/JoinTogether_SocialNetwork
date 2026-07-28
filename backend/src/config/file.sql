@@ -58,14 +58,15 @@ CREATE TABLE vai_tro_quyen_han (
 -- ============================================================
 
 CREATE TABLE ho_so_nguoi_dung (
-    ho_so_id BIGSERIAL PRIMARY KEY,
-    nguoi_dung_id BIGINT UNIQUE NOT NULL REFERENCES nguoi_dung(nguoi_dung_id) ON DELETE CASCADE,
-    tieu_su TEXT,
-    ngay_sinh DATE,
-    khu_vuc VARCHAR(255),
+    ho_so_id          BIGSERIAL PRIMARY KEY,
+    nguoi_dung_id     BIGINT UNIQUE NOT NULL REFERENCES nguoi_dung(nguoi_dung_id) ON DELETE CASCADE,
+    tieu_su           TEXT,
+    ngay_sinh         DATE,
+    khu_vuc           VARCHAR(255),
+    gioi_tinh         VARCHAR(20),
     muc_tieu_tham_gia TEXT,
-    thoi_gian_ranh VARCHAR(255),
-    anh_dai_dien VARCHAR(500)
+    thoi_gian_ranh    VARCHAR(255),
+    anh_dai_dien      VARCHAR(500)
 );
 
 CREATE TABLE danh_muc_so_thich (

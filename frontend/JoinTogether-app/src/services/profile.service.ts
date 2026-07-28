@@ -13,9 +13,13 @@ export const getProfile = async (id: number): Promise<ApiResponse<HoSoNguoiDung>
 };
 
 export const updateProfile = async (data: {
+    hoTen?: string;
+    email?: string;
+    soDienThoai?: string;
     tieuSu?: string;
     ngaySinh?: string;
     khuVuc?: string;
+    gioiTinh?: string;
     mucTieuThamGia?: string;
     thoiGianRanh?: string;
 }): Promise<ApiResponse> => {

@@ -4,6 +4,12 @@ import { useAuth } from '../../contexts/AuthContext';
 import { getMyProfile, updateProfile } from '../../services/profile.service';
 import './EditProfile.css';
 
+const GIOI_TINH_OPTIONS = [
+  { value: 'nam', label: 'Nam' },
+  { value: 'nu', label: 'Nữ' },
+  { value: 'khac', label: 'Khác' },
+];
+
 export default function EditProfilePage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -13,9 +19,13 @@ export default function EditProfilePage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
+  const [hoTen, setHoTen] = useState('');
+  const [email, setEmail] = useState('');
+  const [soDienThoai, setSoDienThoai] = useState('');
   const [tieuSu, setTieuSu] = useState('');
   const [khuVuc, setKhuVuc] = useState('');
   const [ngaySinh, setNgaySinh] = useState('');
+  const [gioiTinh, setGioiTinh] = useState('');
   const [mucTieuThamGia, setMucTieuThamGia] = useState('');
   const [thoiGianRanh, setThoiGianRanh] = useState('');
 
@@ -24,9 +34,15 @@ export default function EditProfilePage() {
       .then((res) => {
         if (res.success && res.data) {
           const p = res.data;
+          if (p.user) {
+            setHoTen(p.user.hoTen || '');
+            setEmail(p.user.email || '');
+            setSoDienThoai(p.user.soDienThoai || '');
+          }
           setTieuSu(p.tieuSu || '');
           setKhuVuc(p.khuVuc || '');
           setNgaySinh(p.ngaySinh ? p.ngaySinh.slice(0, 10) : '');
+          setGioiTinh(p.gioiTinh || '');
           setMucTieuThamGia(p.mucTieuThamGia || '');
           setThoiGianRanh(p.thoiGianRanh || '');
         }
@@ -35,8 +51,8 @@ export default function EditProfilePage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const requiredFields = [tieuSu, khuVuc, ngaySinh];
-  const allFields = [tieuSu, khuVuc, ngaySinh, mucTieuThamGia, thoiGianRanh];
+  const requiredFields = [hoTen, tieuSu, khuVuc, ngaySinh];
+  const allFields = [hoTen, email, soDienThoai, tieuSu, khuVuc, ngaySinh, gioiTinh, mucTieuThamGia, thoiGianRanh];
   const filledCount = allFields.filter((v) => v.trim().length > 0).length;
   const progressPct = Math.round((filledCount / allFields.length) * 100);
   const canSave = requiredFields.every((v) => v.trim().length > 0);
@@ -45,7 +61,7 @@ export default function EditProfilePage() {
     setSaving(true);
     setError('');
     try {
-      await updateProfile({ tieuSu, ngaySinh, khuVuc, mucTieuThamGia, thoiGianRanh });
+      await updateProfile({ hoTen, email, soDienThoai, tieuSu, ngaySinh, khuVuc, gioiTinh, mucTieuThamGia, thoiGianRanh });
       navigate(onboarding ? '/interests?onboarding=true' : '/my-profile', { replace: true });
     } catch (err: unknown) {
       const msg =
@@ -101,6 +117,31 @@ export default function EditProfilePage() {
               <div className="profile-progress-fill" style={{ width: `${progressPct}%` }} />
             </div>
             <span className="profile-progress-label">{progressPct}%</span>
+          </div>
+
+          <div className="form-group">
+            <label>Họ tên <span style={{ color: 'var(--error, #f44336)' }}>*</span></label>
+            <input type="text" value={hoTen} onChange={(e) => setHoTen(e.target.value)} placeholder="Nguyễn Văn A" />
+          </div>
+
+          <div className="form-group">
+            <label>Email</label>
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@example.com" />
+          </div>
+
+          <div className="form-group">
+            <label>Số điện thoại</label>
+            <input type="tel" value={soDienThoai} onChange={(e) => setSoDienThoai(e.target.value)} placeholder="0912345678" />
+          </div>
+
+          <div className="form-group">
+            <label>Giới tính</label>
+            <select value={gioiTinh} onChange={(e) => setGioiTinh(e.target.value)}>
+              <option value="">Chọn giới tính</option>
+              {GIOI_TINH_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
           </div>
 
           <div className="form-group">

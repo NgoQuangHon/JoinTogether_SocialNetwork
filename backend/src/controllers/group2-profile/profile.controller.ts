@@ -38,9 +38,8 @@ export class ProfileController {
 
   public updateProfile = asyncHandler(async (req: Request, res: Response): Promise<void> => {
       const nguoiDungId = req.user!.nguoiDungId;
-      const { tieuSu, ngaySinh, khuVuc } = req.body;
+      const { hoTen, email, soDienThoai, tieuSu, ngaySinh, khuVuc, gioiTinh, mucTieuThamGia, thoiGianRanh } = req.body;
 
-      // Validate ngaySinh if provided
       if (ngaySinh && isNaN(Date.parse(ngaySinh))) {
         res.status(400).json({
           success: false,
@@ -52,11 +51,7 @@ export class ProfileController {
 
       const updatedProfile = await this.profileService.updateProfile(
         nguoiDungId,
-        {
-          tieuSu,
-          ngaySinh: ngaySinh || null,
-          khuVuc: khuVuc || null,
-        }
+        { hoTen, email, soDienThoai, tieuSu, ngaySinh: ngaySinh || null, khuVuc: khuVuc || null, gioiTinh: gioiTinh || null, mucTieuThamGia: mucTieuThamGia || null, thoiGianRanh: thoiGianRanh || null }
       );
 
       res.status(200).json({

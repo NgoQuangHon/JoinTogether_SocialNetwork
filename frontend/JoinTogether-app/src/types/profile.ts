@@ -12,10 +12,12 @@ export interface HoSoNguoiDung {
   tieuSu?: string | null;
   ngaySinh?: string | null;
   khuVuc?: string | null;
+  gioiTinh?: string | null;
   mucTieuThamGia?: string | null;
   thoiGianRanh?: string | null;
   anhDaiDien?: string | null;
   soThich: SoThich[];
+  user?: NguoiDungInfo;
 }
 
 export interface NguoiDungInfo {

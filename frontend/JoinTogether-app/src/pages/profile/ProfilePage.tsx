@@ -58,12 +58,18 @@ export default function ProfilePage() {
         );
     }
 
-    const hoTen = `Người dùng #${nguoiDungId}`;
+    const user = profile?.user;
+    const hoTen = user?.hoTen || `Người dùng #${nguoiDungId}`;
     const tenDangNhap = `user_${nguoiDungId}`;
+    const email = user?.email || 'Chưa cập nhật';
+    const soDienThoai = user?.soDienThoai || 'Chưa cập nhật';
     const tieuSu = profile?.tieuSu || 'Chưa có thông tin giới thiệu.';
     const khuVuc = profile?.khuVuc || 'Chưa cập nhật';
+    const gioiTinh = profile?.gioiTinh || '';
     const anhDaiDien = profile?.anhDaiDien || 'https://i.pravatar.cc/200';
     const soThich: SoThich[] = profile?.soThich || [];
+
+    const genderLabel = gioiTinh === 'nam' ? 'Nam' : gioiTinh === 'nu' ? 'Nữ' : gioiTinh === 'khac' ? 'Khác' : 'Chưa cập nhật';
 
     return (
         <div className="profile-page">
@@ -127,7 +133,7 @@ export default function ProfilePage() {
                         <p>@{tenDangNhap}</p>
                         <span className="verified">✓ Tài khoản xác thực</span>
                     </div>
-                    <Link to="/profile" className="edit-button" style={{ textDecoration: 'none' }}>
+                    <Link to="/edit-profile" className="edit-button" style={{ textDecoration: 'none' }}>
                         Chỉnh sửa thông tin
                     </Link>
                 </section>
@@ -153,6 +159,22 @@ export default function ProfilePage() {
                 <section className="profile-card">
                     <h2>Thông tin cá nhân</h2>
                     <div className="info-grid">
+                        <div>
+                            <label>Họ tên</label>
+                            <p>{hoTen}</p>
+                        </div>
+                        <div>
+                            <label>Email</label>
+                            <p>{email}</p>
+                        </div>
+                        <div>
+                            <label>Số điện thoại</label>
+                            <p>{soDienThoai}</p>
+                        </div>
+                        <div>
+                            <label>Giới tính</label>
+                            <p>{genderLabel}</p>
+                        </div>
                         <div>
                             <label>Khu vực</label>
                             <p>{khuVuc}</p>

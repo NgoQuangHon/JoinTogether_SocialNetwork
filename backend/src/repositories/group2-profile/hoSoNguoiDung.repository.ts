@@ -10,6 +10,7 @@ export class HoSoNguoiDungRepository {
         tieu_su as "tieuSu",
         ngay_sinh as "ngaySinh",
         khu_vuc as "khuVuc",
+        gioi_tinh as "gioiTinh",
         muc_tieu_tham_gia as "mucTieuThamGia",
         thoi_gian_ranh as "thoiGianRanh",
         anh_dai_dien as "anhDaiDien"
@@ -22,14 +23,15 @@ export class HoSoNguoiDungRepository {
 
   async create(data: Partial<HoSoNguoiDung>): Promise<HoSoNguoiDung> {
     const query = `
-      INSERT INTO ho_so_nguoi_dung (nguoi_dung_id, tieu_su, ngay_sinh, khu_vuc, muc_tieu_tham_gia, thoi_gian_ranh, anh_dai_dien)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      INSERT INTO ho_so_nguoi_dung (nguoi_dung_id, tieu_su, ngay_sinh, khu_vuc, gioi_tinh, muc_tieu_tham_gia, thoi_gian_ranh, anh_dai_dien)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING
         ho_so_id as "hoSoId",
         nguoi_dung_id as "nguoiDungId",
         tieu_su as "tieuSu",
         ngay_sinh as "ngaySinh",
         khu_vuc as "khuVuc",
+        gioi_tinh as "gioiTinh",
         muc_tieu_tham_gia as "mucTieuThamGia",
         thoi_gian_ranh as "thoiGianRanh",
         anh_dai_dien as "anhDaiDien"
@@ -39,6 +41,7 @@ export class HoSoNguoiDungRepository {
       data.tieuSu === undefined || data.tieuSu === null ? null : data.tieuSu,
       data.ngaySinh === undefined || data.ngaySinh === null ? null : data.ngaySinh,
       data.khuVuc === undefined || data.khuVuc === null ? null : data.khuVuc,
+      data.gioiTinh === undefined || data.gioiTinh === null ? null : data.gioiTinh,
       data.mucTieuThamGia === undefined || data.mucTieuThamGia === null ? null : data.mucTieuThamGia,
       data.thoiGianRanh === undefined || data.thoiGianRanh === null ? null : data.thoiGianRanh,
       data.anhDaiDien === undefined || data.anhDaiDien === null ? null : data.anhDaiDien,
@@ -63,6 +66,10 @@ export class HoSoNguoiDungRepository {
     if (data.khuVuc !== undefined) {
       setClauses.push(`khu_vuc = $${paramIndex++}`);
       values.push(data.khuVuc);
+    }
+    if (data.gioiTinh !== undefined) {
+      setClauses.push(`gioi_tinh = $${paramIndex++}`);
+      values.push(data.gioiTinh);
     }
     if (data.mucTieuThamGia !== undefined) {
       setClauses.push(`muc_tieu_tham_gia = $${paramIndex++}`);
@@ -92,6 +99,7 @@ export class HoSoNguoiDungRepository {
         tieu_su as "tieuSu",
         ngay_sinh as "ngaySinh",
         khu_vuc as "khuVuc",
+        gioi_tinh as "gioiTinh",
         muc_tieu_tham_gia as "mucTieuThamGia",
         thoi_gian_ranh as "thoiGianRanh",
         anh_dai_dien as "anhDaiDien"
@@ -111,6 +119,7 @@ export class HoSoNguoiDungRepository {
         tieu_su as "tieuSu",
         ngay_sinh as "ngaySinh",
         khu_vuc as "khuVuc",
+        gioi_tinh as "gioiTinh",
         muc_tieu_tham_gia as "mucTieuThamGia",
         thoi_gian_ranh as "thoiGianRanh",
         anh_dai_dien as "anhDaiDien"

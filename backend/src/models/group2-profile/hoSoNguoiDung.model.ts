@@ -6,6 +6,7 @@ export interface HoSoNguoiDung {
     tieuSu?: string | null;
     ngaySinh?: Date | string | null;
     khuVuc?: string | null;
+    gioiTinh?: string | null;
     mucTieuThamGia?: string | null;
     thoiGianRanh?: string | null;
     anhDaiDien?: string | null;
@@ -17,6 +18,7 @@ export class HoSoNguoiDungModel {
     private _tieuSu?: string | null;
     private _ngaySinh?: Date | string | null;
     private _khuVuc?: string | null;
+    private _gioiTinh?: string | null;
     private _mucTieuThamGia?: string | null;
     private _thoiGianRanh?: string | null;
     private _anhDaiDien?: string | null;
@@ -27,42 +29,21 @@ export class HoSoNguoiDungModel {
         this._tieuSu = data.tieuSu === undefined || data.tieuSu === null ? null : data.tieuSu;
         this._ngaySinh = data.ngaySinh === undefined || data.ngaySinh === null ? null : data.ngaySinh;
         this._khuVuc = data.khuVuc === undefined || data.khuVuc === null ? null : data.khuVuc;
+        this._gioiTinh = data.gioiTinh === undefined || data.gioiTinh === null ? null : data.gioiTinh;
         this._mucTieuThamGia = data.mucTieuThamGia === undefined || data.mucTieuThamGia === null ? null : data.mucTieuThamGia;
         this._thoiGianRanh = data.thoiGianRanh === undefined || data.thoiGianRanh === null ? null : data.thoiGianRanh;
         this._anhDaiDien = data.anhDaiDien === undefined || data.anhDaiDien === null ? null : data.anhDaiDien;
     }
 
-    get hoSoId(): number | null | undefined {
-        return this._hoSoId;
-    }
-
-    get nguoiDungId(): number {
-        return this._nguoiDungId;
-    }
-
-    get tieuSu(): string | null | undefined {
-        return this._tieuSu;
-    }
-
-    get ngaySinh(): Date | string | null | undefined {
-        return this._ngaySinh;
-    }
-
-    get khuVuc(): string | null | undefined {
-        return this._khuVuc;
-    }
-
-    get mucTieuThamGia(): string | null | undefined {
-        return this._mucTieuThamGia;
-    }
-
-    get thoiGianRanh(): string | null | undefined {
-        return this._thoiGianRanh;
-    }
-
-    get anhDaiDien(): string | null | undefined {
-        return this._anhDaiDien;
-    }
+    get hoSoId(): number | null | undefined { return this._hoSoId; }
+    get nguoiDungId(): number { return this._nguoiDungId; }
+    get tieuSu(): string | null | undefined { return this._tieuSu; }
+    get ngaySinh(): Date | string | null | undefined { return this._ngaySinh; }
+    get khuVuc(): string | null | undefined { return this._khuVuc; }
+    get gioiTinh(): string | null | undefined { return this._gioiTinh; }
+    get mucTieuThamGia(): string | null | undefined { return this._mucTieuThamGia; }
+    get thoiGianRanh(): string | null | undefined { return this._thoiGianRanh; }
+    get anhDaiDien(): string | null | undefined { return this._anhDaiDien; }
 
     updateTieuSu(newTieuSu: string | null | undefined): void {
         this._tieuSu = newTieuSu === undefined || newTieuSu === null ? null : newTieuSu;
@@ -74,6 +55,10 @@ export class HoSoNguoiDungModel {
 
     updateKhuVuc(newKhuVuc: string | null | undefined): void {
         this._khuVuc = newKhuVuc === undefined || newKhuVuc === null ? null : newKhuVuc;
+    }
+
+    updateGioiTinh(newGioiTinh: string | null | undefined): void {
+        this._gioiTinh = newGioiTinh === undefined || newGioiTinh === null ? null : newGioiTinh;
     }
 
     updateMucTieuThamGia(newMucTieuThamGia: string | null | undefined): void {
@@ -98,6 +83,7 @@ export class HoSoNguoiDungModel {
             tieuSu: data.tieuSu === undefined || data.tieuSu === null ? null : data.tieuSu,
             ngaySinh: data.ngaySinh === undefined || data.ngaySinh === null ? null : data.ngaySinh,
             khuVuc: data.khuVuc === undefined || data.khuVuc === null ? null : data.khuVuc,
+            gioiTinh: data.gioiTinh === undefined || data.gioiTinh === null ? null : data.gioiTinh,
             mucTieuThamGia: data.mucTieuThamGia === undefined || data.mucTieuThamGia === null ? null : data.mucTieuThamGia,
             thoiGianRanh: data.thoiGianRanh === undefined || data.thoiGianRanh === null ? null : data.thoiGianRanh,
             anhDaiDien: data.anhDaiDien === undefined || data.anhDaiDien === null ? null : data.anhDaiDien,

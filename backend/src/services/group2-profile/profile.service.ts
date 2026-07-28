@@ -1,10 +1,12 @@
 import { HoSoNguoiDungRepository } from "../../repositories/group2-profile/hoSoNguoiDung.repository";
+import { NguoiDungRepository } from "../../repositories/group1-user/nguoiDung.repository";
 import { SoThichRepository } from "../../repositories/group2-profile/soThich.repository";
 import { HoSoSoThichRepository } from "../../repositories/group2-profile/hoSoSoThich.repository";
 import { BadRequestError, ConflictError, NotFoundError } from "../../utils/AppError";
 
 export class ProfileService {
   private hoSoNguoiDungRepo = new HoSoNguoiDungRepository();
+  private nguoiDungRepo = new NguoiDungRepository();
   private soThichRepo = new SoThichRepository();
   private hoSoSoThichRepo = new HoSoSoThichRepository();
 
@@ -23,9 +25,14 @@ export class ProfileService {
       profile.hoSoId!,
     );
 
+    const user = await this.nguoiDungRepo.findById(nguoiDungId);
+
     const result: any = {};
     Object.assign(result, profile);
     result.soThich = interests;
+    result.user = user
+      ? { hoTen: user.hoTen, email: user.email, soDienThoai: user.soDienThoai }
+      : null;
     return result;
   }
 
@@ -40,6 +47,7 @@ export class ProfileService {
       tieuSu: data.tieuSu,
       ngaySinh: data.ngaySinh,
       khuVuc: data.khuVuc,
+      gioiTinh: data.gioiTinh,
       mucTieuThamGia: data.mucTieuThamGia,
       thoiGianRanh: data.thoiGianRanh,
       anhDaiDien: data.anhDaiDien,
@@ -47,6 +55,14 @@ export class ProfileService {
 
     if (!updatedProfile) {
       throw new BadRequestError("Không tìm thấy hồ sơ người dùng.");
+    }
+
+    if (data.hoTen !== undefined || data.email !== undefined || data.soDienThoai !== undefined) {
+      await this.nguoiDungRepo.update(nguoiDungId, {
+        hoTen: data.hoTen,
+        email: data.email,
+        soDienThoai: data.soDienThoai,
+      });
     }
 
     return updatedProfile;
