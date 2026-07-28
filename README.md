@@ -52,11 +52,19 @@ Frontend chạy tại `http://localhost:5173`.
 
 ## 6. Migration (khi có cập nhật database)
 
-Mỗi lần có file SQL mới trong `backend/src/config/migration_*.sql`, chạy:
+Khi pull code mới có file `backend/src/config/migration_*.sql`, chạy lần lượt:
 
 ```bash
 Get-Content backend/src/config/migration_ten_file.sql | docker exec -i community_postgres psql -U postgres -d community_db
 ```
+
+**Nếu chạy lần đầu mà báo lỗi "column does not exist"**, chạy hết các file migration trong thư mục `backend/src/config/migration_*.sql`:
+
+```bash
+docker compose down -v      # Xóa volume database
+docker compose up -d        # Tạo lại từ file.sql mới nhất
+```
+> ⚠️ `docker compose down -v` sẽ xóa toàn bộ dữ liệu cũ.
 
 ## Testing
 

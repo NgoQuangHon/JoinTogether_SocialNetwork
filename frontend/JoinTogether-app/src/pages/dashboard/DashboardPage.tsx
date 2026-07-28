@@ -7,9 +7,9 @@ import ActivityDetailModal from './ActivityDetailModal';
 import NavItems from '../../components/NavItems';
 import { getMyActivitiesApi, getAllActivitiesApi, getFeaturedActivitiesApi } from '../../services/activity.service';
 import { getSuggestionsApi, followUserApi, unfollowUserApi } from '../../services/connection.service';
-import { getPostsApi } from '../../services/post.service';
+import { getPostsApi, likePostApi, unlikePostApi, getCommentsApi, addCommentApi, sharePostApi } from '../../services/post.service';
 import type { HoatDongResponse } from '../../types/activity';
-import type { BaiVietResponse } from '../../services/post.service';
+import type { BaiVietResponse, BinhLuanResponse } from '../../services/post.service';
 import { danhMucList, type DanhMuc } from './feedMockData';
 
 function Avatar({ mau, chu, kichThuoc = 44 }: { mau: string; chu: string; kichThuoc?: number }) {
@@ -119,10 +119,10 @@ function CompanionCard({ ng }: { ng: any }) {
   );
 }
 
-function FeaturedCard({ hd }: { hd: HoatDongResponse }) {
+function FeaturedCard({ hd, onClick }: { hd: HoatDongResponse; onClick: () => void }) {
   const thumb = hd.hinhAnh?.find((h) => h.laAnhDaiDien)?.duongDan;
   return (
-    <div className="featured-card">
+    <div className="featured-card" style={{ cursor: 'pointer' }} onClick={onClick}>
       <div className="featured-thumb" style={{ background: thumb ? `url(${thumb}) center/cover` : '#e8f5e9' }}>
         <span className="featured-badge">{hd.tenDanhMuc?.[0] || 'Nổi bật'}</span>
         <span className="featured-badge featured-badge-light">{hd.soLuongThanhVien || 0} tham gia</span>
@@ -145,10 +145,15 @@ export default function DashboardPage() {
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [posts, setPosts] = useState<BaiVietResponse[]>([]);
   const [selectedActivity, setSelectedActivity] = useState<HoatDongResponse | null>(null);
+  const [selectedFeatured, setSelectedFeatured] = useState<HoatDongResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [postInput, setPostInput] = useState('');
   const [postImage, setPostImage] = useState('');
   const [posting, setPosting] = useState(false);
+  const [likedPosts, setLikedPosts] = useState<Set<number>>(new Set());
+  const [commentInputs, setCommentInputs] = useState<Record<number, string>>({});
+  const [commentsVisible, setCommentsVisible] = useState<Record<number, boolean>>({});
+  const [commentData, setCommentData] = useState<Record<number, BinhLuanResponse[]>>({});
 
   useEffect(() => {
     Promise.all([
@@ -163,7 +168,10 @@ export default function DashboardPage() {
         if (actRes.success && actRes.data) setRecentActivities(actRes.data);
         if (featRes.success && featRes.data) setFeaturedActivities(featRes.data);
         if (sugRes.success && sugRes.data) setSuggestions(sugRes.data);
-        if (postRes.success && postRes.data) setPosts(postRes.data);
+        if (postRes.success && postRes.data) {
+          setPosts(postRes.data);
+          setLikedPosts(new Set(postRes.data.filter((p) => p.daThich).map((p) => p.baiVietId)));
+        }
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -172,6 +180,45 @@ export default function DashboardPage() {
   const handleLogout = () => {
     logout();
     navigate('/login', { replace: true });
+  };
+
+  const handleLike = async (postId: number) => {
+    const wasLiked = likedPosts.has(postId);
+    setLikedPosts((prev) => { const next = new Set(prev); wasLiked ? next.delete(postId) : next.add(postId); return next; });
+    setPosts((prev) => prev.map((p) => p.baiVietId === postId ? { ...p, soLuotThich: p.soLuotThich + (wasLiked ? -1 : 1) } : p));
+    try {
+      if (wasLiked) await unlikePostApi(postId);
+      else await likePostApi(postId);
+    } catch { setLikedPosts((prev) => { const next = new Set(prev); wasLiked ? next.add(postId) : next.delete(postId); return next; }); }
+  };
+
+  const handleShare = async (postId: number) => {
+    setPosts((prev) => prev.map((p) => p.baiVietId === postId ? { ...p, soLuotChiaSe: p.soLuotChiaSe + 1 } : p));
+    try { await sharePostApi(postId); } catch {}
+  };
+
+  const toggleComments = async (postId: number) => {
+    const open = !commentsVisible[postId];
+    setCommentsVisible((prev) => ({ ...prev, [postId]: open }));
+    if (open && !commentData[postId]) {
+      try {
+        const res = await getCommentsApi(postId);
+        if (res.success && res.data) setCommentData((prev) => ({ ...prev, [postId]: res.data! }));
+      } catch {}
+    }
+  };
+
+  const handleCommentSubmit = async (postId: number) => {
+    const text = commentInputs[postId]?.trim();
+    if (!text) return;
+    setCommentInputs((prev) => ({ ...prev, [postId]: '' }));
+    try {
+      const res = await addCommentApi(postId, text);
+      if (res.success && res.data) {
+        setCommentData((prev) => ({ ...prev, [postId]: [...(prev[postId] || []), res.data!] }));
+        setPosts((prev) => prev.map((p) => p.baiVietId === postId ? { ...p, soBinhLuan: p.soBinhLuan + 1 } : p));
+      }
+    } catch {}
   };
 
   const compressImage = (file: File, maxW = 1920, quality = 0.7): Promise<string> =>
@@ -257,22 +304,15 @@ export default function DashboardPage() {
             <AIBanner />
 
             <div className="post-create-box">
-              <textarea
-                className="post-create-input"
-                placeholder="Bạn đang nghĩ gì?"
-                value={postInput}
-                onChange={(e) => setPostInput(e.target.value)}
-                rows={3}
-              />
-              {postImage && (
-                <div className="post-create-preview">
-                  <img src={postImage} alt="preview" />
-                  <button className="post-create-remove-img" onClick={() => setPostImage('')}>✕</button>
-                </div>
-              )}
-              <div className="post-create-toolbar">
+              <div className="post-create-row">
+                <input
+                  className="post-create-input"
+                  placeholder="Bạn đang nghĩ gì?"
+                  value={postInput}
+                  onChange={(e) => setPostInput(e.target.value)}
+                />
                 <label className="post-create-image-btn">
-                  📷 Ảnh
+                  📷
                   <input type="file" accept="image/*" hidden onChange={handlePostImageChange} />
                 </label>
                 <button
@@ -280,9 +320,15 @@ export default function DashboardPage() {
                   disabled={(!postInput.trim() && !postImage) || posting}
                   onClick={handlePostSubmit}
                 >
-                  {posting ? 'Đang đăng...' : 'Đăng bài'}
+                  {posting ? '...' : 'Đăng'}
                 </button>
               </div>
+              {postImage && (
+                <div className="post-create-preview">
+                  <img src={postImage} alt="preview" />
+                  <button className="post-create-remove-img" onClick={() => setPostImage('')}>✕</button>
+                </div>
+              )}
             </div>
 
             <button className="create-activity-btn" onClick={() => setShowCreateModal(true)}>
@@ -351,7 +397,7 @@ export default function DashboardPage() {
               </div>
               <div className="hscroll">
                 {featuredActivities.map((hd) => (
-                  <FeaturedCard key={hd.hoatDongId} hd={hd} />
+                  <FeaturedCard key={hd.hoatDongId} hd={hd} onClick={() => setSelectedFeatured(hd)} />
                 ))}
               </div>
             </section>
@@ -417,22 +463,15 @@ export default function DashboardPage() {
           <AIBanner />
 
           <div className="post-create-box">
-            <textarea
-              className="post-create-input"
-              placeholder="Bạn đang nghĩ gì?"
-              value={postInput}
-              onChange={(e) => setPostInput(e.target.value)}
-              rows={3}
-            />
-            {postImage && (
-              <div className="post-create-preview">
-                <img src={postImage} alt="preview" />
-                <button className="post-create-remove-img" onClick={() => setPostImage('')}>✕</button>
-              </div>
-            )}
-            <div className="post-create-toolbar">
+            <div className="post-create-row">
+              <input
+                className="post-create-input"
+                placeholder="Bạn đang nghĩ gì?"
+                value={postInput}
+                onChange={(e) => setPostInput(e.target.value)}
+              />
               <label className="post-create-image-btn">
-                📷 Ảnh
+                📷
                 <input type="file" accept="image/*" hidden onChange={handlePostImageChange} />
               </label>
               <button
@@ -440,9 +479,15 @@ export default function DashboardPage() {
                 disabled={(!postInput.trim() && !postImage) || posting}
                 onClick={handlePostSubmit}
               >
-                {posting ? 'Đang đăng...' : 'Đăng bài'}
+                {posting ? '...' : 'Đăng'}
               </button>
             </div>
+            {postImage && (
+              <div className="post-create-preview">
+                <img src={postImage} alt="preview" />
+                <button className="post-create-remove-img" onClick={() => setPostImage('')}>✕</button>
+              </div>
+            )}
           </div>
 
           <button className="create-activity-btn" onClick={() => setShowCreateModal(true)}>
@@ -511,7 +556,7 @@ export default function DashboardPage() {
             </div>
             <div className="grid-featured">
               {featuredActivities.map((hd) => (
-                <FeaturedCard key={hd.hoatDongId} hd={hd} />
+                <FeaturedCard key={hd.hoatDongId} hd={hd} onClick={() => setSelectedFeatured(hd)} />
               ))}
             </div>
           </section>
@@ -520,7 +565,11 @@ export default function DashboardPage() {
             <div className="section-heading">
               <h3>Bài viết gần đây</h3>
             </div>
-            {posts.map((bv) => (
+            {posts.map((bv) => {
+              const liked = likedPosts.has(bv.baiVietId);
+              const showComments = commentsVisible[bv.baiVietId];
+              const comments = commentData[bv.baiVietId] || [];
+              return (
               <article key={bv.baiVietId} className="post-card">
                 <div className="post-header">
                   <Avatar mau="#7c4dff" chu={(bv.nguoiDung || '?').charAt(0).toUpperCase()} />
@@ -541,12 +590,32 @@ export default function DashboardPage() {
                   <span>{bv.soBinhLuan || 0} bình luận · {bv.soLuotChiaSe || 0} chia sẻ</span>
                 </div>
                 <div className="post-actions">
-                  <button className="post-action-btn">👍 Thích</button>
-                  <button className="post-action-btn">💬 Bình luận</button>
-                  <button className="post-action-btn">↗️ Chia sẻ</button>
+                  <button className={`post-action-btn ${liked ? 'post-action-active' : ''}`} onClick={() => handleLike(bv.baiVietId)}>👍 Thích</button>
+                  <button className="post-action-btn" onClick={() => toggleComments(bv.baiVietId)}>💬 Bình luận</button>
+                  <button className="post-action-btn" onClick={() => handleShare(bv.baiVietId)}>↗️ Chia sẻ</button>
                 </div>
+                {showComments && (
+                  <div className="post-comments">
+                    {comments.map((c) => (
+                      <div key={c.binhLuanId} className="post-comment">
+                        <strong>{c.nguoiDung || 'Người dùng'}:</strong> {c.noiDung}
+                      </div>
+                    ))}
+                    <div className="post-comment-input">
+                      <input
+                        type="text"
+                        placeholder="Viết bình luận..."
+                        value={commentInputs[bv.baiVietId] || ''}
+                        onChange={(e) => setCommentInputs((prev) => ({ ...prev, [bv.baiVietId]: e.target.value }))}
+                        onKeyDown={(e) => { if (e.key === 'Enter') handleCommentSubmit(bv.baiVietId); }}
+                      />
+                      <button onClick={() => handleCommentSubmit(bv.baiVietId)}>Gửi</button>
+                    </div>
+                  </div>
+                )}
               </article>
-            ))}
+            );
+            })}
           </section>
         </div>
       </main>
@@ -576,6 +645,14 @@ export default function DashboardPage() {
           onClose={() => setSelectedActivity(null)}
           onCancel={handleActivityDeleted}
           onEdited={handleActivityEdited}
+        />
+      )}
+      {selectedFeatured && (
+        <ActivityDetailModal
+          activity={selectedFeatured}
+          onClose={() => setSelectedFeatured(null)}
+          onCancel={() => {}}
+          onEdited={() => {}}
         />
       )}
     </>

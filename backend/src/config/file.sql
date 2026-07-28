@@ -142,7 +142,8 @@ CREATE TABLE hoat_dong (
     noi_quy_chung TEXT,
     luu_y_dac_biet TEXT,
     do_dung_can_mang TEXT,
-    trang_thai VARCHAR(50) DEFAULT 'sap_dien_ra'
+    trang_thai VARCHAR(50) DEFAULT 'sap_dien_ra',
+    ly_do_huy TEXT
 );
 
 CREATE TABLE tieu_chi_tham_gia (
@@ -388,3 +389,34 @@ CREATE INDEX IF NOT EXISTS idx_yeu_cau_ket_noi ON yeu_cau_ket_noi(nguoi_gui_id, 
 CREATE INDEX IF NOT EXISTS idx_quan_he_ket_noi ON quan_he_ket_noi(nguoi_dung_id_1, nguoi_dung_id_2);
 CREATE INDEX IF NOT EXISTS idx_danh_gia ON danh_gia(hoat_dong_id, nguoi_duoc_danh_gia_id);
 CREATE INDEX IF NOT EXISTS idx_bao_cao_vi_pham ON bao_cao_vi_pham(nguoi_bi_bao_cao_id);
+
+-- Bảng tương tác bài viết
+CREATE TABLE IF NOT EXISTS thich_bai_viet (
+    nguoi_dung_id BIGINT NOT NULL REFERENCES nguoi_dung(nguoi_dung_id) ON DELETE CASCADE,
+    bai_viet_id BIGINT NOT NULL REFERENCES bai_viet(bai_viet_id) ON DELETE CASCADE,
+    thoi_gian_tao TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (nguoi_dung_id, bai_viet_id)
+);
+
+CREATE TABLE IF NOT EXISTS binh_luan_bai_viet (
+    binh_luan_id BIGSERIAL PRIMARY KEY,
+    bai_viet_id BIGINT NOT NULL REFERENCES bai_viet(bai_viet_id) ON DELETE CASCADE,
+    nguoi_dung_id BIGINT NOT NULL REFERENCES nguoi_dung(nguoi_dung_id) ON DELETE CASCADE,
+    noi_dung TEXT NOT NULL,
+    thoi_gian_tao TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS chia_se_bai_viet (
+    chia_se_id BIGSERIAL PRIMARY KEY,
+    bai_viet_id BIGINT NOT NULL REFERENCES bai_viet(bai_viet_id) ON DELETE CASCADE,
+    nguoi_dung_id BIGINT NOT NULL REFERENCES nguoi_dung(nguoi_dung_id) ON DELETE CASCADE,
+    thoi_gian_tao TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Bảng theo dõi
+CREATE TABLE IF NOT EXISTS theo_doi (
+    nguoi_theo_doi_id BIGINT NOT NULL REFERENCES nguoi_dung(nguoi_dung_id) ON DELETE CASCADE,
+    nguoi_duoc_theo_doi_id BIGINT NOT NULL REFERENCES nguoi_dung(nguoi_dung_id) ON DELETE CASCADE,
+    thoi_gian_tao TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (nguoi_theo_doi_id, nguoi_duoc_theo_doi_id)
+);
