@@ -28,6 +28,10 @@ services:
     command: npm run dev
     ports:
       - "5000:5000"
+    volumes:
+      - ./src:/app/src
+      - ./package.json:/app/package.json
+      - ./package-lock.json:/app/package-lock.json
     environment:
       - PORT=${PORT}
       - DB_HOST=postgres

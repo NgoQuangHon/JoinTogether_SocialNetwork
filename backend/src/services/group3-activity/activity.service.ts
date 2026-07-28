@@ -3,6 +3,9 @@ import { DanhMucHoatDongRepository } from "../../repositories/group3-activity/da
 import { DiaDiemRepository } from "../../repositories/group3-activity/diaDiem.repository";
 import { HinhAnhHoatDongRepository } from "../../repositories/group3-activity/hinhAnhHoatDong.repository";
 import { HoatDongModel } from "../../models/group3-activity/hoatDong.model";
+import { DanhMucHoatDongModel } from "../../models/group3-activity/danhMucHoatDong.model";
+import { DiaDiemModel } from "../../models/group3-activity/diaDiem.model";
+import { HinhAnhHoatDongModel } from "../../models/group3-activity/hinhAnhHoatDong.model";
 import { NotFoundError } from "../../utils/AppError";
 
 export class ActivityService {
@@ -14,23 +17,12 @@ export class ActivityService {
   // ==================== ACTIVITIES ====================
 
   async createActivity(nguoiToChucId: number, data: any): Promise<any> {
-    const hoatDongModel = new HoatDongModel({
-      ...data,
-      nguoiToChucId,
-    });
-
-    const thoiGianBatDau = hoatDongModel.thoiGianBatDau
-      ? new Date(hoatDongModel.thoiGianBatDau)
-      : null;
-    const thoiGianKetThuc = hoatDongModel.thoiGianKetThuc
-      ? new Date(hoatDongModel.thoiGianKetThuc)
-      : null;
+    const payload = HoatDongModel.createHoatDongPayload({ ...data, nguoiToChucId });
 
     return await this.hoatDongRepo.create({
-      ...data,
-      nguoiToChucId,
-      thoiGianBatDau,
-      thoiGianKetThuc,
+      ...payload,
+      thoiGianBatDau: payload.thoiGianBatDau ? new Date(payload.thoiGianBatDau) : null,
+      thoiGianKetThuc: payload.thoiGianKetThuc ? new Date(payload.thoiGianKetThuc) : null,
     });
   }
 
@@ -54,10 +46,14 @@ export class ActivityService {
       throw new NotFoundError("Hoạt động không tồn tại.");
     }
 
+    const { tenHoatDong, moTa, danhMucHoatDongId, diaDiemId, thoiGianBatDau, thoiGianKetThuc } = data;
     const updated = await this.hoatDongRepo.update(id, {
-      ...data,
-      thoiGianBatDau: data.thoiGianBatDau ? new Date(data.thoiGianBatDau) : existing.thoiGianBatDau,
-      thoiGianKetThuc: data.thoiGianKetThuc ? new Date(data.thoiGianKetThuc) : existing.thoiGianKetThuc,
+      tenHoatDong,
+      moTa,
+      danhMucHoatDongId,
+      diaDiemId,
+      thoiGianBatDau: thoiGianBatDau ? new Date(thoiGianBatDau) : existing.thoiGianBatDau,
+      thoiGianKetThuc: thoiGianKetThuc ? new Date(thoiGianKetThuc) : existing.thoiGianKetThuc,
     });
 
     return updated;
@@ -78,7 +74,8 @@ export class ActivityService {
   }
 
   async createCategory(data: any): Promise<any> {
-    return await this.danhMucRepo.create(data);
+    const payload = DanhMucHoatDongModel.createDanhMucHoatDongPayload(data);
+    return await this.danhMucRepo.create(payload);
   }
 
   async updateCategory(id: number, data: any): Promise<any> {
@@ -104,7 +101,8 @@ export class ActivityService {
   }
 
   async createLocation(data: any): Promise<any> {
-    return await this.diaDiemRepo.create(data);
+    const payload = DiaDiemModel.createDiaDiemPayload(data);
+    return await this.diaDiemRepo.create(payload);
   }
 
   async updateLocation(id: number, data: any): Promise<any> {
@@ -130,7 +128,8 @@ export class ActivityService {
     if (!activity) {
       throw new NotFoundError("Hoạt động không tồn tại.");
     }
-    return await this.hinhAnhRepo.create({ ...data, hoatDongId });
+    const payload = HinhAnhHoatDongModel.createHinhAnhHoatDongPayload({ ...data, hoatDongId });
+    return await this.hinhAnhRepo.create(payload);
   }
 
   async deleteImage(id: number): Promise<void> {

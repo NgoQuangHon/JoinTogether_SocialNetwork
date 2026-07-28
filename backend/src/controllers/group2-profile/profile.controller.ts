@@ -56,7 +56,6 @@ export class ProfileController {
           tieuSu,
           ngaySinh: ngaySinh || null,
           khuVuc: khuVuc || null,
-          ...req.body,
         }
       );
 
