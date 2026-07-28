@@ -66,7 +66,7 @@ CREATE TABLE ho_so_nguoi_dung (
     gioi_tinh         VARCHAR(20),
     muc_tieu_tham_gia TEXT,
     thoi_gian_ranh    VARCHAR(255),
-    anh_dai_dien      VARCHAR(500)
+    anh_dai_dien      TEXT
 );
 
 CREATE TABLE danh_muc_so_thich (

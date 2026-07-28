@@ -27,9 +27,7 @@ export const updateProfile = async (data: {
     return response.data;
 };
 
-export const updateAvatar = async (formData: FormData): Promise<ApiResponse> => {
-    const response = await api.put<ApiResponse>('/profile/avatar', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-    });
+export const updateAvatar = async (anhDaiDien: string): Promise<ApiResponse> => {
+    const response = await api.put<ApiResponse>('/profile/avatar', { anhDaiDien });
     return response.data;
 };

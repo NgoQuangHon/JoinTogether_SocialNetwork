@@ -110,32 +110,20 @@ export class ConnectionService {
           CASE WHEN hs.muc_tieu_tham_gia IS NOT NULL AND hs.muc_tieu_tham_gia != '' THEN 1 ELSE 0 END +
           CASE WHEN hs.thoi_gian_ranh IS NOT NULL AND hs.thoi_gian_ranh != '' THEN 1 ELSE 0 END +
           CASE WHEN hs.anh_dai_dien IS NOT NULL AND hs.anh_dai_dien != '' THEN 1 ELSE 0 END
-        ) AS "soTruongHoanThanh",
-        (
-          SELECT COUNT(*) FROM ho_so_so_thich hss2 WHERE hss2.ho_so_id = hs.ho_so_id
-        ) AS "soSoThich"
+        ) AS "soTruongHoanThanh"
       FROM nguoi_dung nd
       JOIN ho_so_nguoi_dung hs ON nd.nguoi_dung_id = hs.nguoi_dung_id
       WHERE nd.nguoi_dung_id != $1
-        AND (
-          CASE WHEN hs.tieu_su IS NOT NULL AND hs.tieu_su != '' THEN 1 ELSE 0 END +
-          CASE WHEN hs.ngay_sinh IS NOT NULL THEN 1 ELSE 0 END +
-          CASE WHEN hs.khu_vuc IS NOT NULL AND hs.khu_vuc != '' THEN 1 ELSE 0 END +
-          CASE WHEN hs.gioi_tinh IS NOT NULL AND hs.gioi_tinh != '' THEN 1 ELSE 0 END +
-          CASE WHEN hs.muc_tieu_tham_gia IS NOT NULL AND hs.muc_tieu_tham_gia != '' THEN 1 ELSE 0 END +
-          CASE WHEN hs.thoi_gian_ranh IS NOT NULL AND hs.thoi_gian_ranh != '' THEN 1 ELSE 0 END +
-          CASE WHEN hs.anh_dai_dien IS NOT NULL AND hs.anh_dai_dien != '' THEN 1 ELSE 0 END
-        ) = 7
         AND NOT EXISTS (
           SELECT 1 FROM theo_doi WHERE nguoi_theo_doi_id = $1 AND nguoi_duoc_theo_doi_id = nd.nguoi_dung_id
         )
-      ORDER BY RANDOM()
+      ORDER BY "soTruongHoanThanh" DESC, RANDOM()
       LIMIT 5
     `;
     const result = await pool.query(query, [nguoiDungId]);
     const rows = result.rows.map((r: any) => ({
       ...r,
-      hoanThanhPhanTram: 100,
+      hoanThanhPhanTram: Math.round((r.soTruongHoanThanh / 7) * 100),
     }));
     return rows;
   }

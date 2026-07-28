@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { getMyProfile, updateProfile } from '../../services/profile.service';
+import { getMyProfile, updateProfile, updateAvatar } from '../../services/profile.service';
 import './EditProfile.css';
 
 const GIOI_TINH_OPTIONS = [
@@ -28,6 +28,35 @@ export default function EditProfilePage() {
   const [gioiTinh, setGioiTinh] = useState('');
   const [mucTieuThamGia, setMucTieuThamGia] = useState('');
   const [thoiGianRanh, setThoiGianRanh] = useState('');
+  const [avatar, setAvatar] = useState('');
+
+  const compressImage = (file: File, maxW = 1920, quality = 0.7): Promise<string> =>
+    new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let { width, height } = img;
+          if (width > maxW) { height *= maxW / width; width = maxW; }
+          canvas.width = width; canvas.height = height;
+          const ctx = canvas.getContext('2d')!;
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.src = reader.result as string;
+      };
+      reader.readAsDataURL(file);
+    });
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const base64 = await compressImage(file, 512, 0.8);
+      setAvatar(base64);
+      await updateAvatar(base64);
+    }
+  };
 
   useEffect(() => {
     getMyProfile()
@@ -45,6 +74,7 @@ export default function EditProfilePage() {
           setGioiTinh(p.gioiTinh || '');
           setMucTieuThamGia(p.mucTieuThamGia || '');
           setThoiGianRanh(p.thoiGianRanh || '');
+          if (p.anhDaiDien) setAvatar(p.anhDaiDien);
         }
       })
       .catch(() => setError('Không thể tải thông tin hồ sơ.'))
@@ -52,8 +82,8 @@ export default function EditProfilePage() {
   }, []);
 
   const requiredFields = [hoTen, tieuSu, khuVuc, ngaySinh];
-  const allFields = [hoTen, email, soDienThoai, tieuSu, khuVuc, ngaySinh, gioiTinh, mucTieuThamGia, thoiGianRanh];
-  const filledCount = allFields.filter((v) => v.trim().length > 0).length;
+  const allFields = [hoTen, email, soDienThoai, tieuSu, khuVuc, ngaySinh, gioiTinh, mucTieuThamGia, thoiGianRanh, avatar];
+  const filledCount = allFields.filter((v) => typeof v === 'string' && v.trim().length > 0).length;
   const progressPct = Math.round((filledCount / allFields.length) * 100);
   const canSave = requiredFields.every((v) => v.trim().length > 0);
 
@@ -97,7 +127,7 @@ export default function EditProfilePage() {
         <div className="edit-logo">🌿 JoinTogether</div>
         <div className="header-user">
           <span>🔔</span>
-          <img src={`https://i.pravatar.cc/100?u=${nguoiDungId}`} alt="avatar" />
+          <img src={avatar || `https://i.pravatar.cc/100?u=${nguoiDungId}`} alt="avatar" />
         </div>
       </header>
 
@@ -108,8 +138,11 @@ export default function EditProfilePage() {
 
         <section className="edit-card">
           <div className="avatar-edit">
-            <img src={`https://i.pravatar.cc/200?u=${nguoiDungId}`} alt="avatar" />
-            <button className="avatar-button" type="button">✏️</button>
+            <img src={avatar || `https://i.pravatar.cc/200?u=${nguoiDungId}`} alt="avatar" />
+            <label className="avatar-button" style={{ cursor: 'pointer' }}>
+              ✏️
+              <input type="file" accept="image/*" hidden onChange={handleAvatarChange} />
+            </label>
           </div>
 
           <div className="profile-progress-wrap">
