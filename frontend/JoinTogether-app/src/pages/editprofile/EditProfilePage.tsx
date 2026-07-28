@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { getMyProfile, updateProfile } from '../../services/profile.service';
 import './EditProfile.css';
 
 export default function EditProfilePage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const onboarding = searchParams.get('onboarding') === 'true';
   const { nguoiDungId } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -38,7 +40,7 @@ export default function EditProfilePage() {
     setError('');
     try {
       await updateProfile({ tieuSu, ngaySinh, khuVuc, mucTieuThamGia, thoiGianRanh });
-      navigate('/my-profile', { replace: true });
+      navigate(onboarding ? '/interests?onboarding=true' : '/my-profile', { replace: true });
     } catch (err: unknown) {
       const msg =
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||

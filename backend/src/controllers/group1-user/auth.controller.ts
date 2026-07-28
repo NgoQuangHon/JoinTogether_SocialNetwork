@@ -24,10 +24,11 @@ export class AuthController {
 
   public verifyEmail = asyncHandler(async (req: Request, res: Response): Promise<void> => {
     const { taiKhoanId, maXacThuc } = req.body;
-    await this.authService.verifyEmail(taiKhoanId, maXacThuc);
+    const result = await this.authService.verifyEmail(taiKhoanId, maXacThuc);
     res.status(200).json({
       success: true,
-      message: "Tài khoản đã được kích hoạt thành công.",
+      message: result.message,
+      data: { token: result.token, nguoiDungId: result.nguoiDungId, roles: result.roles, role: result.role },
     });
   });
 }

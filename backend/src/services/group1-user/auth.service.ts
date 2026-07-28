@@ -113,7 +113,7 @@ export class AuthService {
     }
   }
 
-  async verifyEmail(taiKhoanId: number, maXacThuc: string): Promise<void> {
+  async verifyEmail(taiKhoanId: number, maXacThuc: string): Promise<any> {
     const xacThucQuery = `
       SELECT xac_thuc_id as "xacThucId", ma_xac_thuc as "maXacThuc", thoi_gian_het_han as "thoiGianHetHan", da_su_dung as "daSuDung"
       FROM thong_tin_xac_thuc
@@ -160,6 +160,36 @@ export class AuthService {
       );
 
       await client.query("COMMIT");
+
+      const taiKhoanQuery = `
+        SELECT tai_khoan_id as "taiKhoanId", nguoi_dung_id as "nguoiDungId"
+        FROM tai_khoan WHERE tai_khoan_id = $1
+      `;
+      const tkResult = await pool.query(taiKhoanQuery, [taiKhoanId]);
+      const tk = tkResult.rows[0];
+
+      const roles = await this.vaiTroRepo.findRolesByTaiKhoanId(taiKhoanId);
+      const userRoles = roles.length > 0 ? roles : ["USER"];
+      const primaryRole = userRoles[0];
+
+      const token = jwt.sign(
+        {
+          taiKhoanId: tk.taiKhoanId,
+          nguoiDungId: tk.nguoiDungId,
+          roles: userRoles,
+          role: primaryRole,
+        },
+        JWT_SECRET,
+        { expiresIn: JWT_EXPIRES_IN } as jwt.SignOptions,
+      );
+
+      return {
+        message: "Tài khoản đã được kích hoạt thành công.",
+        token,
+        nguoiDungId: tk.nguoiDungId,
+        roles: userRoles,
+        role: primaryRole,
+      };
     } catch (error) {
       await client.query("ROLLBACK");
       throw error;

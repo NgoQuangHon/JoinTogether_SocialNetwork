@@ -1,5 +1,6 @@
 import { useState, useRef, type KeyboardEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import { verifyEmailApi } from '../../services/auth.service';
 import './VerifyEmail.css';
 
@@ -7,6 +8,7 @@ export default function VerifyEmailPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const taiKhoanId = Number(searchParams.get('taiKhoanId'));
+  const { setAuthState } = useAuth();
 
   const [digits, setDigits] = useState<string[]>(Array(6).fill(''));
   const [error, setError] = useState('');
@@ -55,7 +57,7 @@ export default function VerifyEmailPage() {
             </div>
           </div>
         </div>
-        <button className="primary-btn" onClick={() => navigate('/profile')}>
+        <button className="primary-btn" onClick={() => navigate('/profile?onboarding=true')}>
           Tiếp tục — Bước 2: Hồ sơ
         </button>
       </div>
@@ -94,7 +96,13 @@ export default function VerifyEmailPage() {
     setLoading(true);
     setError('');
     try {
-      await verifyEmailApi(taiKhoanId, maXacThuc);
+      const res = await verifyEmailApi(taiKhoanId, maXacThuc);
+      if (res.success && res.data) {
+        const { token, nguoiDungId, roles, role } = res.data;
+        localStorage.setItem('token', token);
+        localStorage.setItem('auth_state', JSON.stringify({ token, nguoiDungId, roles, role, isAuthenticated: true }));
+        setAuthState({ token, nguoiDungId, roles, role, isAuthenticated: true });
+      }
       setSuccess(true);
     } catch (err: unknown) {
       const msg =

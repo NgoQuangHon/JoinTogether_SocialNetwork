@@ -6,6 +6,9 @@ import VerifyEmailPage from './pages/auth/VerifyEmailPage';
 import DashboardPage from './pages/dashboard/DashboardPage';
 import ProfilePage from './pages/profile/ProfilePage';
 import EditProfilePage from './pages/editprofile/EditProfilePage';
+import InterestsPage from './pages/onboarding/InterestsPage';
+import GoalsPage from './pages/onboarding/GoalsPage';
+import AvailableTimePage from './pages/onboarding/AvailableTimePage';
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 
@@ -38,6 +41,30 @@ export default function App() {
                 element={
                     <ProtectedRoute>
                         <EditProfilePage />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/interests"
+                element={
+                    <ProtectedRoute>
+                        <InterestsPage />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/goals"
+                element={
+                    <ProtectedRoute>
+                        <GoalsPage />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/available-time"
+                element={
+                    <ProtectedRoute>
+                        <AvailableTimePage />
                     </ProtectedRoute>
                 }
             />

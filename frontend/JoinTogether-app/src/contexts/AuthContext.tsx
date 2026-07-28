@@ -7,6 +7,7 @@ interface AuthContextValue extends AuthState {
   login: (data: LoginRequest) => Promise<void>;
   register: (data: RegisterRequest) => Promise<ApiResponse>;
   logout: () => void;
+  setAuthState: (state: AuthState) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -70,8 +71,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setState({ token: null, nguoiDungId: null, roles: [], role: null, isAuthenticated: false });
   }, []);
 
+  const setAuthState = useCallback((s: AuthState) => {
+    setState(s);
+    localStorage.setItem('auth_state', JSON.stringify(s));
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ ...state, isLoading, login, register, logout }}>
+    <AuthContext.Provider value={{ ...state, isLoading, login, register, logout, setAuthState }}>
       {children}
     </AuthContext.Provider>
   );
