@@ -50,7 +50,7 @@ export default function ProfilePage() {
             <div className="profile-page">
                 <div className="profile-loading">
                     <p className="error-text">{error}</p>
-                    <button className="edit-button" onClick={() => navigate('/edit-profile')}>
+                    <button className="edit-button" onClick={() => navigate('/dashboard')}>
                         Quay về bảng tin
                     </button>
                 </div>
@@ -70,6 +70,20 @@ export default function ProfilePage() {
     const soThich: SoThich[] = profile?.soThich || [];
 
     const genderLabel = gioiTinh === 'nam' ? 'Nam' : gioiTinh === 'nu' ? 'Nữ' : gioiTinh === 'khac' ? 'Khác' : 'Chưa cập nhật';
+
+    const allFields = [
+      user?.hoTen || '',
+      user?.email || '',
+      user?.soDienThoai || '',
+      profile?.tieuSu || '',
+      profile?.khuVuc || '',
+      profile?.ngaySinh || '',
+      profile?.gioiTinh || '',
+      profile?.mucTieuThamGia || '',
+      profile?.thoiGianRanh || '',
+    ];
+    const filledCount = allFields.filter((v) => v.trim().length > 0).length;
+    const progressPct = Math.round((filledCount / allFields.length) * 100);
 
     return (
         <div className="profile-page">
@@ -133,7 +147,7 @@ export default function ProfilePage() {
                         <p>@{tenDangNhap}</p>
                         <span className="verified">✓ Tài khoản xác thực</span>
                     </div>
-                    <Link to="/edit-profile" className="edit-button" style={{ textDecoration: 'none' }}>
+                    <Link to="/profile" className="edit-button" style={{ textDecoration: 'none' }}>
                         Chỉnh sửa thông tin
                     </Link>
                 </section>
@@ -141,10 +155,10 @@ export default function ProfilePage() {
                 {/* STATISTIC */}
                 <section className="statistic-grid">
                     <div className="stat-card">
-                        <h2>{profile ? '100%' : '0%'}</h2>
+                        <h2>{profile ? `${progressPct}%` : '0%'}</h2>
                         <p>Hoàn thiện hồ sơ</p>
                         <div className="progress">
-                            <span style={{ width: profile ? '100%' : '0%' }} />
+                            <span style={{ width: profile ? `${progressPct}%` : '0%' }} />
                         </div>
                     </div>
 
