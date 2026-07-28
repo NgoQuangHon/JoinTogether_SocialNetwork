@@ -302,6 +302,39 @@ INSERT INTO vai_tro (ten_vai_tro, mo_ta) VALUES
     ('USER', 'Người dùng thông thường')
 ON CONFLICT (ten_vai_tro) DO NOTHING;
 
+-- Seed danh mục sở thích
+INSERT INTO danh_muc_so_thich (ten_danh_muc, mo_ta) VALUES
+    ('Thể thao', 'Các hoạt động thể chất và thể thao'),
+    ('Giải trí', 'Hoạt động giải trí và thư giãn'),
+    ('Học tập', 'Hoạt động học tập và phát triển bản thân'),
+    ('Du lịch', 'Khám phá và du lịch'),
+    ('Tình nguyện', 'Hoạt động tình nguyện và cộng đồng'),
+    ('Nghệ thuật', 'Hoạt động nghệ thuật và sáng tạo'),
+    ('Ẩm thực', 'Ẩm thực và nấu nướng');
+
+-- Seed sở thích
+INSERT INTO so_thich (danh_muc_so_thich_id, ten_so_thich, mo_ta) VALUES
+    (1, 'Đá bóng', 'Bóng đá'),
+    (1, 'Chạy bộ', 'Chạy bộ'),
+    (1, 'Bơi lội', 'Bơi lội'),
+    (1, 'Cầu lông', 'Cầu lông'),
+    (1, 'Yoga', 'Yoga'),
+    (2, 'Xem phim', 'Xem phim'),
+    (2, 'Chơi game', 'Chơi game'),
+    (2, 'Nghe nhạc', 'Nghe nhạc'),
+    (2, 'Nhảy múa', 'Nhảy múa'),
+    (3, 'Học tập', 'Học tập'),
+    (3, 'Đọc sách', 'Đọc sách'),
+    (3, 'Cờ vua', 'Cờ vua'),
+    (4, 'Du lịch', 'Du lịch'),
+    (4, 'Cắm trại', 'Cắm trại'),
+    (5, 'Tình nguyện', 'Tình nguyện'),
+    (6, 'Vẽ tranh', 'Vẽ tranh'),
+    (6, 'Chụp ảnh', 'Chụp ảnh'),
+    (6, 'Viết lách', 'Viết lách'),
+    (7, 'Nấu ăn', 'Nấu ăn'),
+    (7, 'Làm vườn', 'Làm vườn');
+
 -- Chỉ mục tối ưu hiệu năng truy vấn
 CREATE INDEX IF NOT EXISTS idx_tai_khoan_vai_tro_tk ON tai_khoan_vai_tro(tai_khoan_id);
 CREATE INDEX IF NOT EXISTS idx_hoat_dong_nguoi_to_chuc ON hoat_dong(nguoi_to_chuc_id);
