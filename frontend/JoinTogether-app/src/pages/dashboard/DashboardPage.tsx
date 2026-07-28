@@ -1,10 +1,46 @@
+import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import '../../styles/dashboard.css';
+import {
+  baiVietList as baiVietMauBanDau,
+  hoatDongNoiBatList,
+  goiYKetNoiList,
+  hoatDongSapDienRaList,
+  type BaiViet,
+} from './feedMockData';
+
+// ==================== HELPERS ====================
+
+function Avatar({ mau, chu, kichThuoc = 44 }: { mau: string; chu: string; kichThuoc?: number }) {
+  return (
+    <div
+      className="avatar-tron"
+      style={{ background: mau, width: kichThuoc, height: kichThuoc, fontSize: kichThuoc * 0.42 }}
+    >
+      {chu}
+    </div>
+  );
+}
+
+function nhanTrangThai(trangThai: 'sap-dien-ra' | 'con-cho' | 'sap-day') {
+  switch (trangThai) {
+    case 'con-cho':
+      return { text: 'Còn chỗ', className: 'badge-success' };
+    case 'sap-day':
+      return { text: 'Sắp đầy', className: 'badge-warning' };
+    default:
+      return { text: 'Sắp diễn ra', className: 'badge-info' };
+  }
+}
+
+// ==================== TRANG DASHBOARD ====================
 
 export default function DashboardPage() {
-    const { logout, nguoiDungId, role } = useAuth();
-    const navigate = useNavigate();
+  const { logout, nguoiDungId, role } = useAuth();
+  const navigate = useNavigate();
+  const [baiVietList, setBaiVietList] = useState<BaiViet[]>(baiVietMauBanDau);
+  const [noiDungMoi, setNoiDungMoi] = useState('');
 
     const handleLogout = () => {
         logout();

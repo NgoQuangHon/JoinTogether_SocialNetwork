@@ -591,6 +591,16 @@ select {
     font-weight: 600;
 
     transition: 0.3s;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    text-decoration: none;
+
+    text-align: center;
 }
 
 .outline-btn:hover {
