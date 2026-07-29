@@ -110,6 +110,12 @@ export async function connectDB() {
           ALTER TABLE ho_so_nguoi_dung ADD COLUMN IF NOT EXISTS vi_do DECIMAL(10,8);
           ALTER TABLE ho_so_nguoi_dung ADD COLUMN IF NOT EXISTS kinh_do DECIMAL(11,8);
 
+          -- Đảm bảo chỉ tài khoản đã xác thực SĐT mới có da_xac_thuc = true
+          UPDATE tai_khoan SET da_xac_thuc = false 
+          WHERE nguoi_dung_id IN (
+            SELECT nguoi_dung_id FROM nguoi_dung WHERE so_dien_thoai IS NULL OR TRIM(so_dien_thoai) = ''
+          );
+
           CREATE TABLE IF NOT EXISTS phong_tro_chuyen (
             phong_id BIGSERIAL PRIMARY KEY,
             ten_phong VARCHAR(255),
