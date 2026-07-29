@@ -6,7 +6,9 @@ import CreateActivityModal from './CreateActivityModal';
 import ActivityDetailModal from './ActivityDetailModal';
 import NavItems from '../../components/NavItems';
 import { getMyActivitiesApi, getAllActivitiesApi, getFeaturedActivitiesApi, searchActivitiesApi, getCategoriesApi } from '../../services/activity.service';
-import { getSuggestionsApi, followUserApi, unfollowUserApi } from '../../services/connection.service';
+import { getSuggestionsApi, followUserApi, unfollowUserApi, getPendingRequestsApi } from '../../services/connection.service';
+import { getNotificationsApi, deleteNotificationApi } from '../../services/notification.service';
+import type { ThongBao } from '../../types/connection';
 import { getPostsApi, likePostApi, unlikePostApi, getCommentsApi, addCommentApi, sharePostApi } from '../../services/post.service';
 import { getMyProfile } from '../../services/profile.service';
 import type { HoatDongResponse, SearchFilters, DanhMucHoatDong } from '../../types/activity';
@@ -174,6 +176,32 @@ function FeaturedCard({ hd, onClick }: { hd: HoatDongResponse; onClick: () => vo
   );
 }
 
+function NotificationDropdown({ notifications, onDelete, onClose }: { notifications: ThongBao[]; onDelete: (id: number) => void; onClose: () => void }) {
+  return (
+    <div className="notif-dropdown" onClick={(e) => e.stopPropagation()}>
+      <div className="notif-header">
+        <h4>Thông báo</h4>
+        <button className="notif-close" onClick={onClose}>✕</button>
+      </div>
+      <div className="notif-body">
+        {notifications.length === 0 ? (
+          <p className="notif-empty">Không có thông báo.</p>
+        ) : (
+          notifications.map((n) => (
+            <div key={n.thongBaoId} className="notif-item">
+              <div className="notif-item-content">
+                <p className="notif-title">{n.tieuDe || 'Thông báo'}</p>
+                <p className="notif-text">{n.noiDung}</p>
+              </div>
+              <button className="notif-delete" onClick={() => onDelete(n.thongBaoId)} title="Xóa">✕</button>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const { logout, nguoiDungId } = useAuth();
   const navigate = useNavigate();
@@ -204,6 +232,10 @@ export default function DashboardPage() {
   const [hasSearched, setHasSearched] = useState(false);
   const [apiDanhMucList, setApiDanhMucList] = useState<DanhMucHoatDong[]>([]);
   const [profilePct, setProfilePct] = useState(100);
+  const [notifications, setNotifications] = useState<ThongBao[]>([]);
+  const [notifLoading, setNotifLoading] = useState(false);
+  const [showNotifDropdown, setShowNotifDropdown] = useState(false);
+  const notifRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
   const displayDanhMuc = apiDanhMucList.length > 0
@@ -242,6 +274,14 @@ export default function DashboardPage() {
     debounceRef.current = setTimeout(() => doSearch(keyword, categoryId), 400);
   }, [doSearch]);
 
+  const fetchNotifications = async () => {
+    setNotifLoading(true);
+    try {
+      const res = await getNotificationsApi(20);
+      if (res.success && res.data) setNotifications(res.data);
+    } catch {} finally { setNotifLoading(false); }
+  };
+
   useEffect(() => {
     Promise.all([
       getMyActivitiesApi(),
@@ -251,8 +291,9 @@ export default function DashboardPage() {
       getPostsApi(),
       getCategoriesApi(),
       getMyProfile().catch(() => ({ success: false } as any)),
+      getNotificationsApi(20).catch(() => ({ success: false } as any)),
     ])
-      .then(([myRes, actRes, featRes, sugRes, postRes, catRes, profileRes]) => {
+      .then(([myRes, actRes, featRes, sugRes, postRes, catRes, profileRes, notifRes]) => {
         if (myRes.success && myRes.data) setMyActivities(myRes.data);
         if (actRes.success && actRes.data) setRecentActivities(fillMock(actRes.data, MOCK_ACTIVITIES as any, 'hoatDongId'));
         if (featRes.success && featRes.data) setFeaturedActivities(fillMock(featRes.data, MOCK_FEATURED as any, 'hoatDongId'));
@@ -262,6 +303,7 @@ export default function DashboardPage() {
           setLikedPosts(new Set(postRes.data.filter((p) => p.daThich).map((p) => p.baiVietId)));
         }
         if (catRes.success && catRes.data) setApiDanhMucList(catRes.data);
+        if (notifRes.success && notifRes.data) setNotifications(notifRes.data);
         if (profileRes.success && profileRes.data) {
           const p = profileRes.data as HoSoNguoiDung;
           const allFields = [
@@ -283,6 +325,15 @@ export default function DashboardPage() {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (!showNotifDropdown) return;
+    const handler = (e: MouseEvent) => {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) setShowNotifDropdown(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showNotifDropdown]);
 
   useEffect(() => {
     if (searchKeyword || danhMucChon > 0) {
@@ -363,6 +414,13 @@ export default function DashboardPage() {
     if (file) setPostImage(await compressImage(file));
   };
 
+  const handleDeleteNotification = async (id: number) => {
+    try {
+      await deleteNotificationApi(id);
+      setNotifications((prev) => prev.filter((n) => n.thongBaoId !== id));
+    } catch {}
+  };
+
   const handlePostSubmit = async () => {
     if (!postInput.trim() && !postImage) return;
     setPosting(true);
@@ -392,9 +450,14 @@ export default function DashboardPage() {
               ☰
             </button>
             <span className="app-title">JT</span>
-            <button className="icon-btn icon-btn-bell" aria-label="Thông báo">
-              <span className="bell-dot" />
-            </button>
+            <div className="notif-wrapper" ref={notifRef}>
+              <button className="icon-btn icon-btn-bell" aria-label="Thông báo" onClick={() => setShowNotifDropdown(!showNotifDropdown)}>
+                {notifications.length > 0 && <span className="bell-dot" />}
+              </button>
+              {showNotifDropdown && (
+                <NotificationDropdown notifications={notifications} onDelete={handleDeleteNotification} onClose={() => setShowNotifDropdown(false)} />
+              )}
+            </div>
           </header>
 
           {menuMo && (
@@ -586,9 +649,14 @@ export default function DashboardPage() {
           </div>
           <div className="topbar-user">
             <span className="user-badge">ID: {nguoiDungId}</span>
-            <button className="icon-btn icon-btn-bell" aria-label="Thông báo">
-              <span className="bell-dot" />
-            </button>
+            <div className="notif-wrapper" ref={notifRef}>
+              <button className="icon-btn icon-btn-bell" aria-label="Thông báo" onClick={() => setShowNotifDropdown(!showNotifDropdown)}>
+                {notifications.length > 0 && <span className="bell-dot" />}
+              </button>
+              {showNotifDropdown && (
+                <NotificationDropdown notifications={notifications} onDelete={handleDeleteNotification} onClose={() => setShowNotifDropdown(false)} />
+              )}
+            </div>
             <Avatar mau="var(--primary-600)" chu="B" kichThuoc={36} />
           </div>
         </header>
