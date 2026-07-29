@@ -28,6 +28,7 @@ export default function App() {
             <Route element={<AuthLayout />}>
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
+                <Route path="/forgot-password" element={<div className="auth-card"><h2>Quên mật khẩu</h2><p className="subtitle">Tính năng đang phát triển.</p></div>} />
             </Route>
             <Route path="/verify-email" element={<VerifyEmailPage />} />
 

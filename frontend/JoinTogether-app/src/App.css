@@ -609,6 +609,21 @@ select {
     color: white;
 }
 
+.forgot-link {
+  display: block;
+  text-align: right;
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--primary);
+  text-decoration: none;
+  transition: 0.2s;
+}
+
+.forgot-link:hover {
+  text-decoration: underline;
+  color: var(--primary-700);
+}
+
 /* =====================================================
    DIVIDER
 ===================================================== */

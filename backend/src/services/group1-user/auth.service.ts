@@ -252,21 +252,40 @@ export class AuthService {
     const { tenDangNhap, matKhau } = data;
 
     if (!tenDangNhap || !matKhau) {
-      throw new AppError("Vui lòng cung cấp tên đăng nhập và mật khẩu.", 400);
+      throw new AppError("Vui lòng cung cấp tên đăng nhập / email / số điện thoại và mật khẩu.", 400);
     }
 
-    const taiKhoan = await this.taiKhoanRepo.findByUsername(tenDangNhap);
+    const taiKhoan = await this.taiKhoanRepo.findByLoginIdentifier(tenDangNhap);
     if (!taiKhoan) {
-      throw new UnauthorizedError("Tên đăng nhập hoặc mật khẩu không chính xác.");
+      throw new UnauthorizedError("Tên đăng nhập / email / số điện thoại hoặc mật khẩu không chính xác.");
+    }
+
+    // Kiểm tra tài khoản có bị khóa tạm thời không
+    if (taiKhoan.khoaDenLuc && new Date(taiKhoan.khoaDenLuc) > new Date()) {
+      const conLai = Math.ceil((new Date(taiKhoan.khoaDenLuc).getTime() - Date.now()) / 60000);
+      throw new AppError(`Tài khoản tạm thời bị khóa do đăng nhập sai nhiều lần. Vui lòng thử lại sau ${conLai} phút.`, 423);
     }
 
     const isMatch = await bcrypt.compare(matKhau, taiKhoan.matKhauMaHoa);
     if (!isMatch) {
-      throw new UnauthorizedError("Tên đăng nhập hoặc mật khẩu không chính xác.");
+      await this.taiKhoanRepo.incrementLoginAttempts(taiKhoan.taiKhoanId!);
+      throw new UnauthorizedError("Tên đăng nhập / email / số điện thoại hoặc mật khẩu không chính xác.");
+    }
+
+    // Reset số lần đăng nhập sai khi thành công
+    await this.taiKhoanRepo.resetLoginAttempts(taiKhoan.taiKhoanId!);
+
+    // Kiểm tra trạng thái tài khoản — ưu tiên kiểm tra xác thực trước
+    if (!taiKhoan.daXacThuc && taiKhoan.trangThai !== "ACTIVE") {
+      throw new UnauthorizedError(
+        "Tài khoản chưa được xác thực. Vui lòng kiểm tra email để hoàn tất xác thực.",
+      );
     }
 
     if (taiKhoan.trangThai !== "ACTIVE") {
-      throw new UnauthorizedError("Tài khoản đã bị khóa hoặc chưa kích hoạt.");
+      throw new UnauthorizedError(
+        "Tài khoản đã bị khóa. Vui lòng liên hệ quản trị viên để được hỗ trợ.",
+      );
     }
 
     const roles = await this.vaiTroRepo.findRolesByTaiKhoanId(taiKhoan.taiKhoanId!);

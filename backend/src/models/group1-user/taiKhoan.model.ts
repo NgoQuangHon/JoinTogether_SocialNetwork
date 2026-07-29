@@ -7,6 +7,8 @@ export interface TaiKhoan {
     matKhauMaHoa: string;
     trangThai?: string | null;
     daXacThuc?: boolean | null;
+    soLanDangNhapSai?: number;
+    khoaDenLuc?: string | null;
 }
 
 export class TaiKhoanModel {
@@ -16,6 +18,8 @@ export class TaiKhoanModel {
     private _matKhauMaHoa: string;
     private _trangThai?: string | null;
     private _daXacThuc?: boolean | null;
+    private _soLanDangNhapSai?: number;
+    private _khoaDenLuc?: string | null;
 
     constructor(data: Partial<TaiKhoan> = {}) {
         this._taiKhoanId = data.taiKhoanId === undefined || data.taiKhoanId === null ? null : data.taiKhoanId;
@@ -50,6 +54,14 @@ export class TaiKhoanModel {
         return this._daXacThuc;
     }
 
+    get soLanDangNhapSai(): number | undefined {
+        return this._soLanDangNhapSai;
+    }
+
+    get khoaDenLuc(): string | null | undefined {
+        return this._khoaDenLuc;
+    }
+
     updateTenDangNhap(newTenDangNhap: string): void {
         this._tenDangNhap = TaiKhoanValidator.validateRequiredString(newTenDangNhap, 'Tên đăng nhập');
     }
@@ -77,6 +89,8 @@ export class TaiKhoanModel {
             matKhauMaHoa: data.matKhauMaHoa === undefined || data.matKhauMaHoa === null ? '' : data.matKhauMaHoa,
             trangThai: data.trangThai === undefined || data.trangThai === null ? null : data.trangThai,
             daXacThuc: data.daXacThuc === undefined || data.daXacThuc === null ? false : data.daXacThuc,
+            soLanDangNhapSai: data.soLanDangNhapSai ?? 0,
+            khoaDenLuc: data.khoaDenLuc ?? null,
         };
     }
 }

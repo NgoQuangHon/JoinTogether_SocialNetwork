@@ -17,7 +17,9 @@ CREATE TABLE tai_khoan (
     ten_dang_nhap VARCHAR(100) UNIQUE NOT NULL,
     mat_khau_ma_hoa VARCHAR(255) NOT NULL,
     trang_thai VARCHAR(50),
-    da_xac_thuc BOOLEAN DEFAULT FALSE
+    da_xac_thuc BOOLEAN DEFAULT FALSE,
+    so_lan_dang_nhap_sai INT DEFAULT 0,
+    khoa_den_luc TIMESTAMPTZ
 );
 
 CREATE TABLE thong_tin_xac_thuc (
@@ -420,3 +422,7 @@ CREATE TABLE IF NOT EXISTS theo_doi (
     thoi_gian_tao TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (nguoi_theo_doi_id, nguoi_duoc_theo_doi_id)
 );
+
+-- Migration: thêm cột đếm số lần đăng nhập sai và khóa tài khoản
+ALTER TABLE tai_khoan ADD COLUMN IF NOT EXISTS so_lan_dang_nhap_sai INT DEFAULT 0;
+ALTER TABLE tai_khoan ADD COLUMN IF NOT EXISTS khoa_den_luc TIMESTAMPTZ;

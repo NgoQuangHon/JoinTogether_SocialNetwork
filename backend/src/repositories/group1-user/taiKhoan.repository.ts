@@ -1,12 +1,23 @@
 import { pool } from "../../config/db";
 import { TaiKhoan } from "../../models/group1-user/taiKhoan.model";
 
+const RETURN_COLUMNS = `
+  tai_khoan_id as "taiKhoanId",
+  nguoi_dung_id as "nguoiDungId",
+  ten_dang_nhap as "tenDangNhap",
+  mat_khau_ma_hoa as "matKhauMaHoa",
+  trang_thai as "trangThai",
+  da_xac_thuc as "daXacThuc",
+  so_lan_dang_nhap_sai as "soLanDangNhapSai",
+  khoa_den_luc as "khoaDenLuc"
+`;
+
 export class TaiKhoanRepository {
   async create(taiKhoan: Partial<TaiKhoan>): Promise<TaiKhoan> {
     const query = `
             INSERT INTO tai_khoan (nguoi_dung_id, ten_dang_nhap, mat_khau_ma_hoa, trang_thai, da_xac_thuc)
             VALUES ($1, $2, $3, $4, $5)
-            RETURNING tai_khoan_id as "taiKhoanId", nguoi_dung_id as "nguoiDungId", ten_dang_nhap as "tenDangNhap", mat_khau_ma_hoa as "matKhauMaHoa", trang_thai as "trangThai", da_xac_thuc as "daXacThuc"
+            RETURNING ${RETURN_COLUMNS}
         `;
     const values = [
       taiKhoan.nguoiDungId,
@@ -21,7 +32,7 @@ export class TaiKhoanRepository {
 
   async findByUsername(tenDangNhap: string): Promise<TaiKhoan | null> {
     const query = `
-            SELECT tai_khoan_id as "taiKhoanId", nguoi_dung_id as "nguoiDungId", ten_dang_nhap as "tenDangNhap", mat_khau_ma_hoa as "matKhauMaHoa", trang_thai as "trangThai", da_xac_thuc as "daXacThuc"
+            SELECT ${RETURN_COLUMNS}
             FROM tai_khoan
             WHERE ten_dang_nhap = $1
         `;
@@ -29,17 +40,50 @@ export class TaiKhoanRepository {
     return result.rows.length > 0 ? result.rows[0] : null;
   }
 
+  async findByLoginIdentifier(identifier: string): Promise<TaiKhoan | null> {
+    const query = `
+      SELECT tk.tai_khoan_id as "taiKhoanId",
+             tk.nguoi_dung_id as "nguoiDungId",
+             tk.ten_dang_nhap as "tenDangNhap",
+             tk.mat_khau_ma_hoa as "matKhauMaHoa",
+             tk.trang_thai as "trangThai",
+             tk.da_xac_thuc as "daXacThuc",
+             tk.so_lan_dang_nhap_sai as "soLanDangNhapSai",
+             tk.khoa_den_luc as "khoaDenLuc"
+      FROM tai_khoan tk
+      LEFT JOIN nguoi_dung nd ON tk.nguoi_dung_id = nd.nguoi_dung_id
+      WHERE tk.ten_dang_nhap = $1 OR nd.email = $1 OR nd.so_dien_thoai = $1
+      LIMIT 1
+    `;
+    const result = await pool.query(query, [identifier]);
+    return result.rows.length > 0 ? result.rows[0] : null;
+  }
+
+  async incrementLoginAttempts(taiKhoanId: number): Promise<void> {
+    await pool.query(
+      `UPDATE tai_khoan
+       SET so_lan_dang_nhap_sai = so_lan_dang_nhap_sai + 1,
+           khoa_den_luc = CASE
+             WHEN so_lan_dang_nhap_sai + 1 >= 5 THEN NOW() + INTERVAL '15 minutes'
+             ELSE khoa_den_luc
+           END
+       WHERE tai_khoan_id = $1`,
+      [taiKhoanId],
+    );
+  }
+
+  async resetLoginAttempts(taiKhoanId: number): Promise<void> {
+    await pool.query(
+      `UPDATE tai_khoan SET so_lan_dang_nhap_sai = 0, khoa_den_luc = NULL WHERE tai_khoan_id = $1`,
+      [taiKhoanId],
+    );
+  }
+
   // ==================== UC7.1: QUẢN LÝ TÀI KHOẢN ====================
 
   async findById(taiKhoanId: number): Promise<TaiKhoan | null> {
     const query = `
-      SELECT
-        tai_khoan_id AS "taiKhoanId",
-        nguoi_dung_id AS "nguoiDungId",
-        ten_dang_nhap AS "tenDangNhap",
-        mat_khau_ma_hoa AS "matKhauMaHoa",
-        trang_thai AS "trangThai",
-        da_xac_thuc AS "daXacThuc"
+      SELECT ${RETURN_COLUMNS}
       FROM tai_khoan
       WHERE tai_khoan_id = $1
     `;
@@ -56,7 +100,9 @@ export class TaiKhoanRepository {
         nd.email,
         tk.ten_dang_nhap AS "tenDangNhap",
         tk.trang_thai AS "trangThai",
-        tk.da_xac_thuc AS "daXacThuc"
+        tk.da_xac_thuc AS "daXacThuc",
+        tk.so_lan_dang_nhap_sai AS "soLanDangNhapSai",
+        tk.khoa_den_luc AS "khoaDenLuc"
       FROM tai_khoan tk
       LEFT JOIN nguoi_dung nd ON tk.nguoi_dung_id = nd.nguoi_dung_id
       ORDER BY tk.tai_khoan_id DESC
@@ -94,13 +140,7 @@ export class TaiKhoanRepository {
       UPDATE tai_khoan
       SET ${setClauses.join(", ")}
       WHERE tai_khoan_id = $${paramIndex}
-      RETURNING
-        tai_khoan_id AS "taiKhoanId",
-        nguoi_dung_id AS "nguoiDungId",
-        ten_dang_nhap AS "tenDangNhap",
-        mat_khau_ma_hoa AS "matKhauMaHoa",
-        trang_thai AS "trangThai",
-        da_xac_thuc AS "daXacThuc"
+      RETURNING ${RETURN_COLUMNS}
     `;
     const result = await pool.query(query, values);
     return result.rows.length > 0 ? result.rows[0] : null;
@@ -111,13 +151,7 @@ export class TaiKhoanRepository {
       UPDATE tai_khoan
       SET trang_thai = $1
       WHERE tai_khoan_id = $2
-      RETURNING
-        tai_khoan_id AS "taiKhoanId",
-        nguoi_dung_id AS "nguoiDungId",
-        ten_dang_nhap AS "tenDangNhap",
-        mat_khau_ma_hoa AS "matKhauMaHoa",
-        trang_thai AS "trangThai",
-        da_xac_thuc AS "daXacThuc"
+      RETURNING ${RETURN_COLUMNS}
     `;
     const result = await pool.query(query, [trangThai, id]);
     return result.rows.length > 0 ? result.rows[0] : null;

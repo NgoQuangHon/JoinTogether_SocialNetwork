@@ -6,7 +6,7 @@ import { z } from "zod";
 import { useAuth } from "../../contexts/AuthContext";
 
 const loginSchema = z.object({
-  tenDangNhap: z.string().min(1, "Vui lòng nhập tên đăng nhập"),
+  tenDangNhap: z.string().min(1, "Vui lòng nhập email, số điện thoại hoặc tên đăng nhập"),
   matKhau: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
 });
 
@@ -51,7 +51,7 @@ export default function LoginPage() {
       <form onSubmit={handleSubmit(onSubmit)}>
         <input
           type="text"
-          placeholder="Tên đăng nhập"
+          placeholder="Email / SĐT / Tên đăng nhập"
           {...register("tenDangNhap")}
           className={errors.tenDangNhap ? "input-error" : ""}
         />
@@ -68,6 +68,8 @@ export default function LoginPage() {
         {errors.matKhau && (
           <p className="field-error">{errors.matKhau.message}</p>
         )}
+
+        <Link to="/forgot-password" className="forgot-link">Quên mật khẩu?</Link>
 
         <button type="submit" className="primary-btn" disabled={isLoading}>
           {isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
