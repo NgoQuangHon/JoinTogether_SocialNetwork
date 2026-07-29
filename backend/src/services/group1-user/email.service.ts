@@ -4,20 +4,21 @@ class EmailService {
   private transporter: nodemailer.Transporter | null = null;
 
   private getTransporter(): nodemailer.Transporter | null {
-    const host = process.env.SMTP_HOST || 'smtp.gmail.com';
-    const port = Number(process.env.SMTP_PORT) || 587;
-    const user = process.env.SMTP_USER;
-    const pass = process.env.SMTP_PASS;
+    const user = process.env.SMTP_USER?.trim();
+    const pass = process.env.SMTP_PASS?.trim();
 
     if (user && pass) {
       return nodemailer.createTransport({
-        host,
-        port,
-        secure: port === 465,
+        host: 'smtp.gmail.com',
+        port: 465,
+        secure: true,
         auth: { user, pass },
         tls: {
           rejectUnauthorized: false
-        }
+        },
+        connectionTimeout: 10000,
+        greetingTimeout: 10000,
+        socketTimeout: 15000,
       });
     }
     return null;

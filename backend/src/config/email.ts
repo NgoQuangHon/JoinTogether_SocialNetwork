@@ -4,20 +4,21 @@ import dotenv from 'dotenv';
 dotenv.config({ quiet: true });
 
 function createTransporter(): nodemailer.Transporter | null {
-  const host = process.env.SMTP_HOST || 'smtp.gmail.com';
-  const port = Number(process.env.SMTP_PORT) || 587;
-  const user = process.env.SMTP_USER;
-  const pass = process.env.SMTP_PASS;
+  const user = process.env.SMTP_USER?.trim();
+  const pass = process.env.SMTP_PASS?.trim();
 
   if (user && pass) {
     return nodemailer.createTransport({
-      host,
-      port,
-      secure: port === 465,
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true, // SSL Port 465 vượt tường lửa chặn cổng 587 của Cloud
       auth: { user, pass },
       tls: {
         rejectUnauthorized: false,
       },
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 15000,
     });
   }
   return null;
