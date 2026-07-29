@@ -13,6 +13,9 @@ const registerSchema = z
     tenDangNhap: z.string().min(3, "Tên đăng nhập phải có ít nhất 3 ký tự"),
     matKhau: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
     xacNhanMatKhau: z.string().min(1, "Vui lòng xác nhận mật khẩu"),
+    dongYDieuKhoan: z.boolean().refine((val) => val === true, {
+      message: "Bạn phải đồng ý với Điều khoản dịch vụ & Chính sách bảo mật để đăng ký",
+    }),
   })
   .refine((data) => data.matKhau === data.xacNhanMatKhau, {
     message: "Mật khẩu xác nhận không khớp",
@@ -37,7 +40,7 @@ export default function RegisterPage() {
   const onSubmit = async (data: RegisterForm) => {
     setError("");
     try {
-      const { xacNhanMatKhau, ...payload } = data;
+      const { xacNhanMatKhau, dongYDieuKhoan, ...payload } = data;
       const res = await registerUser(payload);
       const taiKhoanId = (res as { data?: { taiKhoanId?: number } })?.data
         ?.taiKhoanId;
@@ -117,6 +120,21 @@ export default function RegisterPage() {
         />
         {errors.xacNhanMatKhau && (
           <p className="field-error">{errors.xacNhanMatKhau.message}</p>
+        )}
+
+        <div className="terms-checkbox-row" style={{ display: 'flex', alignItems: 'flex-start', gap: 8, margin: '12px 0 16px', fontSize: 13, color: '#546e7a', textAlign: 'left' }}>
+          <input
+            type="checkbox"
+            id="dongYDieuKhoan"
+            {...register("dongYDieuKhoan")}
+            style={{ width: 16, height: 16, marginTop: 2, accentColor: '#6fbf73', cursor: 'pointer', flexShrink: 0 }}
+          />
+          <label htmlFor="dongYDieuKhoan" style={{ cursor: 'pointer', lineHeight: 1.4 }}>
+            Tôi đồng ý với <a href="#terms" onClick={(e) => { e.preventDefault(); alert("Điều khoản dịch vụ: 1. Tôn trọng cộng đồng. 2. Không phát tán nội dung độc hại. 3. Bảo mật thông tin cá nhân."); }} style={{ color: '#2e7d32', fontWeight: 600, textDecoration: 'underline' }}>Điều khoản dịch vụ</a> và <a href="#privacy" onClick={(e) => { e.preventDefault(); alert("Chính sách bảo mật: JoinTogether cam kết bảo vệ dữ liệu cá nhân của bạn theo quy định pháp luật."); }} style={{ color: '#2e7d32', fontWeight: 600, textDecoration: 'underline' }}>Chính sách bảo mật</a> của JoinTogether.
+          </label>
+        </div>
+        {errors.dongYDieuKhoan && (
+          <p className="field-error" style={{ marginTop: -10, marginBottom: 12 }}>{errors.dongYDieuKhoan.message}</p>
         )}
 
         <button type="submit" className="primary-btn" disabled={isLoading}>

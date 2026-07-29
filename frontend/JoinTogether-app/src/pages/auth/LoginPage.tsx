@@ -8,6 +8,9 @@ import { useAuth } from "../../contexts/AuthContext";
 const loginSchema = z.object({
   tenDangNhap: z.string().min(1, "Vui lòng nhập email, số điện thoại hoặc tên đăng nhập"),
   matKhau: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
+  dongYDieuKhoan: z.boolean().refine((val) => val === true, {
+    message: "Bạn phải xác nhận đồng ý với Điều khoản dịch vụ để tiếp tục",
+  }),
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
@@ -28,7 +31,8 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginForm) => {
     setError("");
     try {
-      await login(data);
+      const { dongYDieuKhoan, ...payload } = data;
+      await login(payload);
       navigate("/dashboard", { replace: true });
     } catch (err: unknown) {
       const errObj = err as { response?: { data?: { message?: string, data?: { taiKhoanId?: number } } } };
@@ -74,6 +78,21 @@ export default function LoginPage() {
         />
         {errors.matKhau && (
           <p className="field-error">{errors.matKhau.message}</p>
+        )}
+
+        <div className="terms-checkbox-row" style={{ display: 'flex', alignItems: 'flex-start', gap: 8, margin: '12px 0 16px', fontSize: 13, color: '#546e7a', textAlign: 'left' }}>
+          <input
+            type="checkbox"
+            id="dongYDieuKhoanLogin"
+            {...register("dongYDieuKhoan")}
+            style={{ width: 16, height: 16, marginTop: 2, accentColor: '#6fbf73', cursor: 'pointer', flexShrink: 0 }}
+          />
+          <label htmlFor="dongYDieuKhoanLogin" style={{ cursor: 'pointer', lineHeight: 1.4 }}>
+            Tôi đồng ý với <a href="#terms" onClick={(e) => { e.preventDefault(); alert("Điều khoản dịch vụ: 1. Tôn trọng cộng đồng. 2. Không phát tán nội dung độc hại. 3. Bảo mật thông tin cá nhân."); }} style={{ color: '#2e7d32', fontWeight: 600, textDecoration: 'underline' }}>Điều khoản dịch vụ</a> và <a href="#privacy" onClick={(e) => { e.preventDefault(); alert("Chính sách bảo mật: JoinTogether cam kết bảo vệ dữ liệu cá nhân của bạn."); }} style={{ color: '#2e7d32', fontWeight: 600, textDecoration: 'underline' }}>Chính sách bảo mật</a>.
+          </label>
+        </div>
+        {errors.dongYDieuKhoan && (
+          <p className="field-error" style={{ marginTop: -10, marginBottom: 12 }}>{errors.dongYDieuKhoan.message}</p>
         )}
 
         <Link to="/forgot-password" className="forgot-link">Quên mật khẩu?</Link>
