@@ -58,14 +58,64 @@ export class ProfileService {
     }
 
     if (data.hoTen !== undefined || data.email !== undefined || data.soDienThoai !== undefined) {
-      await this.nguoiDungRepo.update(nguoiDungId, {
-        hoTen: data.hoTen,
-        email: data.email,
-        soDienThoai: data.soDienThoai,
-      });
+      const userUpdateData: any = {};
+      if (data.hoTen !== undefined) userUpdateData.hoTen = data.hoTen;
+      if (data.email !== undefined) userUpdateData.email = data.email;
+      if (data.soDienThoai !== undefined) userUpdateData.soDienThoai = data.soDienThoai;
+      await this.nguoiDungRepo.update(nguoiDungId, userUpdateData);
     }
 
     return updatedProfile;
+  }
+
+  async getAIMatches(currentUserId: number): Promise<any[]> {
+    const currentProfile = await this.getProfile(currentUserId);
+    const currentInterests: string[] = (currentProfile.soThich || []).map((s: any) => s.tenSoThich?.toLowerCase() || s.toLowerCase());
+    const currentKhuVuc = (currentProfile.khuVuc || '').toLowerCase().trim();
+
+    // Lấy tất cả người dùng trừ người hiện tại
+    const allUsers = await this.nguoiDungRepo.findAll();
+    const otherUsers = allUsers.filter((u: any) => u.nguoiDungId !== currentUserId);
+
+    const results = [];
+    for (const u of otherUsers) {
+      const prof = await this.getProfile(u.nguoiDungId);
+      const userInterests: string[] = (prof.soThich || []).map((s: any) => s.tenSoThich?.toLowerCase() || s.toLowerCase());
+      const userInterestsRaw: string[] = (prof.soThich || []).map((s: any) => s.tenSoThich || s);
+      const userKhuVuc = (prof.khuVuc || '').toLowerCase().trim();
+
+      // Tính điểm trùng sở thích
+      const commonInterests = currentInterests.filter(i => userInterests.includes(i));
+      let score = 50; // base score
+      score += Math.min(40, commonInterests.length * 12);
+
+      if (currentKhuVuc && userKhuVuc && (currentKhuVuc.includes(userKhuVuc) || userKhuVuc.includes(currentKhuVuc))) {
+        score += 10;
+      }
+
+      score = Math.min(99, score);
+
+      let reason = 'Gợi ý kết nối dựa trên hồ sơ cộng đồng';
+      if (commonInterests.length > 0) {
+        reason = `Có ${commonInterests.length} sở thích chung cùng bạn`;
+      } else if (score >= 60) {
+        reason = 'Cùng khu vực sinh sống và tần suất hoạt động tương đồng';
+      }
+
+      results.push({
+        nguoiDungId: u.nguoiDungId,
+        hoTen: u.hoTen,
+        anhDaiDien: prof.anhDaiDien,
+        khuVuc: prof.khuVuc || 'Chưa cập nhật',
+        tieuSu: prof.tieuSu || '',
+        soThich: userInterestsRaw.length ? userInterestsRaw : ['Giao lưu', 'Tham gia sự kiện'],
+        matchScore: score,
+        reason,
+      });
+    }
+
+    results.sort((a, b) => b.matchScore - a.matchScore);
+    return results;
   }
 
   async updateAvatar(nguoiDungId: number, anhDaiDien: string): Promise<any> {

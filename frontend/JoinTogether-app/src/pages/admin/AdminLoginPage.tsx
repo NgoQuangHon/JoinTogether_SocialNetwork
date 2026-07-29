@@ -14,7 +14,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 export default function AdminLoginPage() {
-  const { login, isLoading, roles, role } = useAuth();
+  const { login, isLoading } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = useState('');
 

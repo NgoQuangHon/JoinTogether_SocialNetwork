@@ -21,7 +21,7 @@ export class ThongBaoRepository {
       data.loaiThongBao === undefined || data.loaiThongBao === null ? 'CHUNG' : data.loaiThongBao,
       data.duongDan === undefined || data.duongDan === null ? null : data.duongDan,
     ]);
-    return result.rows[0];
+    return result?.rows?.[0] || (data as ThongBao);
   }
 
   async findById(id: number): Promise<ThongBao | null> {

@@ -31,3 +31,8 @@ export const updateAvatar = async (anhDaiDien: string): Promise<ApiResponse> => 
     const response = await api.put<ApiResponse>('/profile/avatar', { anhDaiDien });
     return response.data;
 };
+
+export const getAIMatchApi = async (): Promise<ApiResponse<any[]>> => {
+    const response = await api.get<ApiResponse<any[]>>('/profile/ai-match');
+    return response.data;
+};

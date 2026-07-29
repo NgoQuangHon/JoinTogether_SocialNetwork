@@ -1,6 +1,6 @@
 import api from './api';
 import type { ApiResponse } from '../types/auth';
-import type { CreateActivityRequest, DanhMucHoatDong, HoatDongResponse, TieuChiThamGia, SearchFilters } from '../types/activity';
+import type { CreateActivityRequest, DanhMucHoatDong, HoatDongResponse, TieuChiThamGia, SearchFilters, SearchResult } from '../types/activity';
 
 export const createActivityApi = async (data: CreateActivityRequest): Promise<ApiResponse<HoatDongResponse>> => {
   const response = await api.post<ApiResponse<HoatDongResponse>>('/activities', data);

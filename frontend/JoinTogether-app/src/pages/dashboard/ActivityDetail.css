@@ -204,3 +204,10 @@
 .cam-confirm-actions .cam-btn-danger:not(:disabled):hover {
   background: #d32f2f;
 }
+
+@media (max-width: 600px) {
+  .cam-detail-modal {
+    border-radius: 24px 24px 0 0;
+    max-height: 90vh;
+  }
+}

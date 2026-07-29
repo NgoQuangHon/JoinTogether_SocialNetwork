@@ -17,43 +17,31 @@ export default function NavItems({ onClose, onNavigate }: { onClose?: () => void
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <>
+    <nav className="nav-items-list">
       <a href="/dashboard" className={`nav-item ${isActive('/dashboard') ? 'active' : ''}`} onClick={go('/dashboard')}>
-        <span className="nav-icon">D</span>
-        Trang chủ
-      </a>
-      <a href="/my-profile" className={`nav-item ${isActive('/my-profile') ? 'active' : ''}`} onClick={go('/my-profile')}>
-        <span className="nav-icon">P</span>
-        Hồ sơ
+        <span>Trang chủ</span>
       </a>
       <a href="/activities" className={`nav-item ${isActive('/activities') ? 'active' : ''}`} onClick={go('/activities')}>
-        <span className="nav-icon">A</span>
-        Hoạt động
+        <span>Hoạt động</span>
       </a>
       <a href="/requests" className={`nav-item ${isActive('/requests') ? 'active' : ''}`} onClick={go('/requests')}>
-        <span className="nav-icon">R</span>
-        Yêu cầu kết nối
+        <span>Yêu cầu kết nối</span>
       </a>
       <a href="/connections" className={`nav-item ${isActive('/connections') ? 'active' : ''}`} onClick={go('/connections')}>
-        <span className="nav-icon">C</span>
-        Kết nối
+        <span>Bạn bè & Kết nối</span>
       </a>
       <a href="/ai-match" className={`nav-item ${isActive('/ai-match') ? 'active' : ''}`} onClick={go('/ai-match')}>
-        <span className="nav-icon">M</span>
-        AI Match
+        <span>AI Ghép đôi</span>
       </a>
       <a href="/reviews" className={`nav-item ${isActive('/reviews') ? 'active' : ''}`} onClick={go('/reviews')}>
-        <span className="nav-icon">R</span>
-        Đánh giá
+        <span>Đánh giá uy tín</span>
+      </a>
+      <a href="/interests" className={`nav-item ${isActive('/interests') ? 'active' : ''}`} onClick={go('/interests')}>
+        <span>Sở thích của tôi</span>
       </a>
       <a href="/report" className={`nav-item ${isActive('/report') ? 'active' : ''}`} onClick={go('/report')}>
-        <span className="nav-icon">!</span>
-        Báo cáo
+        <span>Báo cáo vi phạm</span>
       </a>
-      <a href="#" className="nav-item" onClick={go('#')}>
-        <span className="nav-icon">C</span>
-        Tin nhắn
-      </a>
-    </>
+    </nav>
   );
 }

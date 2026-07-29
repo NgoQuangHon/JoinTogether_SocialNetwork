@@ -25,7 +25,7 @@ export class NguoiDungRepository {
             WHERE nguoi_dung_id = $1
         `;
     const result = await pool.query(query, [nguoiDungId]);
-    return result.rows.length > 0 ? result.rows[0] : null;
+    return (result?.rows?.length ?? 0) > 0 ? result.rows[0] : null;
   }
 
   async findByEmail(email: string): Promise<NguoiDung | null> {
@@ -35,7 +35,7 @@ export class NguoiDungRepository {
             WHERE email = $1
         `;
     const result = await pool.query(query, [email]);
-    return result.rows.length > 0 ? result.rows[0] : null;
+    return (result?.rows?.length ?? 0) > 0 ? result.rows[0] : null;
   }
 
   async findByPhone(soDienThoai: string): Promise<NguoiDung | null> {
@@ -45,7 +45,7 @@ export class NguoiDungRepository {
             WHERE so_dien_thoai = $1
         `;
     const result = await pool.query(query, [soDienThoai]);
-    return result.rows.length > 0 ? result.rows[0] : null;
+    return (result?.rows?.length ?? 0) > 0 ? result.rows[0] : null;
   }
 
   // ==================== UC7.1: QUẢN LÝ TÀI KHOẢN ====================

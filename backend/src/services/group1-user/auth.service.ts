@@ -311,4 +311,73 @@ export class AuthService {
       role: primaryRole,
     };
   }
+
+  async requestPasswordReset(email: string): Promise<any> {
+    if (!email) {
+      throw new AppError("Vui lòng cung cấp email.", 400);
+    }
+    const checkQuery = `SELECT nguoi_dung_id FROM nguoi_dung WHERE email = $1`;
+    const checkRes = await pool.query(checkQuery, [email]);
+    const user = checkRes.rows[0];
+    if (!user) {
+      // Vì bảo mật, không báo lộ email không tồn tại
+      return { message: "Nếu email tồn tại trong hệ thống, mã OTP khôi phục mật khẩu đã được gửi." };
+    }
+    const tkRes = await pool.query(`SELECT tai_khoan_id FROM tai_khoan WHERE nguoi_dung_id = $1`, [user.nguoi_dung_id]);
+    const tk = tkRes.rows[0];
+    if (!tk) {
+      return { message: "Nếu email tồn tại trong hệ thống, mã OTP khôi phục mật khẩu đã được gửi." };
+    }
+
+    const maXacThuc = crypto.randomInt(100000, 999999).toString();
+    await pool.query(
+      `INSERT INTO thong_tin_xac_thuc (tai_khoan_id, loai_xac_thuc, ma_xac_thuc, thoi_gian_het_han, da_su_dung)
+       VALUES ($1, 'PASSWORD_RESET', $2, NOW() + INTERVAL '${OTP_EXPIRY_MINUTES} minutes', false)`,
+      [tk.tai_khoan_id, maXacThuc]
+    );
+
+    sendVerificationEmail(email, maXacThuc).catch((err) =>
+      console.error("Failed to send reset password email:", err)
+    );
+
+    return { message: "Mã xác thực khôi phục mật khẩu đã được gửi đến email của bạn.", taiKhoanId: tk.tai_khoan_id };
+  }
+
+  async resetPassword(data: { email: string; maXacThuc: string; matKhauMoi: string }): Promise<any> {
+    const { email, maXacThuc, matKhauMoi } = data;
+    if (!email || !maXacThuc || !matKhauMoi) {
+      throw new AppError("Vui lòng cung cấp đầy đủ email, mã xác thực và mật khẩu mới.", 400);
+    }
+    if (matKhauMoi.length < MIN_PASSWORD_LENGTH) {
+      throw new AppError(`Mật khẩu tối thiểu ${MIN_PASSWORD_LENGTH} ký tự.`, 400);
+    }
+
+    const checkQuery = `SELECT nd.nguoi_dung_id, tk.tai_khoan_id 
+                        FROM nguoi_dung nd 
+                        JOIN tai_khoan tk ON nd.nguoi_dung_id = tk.nguoi_dung_id 
+                        WHERE nd.email = $1`;
+    const checkRes = await pool.query(checkQuery, [email]);
+    const row = checkRes.rows[0];
+    if (!row) {
+      throw new AppError("Thông tin xác thực không chính xác.", 400);
+    }
+
+    const otpQuery = `
+      SELECT thong_tin_xac_thuc_id 
+      FROM thong_tin_xac_thuc 
+      WHERE tai_khoan_id = $1 AND loai_xac_thuc = 'PASSWORD_RESET' AND ma_xac_thuc = $2 AND da_su_dung = false AND thoi_gian_het_han > NOW()
+      ORDER BY tao_luc DESC LIMIT 1
+    `;
+    const otpRes = await pool.query(otpQuery, [row.tai_khoan_id, maXacThuc]);
+    const otpRecord = otpRes.rows[0];
+    if (!otpRecord) {
+      throw new AppError("Mã xác thực không hợp lệ hoặc đã hết hạn.", 400);
+    }
+
+    const matKhauMaHoa = await bcrypt.hash(matKhauMoi, 10);
+    await pool.query(`UPDATE tai_khoan SET mat_khau_ma_hoa = $1 WHERE tai_khoan_id = $2`, [matKhauMaHoa, row.tai_khoan_id]);
+    await pool.query(`UPDATE thong_tin_xac_thuc SET da_su_dung = true WHERE thong_tin_xac_thuc_id = $1`, [otpRecord.thong_tin_xac_thuc_id]);
+
+    return { message: "Khôi phục mật khẩu thành công. Vui lòng đăng nhập bằng mật khẩu mới." };
+  }
 }

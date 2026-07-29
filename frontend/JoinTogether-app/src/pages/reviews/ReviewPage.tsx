@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import NavItems from '../../components/NavItems';
+import SidebarLayout from '../../components/SidebarLayout';
 import '../../styles/dashboard.css';
 import './Review.css';
 import {
@@ -30,8 +29,7 @@ function Avatar({ mau, chu, kichThuoc = 40 }: { mau: string; chu: string; kichTh
 }
 
 export default function ReviewPage() {
-  const { nguoiDungId, isAuthenticated, logout } = useAuth();
-  const navigate = useNavigate();
+  const { nguoiDungId, isAuthenticated } = useAuth();
   const [tab, setTab] = useState<'reputation' | 'history' | 'write' | 'received'>('reputation');
   const [rep, setRep] = useState<DiemUyTin | null>(null);
   const [history, setHistory] = useState<LichSuDiemUyTin[]>([]);
@@ -120,33 +118,25 @@ export default function ReviewPage() {
       return;
     }
     const chiTiet = Object.entries(scores)
-      .filter(([, v]) => v > 0)
-      .map(([k, v]) => ({ tieuChiDanhGiaId: parseInt(k, 10), diem: v }));
-
-    const diemTong =
-      chiTiet.length > 0
-        ? chiTiet.reduce((s, c) => s + c.diem, 0) / chiTiet.length
-        : undefined;
-
+      .filter(([, diem]) => diem > 0)
+      .map(([id, diem]) => ({ tieuChiDanhGiaId: parseInt(id, 10), diem }));
+    if (chiTiet.length === 0) {
+      setMsg({ type: 'err', text: 'Vui lòng chấm điểm ít nhất một tiêu chí.' });
+      return;
+    }
     setLoading(true);
     try {
       const res = await createReviewApi({
         hoatDongId: hdId,
         nguoiDuocDanhGiaId: targetId,
-        nhanXet: nhanXet || undefined,
-        diemTong,
-        chiTiet: chiTiet.length ? chiTiet : undefined,
+        nhanXet: nhanXet.trim() || undefined,
+        chiTiet,
       });
       if (res.success) {
-        setMsg({ type: 'ok', text: 'Đã gửi đánh giá thành công!' });
+        setMsg({ type: 'ok', text: 'Gửi đánh giá thành công!' });
         setHoatDongId('');
         setNguoiDuocDanhGiaId('');
         setNhanXet('');
-        const reset: Record<number, number> = {};
-        criteria.forEach((c) => {
-          reset[c.tieuChiDanhGiaId] = 0;
-        });
-        setScores(reset);
         loadReputation();
       } else {
         setMsg({ type: 'err', text: res.message || 'Gửi đánh giá thất bại.' });
@@ -165,249 +155,223 @@ export default function ReviewPage() {
   const pct = Math.min(100, Math.max(0, ((rep?.diemHienTai ?? 100) / 100) * 100));
 
   return (
-    <div className="desktop-view" style={{ minHeight: '100vh' }}>
-      {/* Sidebar */}
-      <aside
-        style={{
-          width: 240,
-          borderRight: '1px solid var(--border)',
-          padding: '20px 12px',
-          background: '#fff',
-          position: 'sticky',
-          top: 0,
-          height: '100vh',
-          display: 'flex',
-          flexDirection: 'column',
-        }}
-      >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 28, padding: '0 8px' }}>
-            <div className="brand-icon">JT</div>
+    <SidebarLayout title="Đánh giá & Độ tin cậy">
+      <div className="review-page">
+        <div className="review-header">
+          <div className="review-tabs">
+            <button
+              className={`review-tab ${tab === 'reputation' ? 'active' : ''}`}
+              onClick={() => setTab('reputation')}
+            >
+              Điểm uy tín
+            </button>
+            <button
+              className={`review-tab ${tab === 'history' ? 'active' : ''}`}
+              onClick={() => setTab('history')}
+            >
+              Lịch sử
+            </button>
+            <button
+              className={`review-tab ${tab === 'received' ? 'active' : ''}`}
+              onClick={() => setTab('received')}
+            >
+              Đánh giá nhận
+            </button>
+            <button
+              className={`review-tab ${tab === 'write' ? 'active' : ''}`}
+              onClick={() => setTab('write')}
+            >
+              Viết đánh giá
+            </button>
           </div>
-        <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <NavItems />
-        </nav>
-        <button className="logout-btn" onClick={() => { logout(); navigate('/login'); }}>
-          <span className="nav-icon">L</span> Đăng xuất
-        </button>
-      </aside>
+        </div>
 
-      <main style={{ flex: 1, background: 'var(--background)' }}>
-        <div className="review-page">
-          <div className="review-header">
-            <h1>⭐ Đánh giá & Độ tin cậy</h1>
-            <div className="review-tabs">
-              <button
-                className={`review-tab ${tab === 'reputation' ? 'active' : ''}`}
-                onClick={() => setTab('reputation')}
-              >
-                Điểm uy tín
-              </button>
-              <button
-                className={`review-tab ${tab === 'history' ? 'active' : ''}`}
-                onClick={() => setTab('history')}
-              >
-                Lịch sử
-              </button>
-              <button
-                className={`review-tab ${tab === 'received' ? 'active' : ''}`}
-                onClick={() => setTab('received')}
-              >
-                Đánh giá nhận
-              </button>
-              <button
-                className={`review-tab ${tab === 'write' ? 'active' : ''}`}
-                onClick={() => setTab('write')}
-              >
-                Viết đánh giá
-              </button>
-            </div>
-          </div>
-
-          {tab === 'reputation' && (
-            <>
-              <div className="rep-card" style={{ ['--pct' as string]: pct }}>
-                <div className="rep-score-ring">
-                  <span className="rep-score-value">{rep?.diemHienTai ?? '—'}</span>
-                </div>
-                <div className="rep-meta">
-                  <h2>Điểm uy tín của bạn</h2>
-                  <p style={{ fontSize: 13.5, color: 'var(--text-light)' }}>
-                    Điểm càng cao, độ tin cậy của bạn trong cộng đồng càng lớn.
-                  </p>
-                  <div className="rep-stats">
-                    <div className="rep-stat">
-                      <div className="rep-stat-label">Lượt đánh giá</div>
-                      <div className="rep-stat-value">{rep?.soLuotDanhGia ?? 0}</div>
-                    </div>
-                    <div className="rep-stat">
-                      <div className="rep-stat-label">Cảnh báo</div>
-                      <div
-                        className={`rep-stat-value ${
-                          (rep?.soLanCanhBao ?? 0) > 0 ? 'warn' : ''
-                        }`}
-                      >
-                        {rep?.soLanCanhBao ?? 0}
-                      </div>
-                    </div>
-                    <div className="rep-stat">
-                      <div className="rep-stat-label">Mức độ</div>
-                      <div className="rep-stat-value">
-                        {(rep?.diemHienTai ?? 100) >= 90
-                          ? 'Xuất sắc'
-                          : (rep?.diemHienTai ?? 100) >= 70
-                            ? 'Tốt'
-                            : (rep?.diemHienTai ?? 100) >= 50
-                              ? 'Khá'
-                              : 'Cần cải thiện'}
-                      </div>
-                    </div>
+        {tab === 'reputation' && (
+          <>
+            <div className="rep-card" style={{ ['--pct' as string]: pct }}>
+              <div className="rep-score-ring">
+                <span className="rep-score-value">{rep?.diemHienTai ?? '—'}</span>
+                <span className="rep-score-max">/100</span>
+              </div>
+              <div className="rep-info">
+                <span className="rep-badge rank-dong">
+                  Cấp độ Uy tín
+                </span>
+                <div className="rep-stats">
+                  <div>
+                    <strong>{rep?.soLuotDanhGia ?? 0}</strong>
+                    <span>Tổng lượt đánh giá</span>
+                  </div>
+                  <div>
+                    <strong>{rep?.soLanCanhBao ?? 0}</strong>
+                    <span>Số lần cảnh báo</span>
                   </div>
                 </div>
               </div>
-            </>
-          )}
+            </div>
 
-          {tab === 'history' && (
-            <div className="history-list">
-              {loading && <p style={{ textAlign: 'center', color: 'var(--text-light)' }}>Đang tải...</p>}
-              {!loading && history.length === 0 && (
-                <div className="empty-state">
-                  <div className="empty-state-icon">📜</div>
-                  <p>Chưa có lịch sử thay đổi điểm uy tín.</p>
-                </div>
-              )}
-              {history.map((h) => (
-                <div key={h.lichSuId} className="history-item">
-                  <div className={`history-delta ${h.diemThayDoi >= 0 ? 'plus' : 'minus'}`}>
-                    {h.diemThayDoi >= 0 ? `+${h.diemThayDoi}` : h.diemThayDoi}
-                  </div>
-                  <div className="history-body">
-                    <div className="history-reason">{h.lyDoThayDoi || 'Cập nhật điểm'}</div>
-                    <div className="history-time">
-                      {h.thoiGianCapNhat
-                        ? new Date(h.thoiGianCapNhat).toLocaleString('vi-VN')
-                        : ''}
+            <div className="rep-guide">
+              <h4>Quy tắc điểm uy tín</h4>
+              <ul>
+                <li>Điểm khởi đầu mặc định là <strong>100 điểm</strong>.</li>
+                <li>Tham gia hoạt động tích cực & nhận đánh giá tốt: <strong>+điểm</strong>.</li>
+                <li>Hủy tham gia muộn hoặc bị báo cáo vi phạm: <strong>-điểm</strong>.</li>
+                <li>Cấp độ: Đồng (0-100), Bạc (101-200), Vàng (201-300), Kim Cương (&gt;300).</li>
+              </ul>
+            </div>
+          </>
+        )}
+
+        {tab === 'history' && (
+          <div className="history-section">
+            {loading ? (
+              <p className="loading-txt">Đang tải lịch sử...</p>
+            ) : history.length === 0 ? (
+              <p className="empty-txt">Chưa có lịch sử thay đổi điểm nào.</p>
+            ) : (
+              <ul className="history-list">
+                {history.map((h) => (
+                  <li key={h.lichSuId} className="history-item">
+                    <div className="history-left">
+                      <span className={`history-delta ${h.diemThayDoi >= 0 ? 'pos' : 'neg'}`}>
+                        {h.diemThayDoi >= 0 ? `+${h.diemThayDoi}` : h.diemThayDoi}
+                      </span>
+                      <div>
+                        <p className="history-reason">{h.lyDoThayDoi || 'Thay đổi điểm'}</p>
+                        <span className="history-date">
+                          {h.thoiGianCapNhat ? new Date(h.thoiGianCapNhat).toLocaleDateString('vi-VN') : ''}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
 
-          {tab === 'received' && (
-            <div className="review-list">
-              {loading && <p style={{ textAlign: 'center', color: 'var(--text-light)' }}>Đang tải...</p>}
-              {!loading && reviews.length === 0 && (
-                <div className="empty-state">
-                  <div className="empty-state-icon">💬</div>
-                  <p>Bạn chưa nhận đánh giá nào.</p>
-                </div>
-              )}
-              {reviews.map((r) => (
-                <div key={r.danhGiaId} className="review-item">
-                  <div className="review-item-header">
-                    <Avatar
-                      mau="var(--primary)"
-                      chu={(r.nguoiDanhGia?.hoTen || '?')[0].toUpperCase()}
-                    />
-                    <span className="review-item-name">
-                      {r.nguoiDanhGia?.hoTen || `Người dùng #${r.nguoiDanhGiaId}`}
-                    </span>
-                    {r.diemTong != null && (
-                      <span className="review-item-score">{r.diemTong.toFixed(1)} ★</span>
-                    )}
-                  </div>
-                  {r.nhanXet && <p className="review-item-comment">{r.nhanXet}</p>}
-                </div>
-              ))}
-            </div>
-          )}
-
-          {tab === 'write' && (
-            <div className="review-form-card">
-              <h3>Gửi đánh giá sau hoạt động</h3>
-              {msg && (
-                <div className={msg.type === 'ok' ? 'alert-success' : 'alert-error'}>{msg.text}</div>
-              )}
-              <form onSubmit={handleSubmit}>
-                <div className="form-row">
-                  <label>ID hoạt động *</label>
-                  <input
-                    type="number"
-                    value={hoatDongId}
-                    onChange={(e) => setHoatDongId(e.target.value)}
-                    placeholder="Nhập ID hoạt động đã tham gia"
-                    required
-                  />
-                </div>
-                <div className="form-row">
-                  <label>ID người được đánh giá *</label>
-                  <input
-                    type="number"
-                    value={nguoiDuocDanhGiaId}
-                    onChange={(e) => setNguoiDuocDanhGiaId(e.target.value)}
-                    placeholder="ID người dùng cần đánh giá"
-                    required
-                  />
-                </div>
-
-                {criteria.length > 0 && (
-                  <div className="form-row">
-                    <label>Đánh giá theo tiêu chí</label>
-                    <div className="criteria-list">
-                      {criteria.map((c) => (
-                        <div key={c.tieuChiDanhGiaId} className="criteria-item">
-                          <span className="criteria-name">
-                            {c.tenTieuChi}
-                            {c.trongSo != null && (
-                              <span style={{ color: 'var(--text-light)', fontSize: 12 }}>
-                                {' '}
-                                (trọng số {c.trongSo})
-                              </span>
-                            )}
-                          </span>
-                          <div className="criteria-stars">
-                            {[1, 2, 3, 4, 5].map((s) => (
-                              <button
-                                key={s}
-                                type="button"
-                                className={`star-btn ${
-                                  (scores[c.tieuChiDanhGiaId] || 0) >= s ? 'active' : ''
-                                }`}
-                                onClick={() =>
-                                  setScores((prev) => ({
-                                    ...prev,
-                                    [c.tieuChiDanhGiaId]: s,
-                                  }))
-                                }
-                              >
-                                ★
-                              </button>
-                            ))}
+        {tab === 'received' && (
+          <div className="reviews-section">
+            {loading ? (
+              <p className="loading-txt">Đang tải đánh giá...</p>
+            ) : reviews.length === 0 ? (
+              <p className="empty-txt">Bạn chưa nhận được đánh giá nào.</p>
+            ) : (
+              <div className="reviews-list">
+                {reviews.map((r) => {
+                  const authorName = typeof r.nguoiDanhGia === 'object' ? r.nguoiDanhGia?.hoTen : `Người dùng #${r.nguoiDanhGiaId}`;
+                  return (
+                    <div key={r.danhGiaId} className="review-item">
+                      <div className="review-item-header">
+                        <div className="review-author">
+                          <Avatar
+                            mau="#66c2b2"
+                            chu={authorName ? authorName.charAt(0).toUpperCase() : 'U'}
+                          />
+                          <div>
+                            <strong>{authorName}</strong>
                           </div>
                         </div>
-                      ))}
+                        {r.diemTong && (
+                          <span className="review-avg">★ {Number(r.diemTong).toFixed(1)}</span>
+                        )}
+                      </div>
+                      {r.nhanXet && <p className="review-text">{r.nhanXet}</p>}
+                      {r.chiTiet && r.chiTiet.length > 0 && (
+                        <div className="review-details">
+                          {r.chiTiet.map((ct) => (
+                            <span key={ct.tieuChiDanhGiaId} className="detail-tag">
+                              {ct.tenTieuChi || `Tiêu chí ${ct.tieuChiDanhGiaId}`}: {ct.diem}★
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  </div>
-                )}
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
 
+        {tab === 'write' && (
+          <div className="write-review-section">
+            {msg && (
+              <div className={`msg-banner ${msg.type === 'ok' ? 'msg-ok' : 'msg-err'}`}>
+                {msg.text}
+              </div>
+            )}
+            <form onSubmit={handleSubmit} className="review-form">
+              <div className="form-row">
+                <label>ID Hoạt động</label>
+                <input
+                  type="number"
+                  value={hoatDongId}
+                  onChange={(e) => setHoatDongId(e.target.value)}
+                  placeholder="Nhập ID hoạt động nhóm..."
+                  required
+                />
+              </div>
+
+              <div className="form-row">
+                <label>ID Người được đánh giá</label>
+                <input
+                  type="number"
+                  value={nguoiDuocDanhGiaId}
+                  onChange={(e) => setNguoiDuocDanhGiaId(e.target.value)}
+                  placeholder="Nhập ID thành viên..."
+                  required
+                />
+              </div>
+
+              {criteria.length > 0 && (
                 <div className="form-row">
-                  <label>Nhận xét</label>
-                  <textarea
-                    value={nhanXet}
-                    onChange={(e) => setNhanXet(e.target.value)}
-                    placeholder="Chia sẻ trải nghiệm của bạn..."
-                  />
+                  <label>Chấm điểm tiêu chí (1 đến 5 sao)</label>
+                  <div className="criteria-scores">
+                    {criteria.map((c) => (
+                      <div key={c.tieuChiDanhGiaId} className="criteria-score-item">
+                        <span>{c.tenTieuChi}</span>
+                        <div className="star-rating">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <button
+                              type="button"
+                              key={star}
+                              className={`star-btn ${
+                                (scores[c.tieuChiDanhGiaId] || 0) >= star ? 'selected' : ''
+                              }`}
+                              onClick={() =>
+                                setScores((prev) => ({
+                                  ...prev,
+                                  [c.tieuChiDanhGiaId]: star,
+                                }))
+                              }
+                            >
+                              ★
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
+              )}
 
-                <button type="submit" className="primary-btn" disabled={loading}>
-                  {loading ? 'Đang gửi...' : 'Gửi đánh giá'}
-                </button>
-              </form>
-            </div>
-          )}
-        </div>
-      </main>
-    </div>
+              <div className="form-row">
+                <label>Nhận xét</label>
+                <textarea
+                  value={nhanXet}
+                  onChange={(e) => setNhanXet(e.target.value)}
+                  placeholder="Chia sẻ trải nghiệm của bạn..."
+                />
+              </div>
+
+              <button type="submit" className="primary-btn" disabled={loading}>
+                {loading ? 'Đang gửi...' : 'Gửi đánh giá'}
+              </button>
+            </form>
+          </div>
+        )}
+      </div>
+    </SidebarLayout>
   );
 }

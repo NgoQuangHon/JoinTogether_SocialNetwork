@@ -33,6 +33,6 @@ export class ChanRepository {
       `SELECT 1 FROM chan WHERE nguoi_chan_id = $1 AND nguoi_bi_chan_id = $2`,
       [nguoiChanId, nguoiBiChanId],
     );
-    return result.rows.length > 0;
+    return (result?.rows?.length ?? 0) > 0;
   }
 }

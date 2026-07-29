@@ -20,19 +20,22 @@ import postRouter from "./routes/group4-interaction/post.routes";
 import reportRouter from "./routes/group6-admin/report.routes";
 import adminRouter from "./routes/group6-admin/admin.routes";
 import accountRouter from "./routes/group6-admin/account.routes";
+import path from "path";
 import rolePermissionRouter from "./routes/group6-admin/rolePermission.routes";
+import uploadRouter from "./routes/upload.routes";
 
 const app = express();
 
 const corsOrigin = process.env.CORS_ORIGIN?.split(",");
 
-app.use(helmet());
+app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(
   cors({
     origin: corsOrigin === undefined || corsOrigin === null ? "*" : corsOrigin,
   }),
 );
 app.use(express.json({ limit: "50mb" }));
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 app.use("/api/auth", authRouter);
 app.use("/api/profile", profileRouter);
@@ -46,6 +49,7 @@ app.use("/api/reports", reportRouter);
 app.use("/api/admin/accounts", accountRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/admin", rolePermissionRouter);
+app.use("/api/upload", uploadRouter);
 
 app.get("/health", (req, res) => {
   res.send({ status: "good response" });

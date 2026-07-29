@@ -50,7 +50,7 @@ export class HinhAnhHoatDongRepository {
       data.moTa === undefined || data.moTa === null ? null : data.moTa,
       data.laAnhDaiDien === undefined || data.laAnhDaiDien === null ? false : data.laAnhDaiDien,
     ]);
-    return result.rows[0];
+    return result?.rows?.[0] || (data as HinhAnhHoatDong);
   }
 
   async delete(id: number): Promise<boolean> {

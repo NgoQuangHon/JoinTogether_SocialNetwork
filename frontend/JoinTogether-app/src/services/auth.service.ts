@@ -20,3 +20,13 @@ export const resendCodeApi = async (taiKhoanId: number): Promise<ApiResponse> =>
   const response = await api.post<ApiResponse>('/auth/resend-code', { taiKhoanId });
   return response.data;
 };
+
+export const requestPasswordResetApi = async (email: string): Promise<ApiResponse> => {
+  const response = await api.post<ApiResponse>('/auth/request-password-reset', { email });
+  return response.data;
+};
+
+export const resetPasswordApi = async (data: { email: string; maXacThuc: string; matKhauMoi: string }): Promise<ApiResponse> => {
+  const response = await api.post<ApiResponse>('/auth/reset-password', data);
+  return response.data;
+};

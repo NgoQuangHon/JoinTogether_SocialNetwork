@@ -49,7 +49,7 @@ export class ConnectionService {
       `SELECT cho_phep_nhan_yeu_cau_ket_noi AS "choPhepNhan" FROM ho_so_nguoi_dung WHERE nguoi_dung_id = $1`,
       [nguoiNhanId],
     );
-    if (profileResult.rows.length > 0 && profileResult.rows[0].choPhepNhan === false) {
+    if (profileResult?.rows?.length && profileResult.rows[0]?.choPhepNhan === false) {
       throw new ForbiddenError("Người dùng này không nhận yêu cầu kết nối.");
     }
 

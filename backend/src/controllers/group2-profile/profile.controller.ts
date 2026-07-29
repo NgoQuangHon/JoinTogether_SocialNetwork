@@ -205,4 +205,13 @@ export class ProfileController {
         data: updated,
       });
     });
+
+  public getAIMatches = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+      const nguoiDungId = req.user!.nguoiDungId;
+      const matches = await this.profileService.getAIMatches(nguoiDungId);
+      res.status(200).json({
+        success: true,
+        data: matches,
+      });
+    });
 }

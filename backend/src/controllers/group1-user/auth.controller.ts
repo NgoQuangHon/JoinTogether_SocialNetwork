@@ -37,4 +37,15 @@ export class AuthController {
     const result = await this.authService.resendVerificationCode(taiKhoanId);
     res.status(200).json({ success: true, message: result.message });
   });
+
+  public requestPasswordReset = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const { email } = req.body;
+    const result = await this.authService.requestPasswordReset(email);
+    res.status(200).json({ success: true, message: result.message });
+  });
+
+  public resetPassword = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const result = await this.authService.resetPassword(req.body);
+    res.status(200).json({ success: true, message: result.message });
+  });
 }

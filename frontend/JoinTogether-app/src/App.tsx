@@ -3,6 +3,7 @@ import AuthLayout from './pages/auth/AuthLayout';
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import VerifyEmailPage from './pages/auth/VerifyEmailPage';
+import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 import DashboardPage from './pages/dashboard/DashboardPage';
 import MyActivitiesPage from './pages/activities/MyActivitiesPage';
 import ProfilePage from './pages/profile/ProfilePage';
@@ -31,7 +32,7 @@ export default function App() {
             <Route element={<AuthLayout />}>
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
-                <Route path="/forgot-password" element={<div className="auth-card"><h2>Quên mật khẩu</h2><p className="subtitle">Tính năng đang phát triển.</p></div>} />
+                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             </Route>
             <Route path="/verify-email" element={<VerifyEmailPage />} />
 

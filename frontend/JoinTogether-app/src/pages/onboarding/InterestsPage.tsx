@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { getInterestCategories, addInterest, updateGoals } from '../../services/interest.service';
 import type { InterestCategory } from '../../services/interest.service';
 import './Onboarding.css';
@@ -39,8 +39,6 @@ const RADIUS_OPTIONS = [
 
 export default function InterestsPage() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const onboarding = searchParams.get('onboarding') === 'true';
   const [categories, setCategories] = useState<InterestCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedInterests, setSelectedInterests] = useState<Set<number>>(new Set());
@@ -90,7 +88,6 @@ export default function InterestsPage() {
     );
   };
 
-  const canFinish = true;
   const needsMoreInterests = selectedInterests.size < 3;
 
   const handleFinish = async () => {

@@ -19,7 +19,7 @@ import './Admin.css';
 type Tab = 'reports' | 'users' | 'audit';
 
 export default function AdminDashboard() {
-  const { isAuthenticated, logout, role, roles } = useAuth();
+  const { isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>('reports');
   const [reports, setReports] = useState<BaoCaoViPham[]>([]);

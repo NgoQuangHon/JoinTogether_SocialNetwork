@@ -40,6 +40,11 @@ profileRouter.put(
   authenticateToken,
   profileController.updateGoals,
 );
+profileRouter.get(
+  "/ai-match",
+  authenticateToken,
+  profileController.getAIMatches,
+);
 profileRouter.get("/:id", authenticateToken, profileController.getProfile);
 
 export default profileRouter;

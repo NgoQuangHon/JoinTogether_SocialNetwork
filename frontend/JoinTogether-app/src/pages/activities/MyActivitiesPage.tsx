@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { getMyActivitiesApi } from '../../services/activity.service';
 import type { HoatDongResponse } from '../../types/activity';
-import NavItems from '../../components/NavItems';
+import SidebarLayout from '../../components/SidebarLayout';
 import ActivityDetailModal from '../dashboard/ActivityDetailModal';
 import '../../styles/dashboard.css';
 import './MyActivities.css';
@@ -39,12 +39,11 @@ function MyActivityCard({ hd, onClick }: { hd: HoatDongResponse; onClick: () => 
 }
 
 export default function MyActivitiesPage() {
-  const { logout, nguoiDungId } = useAuth();
+  const { nguoiDungId } = useAuth();
   const navigate = useNavigate();
   const [activities, setActivities] = useState<HoatDongResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedActivity, setSelectedActivity] = useState<HoatDongResponse | null>(null);
-  const [menuMo, setMenuMo] = useState(false);
   const [filter, setFilter] = useState<string>('tat-ca');
 
   const filteredActivities = filter === 'tat-ca'
@@ -57,11 +56,6 @@ export default function MyActivitiesPage() {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login', { replace: true });
-  };
 
   const handleDeleted = (id: number) => {
     setActivities((prev) => prev.map((a) => a.hoatDongId === id ? { ...a, trangThai: 'da_huy' } : a));
@@ -76,7 +70,7 @@ export default function MyActivitiesPage() {
   };
 
   const FilterBar = () => (
-    <div className="my-filter-bar">
+    <div className="my-filter-bar" style={{ marginBottom: 20 }}>
       {[
         { key: 'tat-ca', label: 'Tất cả' },
         { key: 'sap_dien_ra', label: 'Sắp diễn ra' },
@@ -95,121 +89,36 @@ export default function MyActivitiesPage() {
   );
 
   return (
-    <>
-      {/* Mobile */}
-      <div className="mobile-view">
-        <div className="app-outer">
-          <div className="phone-shell">
-            <header className="app-header">
-              <button className="icon-btn" onClick={() => setMenuMo(true)}>☰</button>
-              <span className="app-title">Hoạt động của tôi</span>
-              <button className="icon-btn icon-btn-bell">🔔<span className="bell-dot" /></button>
-            </header>
-
-            {menuMo && (
-              <>
-                <div className="drawer-overlay" onClick={() => setMenuMo(false)} />
-                <nav className="drawer-panel">
-                  <div className="drawer-brand">
-                    <div className="brand-icon" style={{ width: 44, height: 44, fontSize: 22 }}>JT</div>
-                  </div>
-                  <NavItems onClose={() => setMenuMo(false)} />
-                  <button className="logout-btn" onClick={handleLogout}>🚪 Đăng xuất</button>
-                </nav>
-              </>
-            )}
-
-            <div className="app-body">
-              {loading ? (
-                <p className="cam-hint">Đang tải...</p>
-              ) : activities.length === 0 ? (
-                <div className="my-empty">
-                  <p>Bạn chưa tạo hoạt động nào.</p>
-                  <button className="cam-btn-primary" onClick={() => navigate('/dashboard')}>Quay về trang chủ</button>
-                </div>
-              ) : (
-                <>
-                  <FilterBar />
-                  <div className="my-list-mobile">
-                    {filteredActivities.map((hd) => (
-                      <MyActivityCard key={hd.hoatDongId} hd={hd} onClick={() => setSelectedActivity(hd)} />
-                    ))}
-                  </div>
-                </>
-              )}
+    <SidebarLayout title="Hoạt động của tôi">
+      <div className="my-activities-container">
+        {loading ? (
+          <p className="cam-hint">Đang tải...</p>
+        ) : activities.length === 0 ? (
+          <div className="my-empty">
+            <p>Bạn chưa tạo hoạt động nào.</p>
+            <button className="cam-btn-primary" onClick={() => navigate('/dashboard')}>Quay về trang chủ</button>
+          </div>
+        ) : (
+          <>
+            <FilterBar />
+            <div className="my-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
+              {filteredActivities.map((hd) => (
+                <MyActivityCard key={hd.hoatDongId} hd={hd} onClick={() => setSelectedActivity(hd)} />
+              ))}
             </div>
+          </>
+        )}
 
-            <nav className="bottom-nav">
-              <button className="bottom-nav-item" onClick={() => navigate('/dashboard')}>
-                <span className="bottom-nav-icon">🏠</span>Trang chủ
-              </button>
-              <button className="bottom-nav-item bottom-nav-active">
-                <span className="bottom-nav-icon">🎯</span>Hoạt động
-              </button>
-              <button className="bottom-nav-item">
-                <span className="bottom-nav-icon">💬</span>Tin nhắn
-              </button>
-              <button className="bottom-nav-item" onClick={() => setMenuMo(true)}>
-                <span className="bottom-nav-icon">👤</span>Cá nhân
-              </button>
-            </nav>
-          </div>
-        </div>
+        {selectedActivity && (
+          <ActivityDetailModal
+            activity={selectedActivity}
+            onClose={() => setSelectedActivity(null)}
+            onCancel={handleDeleted}
+            onEdited={handleEdited}
+            currentUserId={nguoiDungId}
+          />
+        )}
       </div>
-
-      {/* Desktop */}
-      <div className="desktop-view">
-        <aside className="sidebar">
-          <div className="drawer-brand">
-            <div className="brand-icon" style={{ width: 44, height: 44, fontSize: 22 }}>🌿</div>
-          </div>
-          <nav className="sidebar-nav">
-            <NavItems />
-          </nav>
-          <div className="sidebar-footer">
-            <button className="logout-btn" onClick={handleLogout}>🚪 Đăng xuất</button>
-          </div>
-        </aside>
-
-        <main className="main-content">
-          <header className="topbar">
-            <h1>Hoạt động của tôi</h1>
-            <div className="topbar-user">
-              <span className="user-badge">ID: {nguoiDungId}</span>
-              <button className="icon-btn icon-btn-bell">🔔<span className="bell-dot" /></button>
-            </div>
-          </header>
-
-          <div className="content-body">
-            {loading ? (
-              <p className="cam-hint">Đang tải...</p>
-            ) : activities.length === 0 ? (
-              <div className="my-empty">
-                <p>Bạn chưa tạo hoạt động nào.</p>
-                <button className="cam-btn-primary" onClick={() => navigate('/dashboard')}>Quay về trang chủ</button>
-              </div>
-            ) : (
-              <>
-                <FilterBar />
-                <div className="my-grid">
-                  {filteredActivities.map((hd) => (
-                    <MyActivityCard key={hd.hoatDongId} hd={hd} onClick={() => setSelectedActivity(hd)} />
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
-        </main>
-      </div>
-
-      {selectedActivity && (
-        <ActivityDetailModal
-          activity={selectedActivity}
-          onClose={() => setSelectedActivity(null)}
-          onCancel={handleDeleted}
-          onEdited={handleEdited}
-        />
-      )}
-    </>
+    </SidebarLayout>
   );
 }

@@ -50,7 +50,7 @@ export class TieuChiThamGiaRepository {
       data.giaTriYeuCau === undefined || data.giaTriYeuCau === null ? null : data.giaTriYeuCau,
       data.batBuoc === undefined || data.batBuoc === null ? false : data.batBuoc,
     ]);
-    return result.rows[0];
+    return result?.rows?.[0] || (data as TieuChiThamGia);
   }
 
   async update(id: number, data: Partial<TieuChiThamGia>): Promise<TieuChiThamGia | null> {

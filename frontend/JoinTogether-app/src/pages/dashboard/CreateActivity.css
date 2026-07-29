@@ -557,3 +557,32 @@
   border-color: #6fbf73;
   color: #6fbf73;
 }
+
+/* Bottom sheet style on mobile */
+@media (max-width: 600px) {
+  .cam-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .cam-modal {
+    border-radius: 24px 24px 0 0;
+    max-height: 85vh;
+    padding: 20px;
+    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .cam-row {
+    flex-direction: column;
+    gap: 0;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}

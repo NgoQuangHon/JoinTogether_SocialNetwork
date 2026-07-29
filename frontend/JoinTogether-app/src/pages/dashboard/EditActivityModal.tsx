@@ -182,9 +182,6 @@ export default function EditActivityModal({
     }
   };
 
-  const gioiTinhLabel = (v: string) => GIOI_TINH_OPTIONS.find((o) => o.value === v)?.label || 'Tất cả';
-  const kinhNghiemLabel = (v: string) => KINH_NGHIEM_OPTIONS.find((o) => o.value === v)?.label || 'Mọi cấp độ';
-
   const canStep1 = form.tenHoatDong.trim().length > 0 && form.danhMucHoatDongId > 0 && form.moTa.trim().length > 0;
   const canStep2 = form.thoiGianBatDau && form.thoiGianKetThuc && form.tenDiaDiem.trim().length > 0;
   const canStep3 = form.soLuongToiDa !== '' && Number(form.soLuongToiDa) > 0;
