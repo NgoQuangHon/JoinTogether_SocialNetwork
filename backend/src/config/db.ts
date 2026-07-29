@@ -21,18 +21,37 @@ if (missingEnvVars.length > 0) {
 
 export type Queryable = Pool | PoolClient;
 
+let dbHost = process.env.DB_HOST || '';
+let dbPort = Number(process.env.DB_PORT) || 5432;
+let dbName = process.env.DB_NAME || 'postgres';
+let dbUser = process.env.DB_USER || 'postgres';
+let dbPass = process.env.DB_PASSWORD || '';
+
+const fullUrl = process.env.DATABASE_URL || (dbHost.startsWith('postgres') ? dbHost : null);
+if (fullUrl) {
+  try {
+    const parsed = new URL(fullUrl);
+    dbHost = parsed.hostname;
+    dbPort = Number(parsed.port) || 5432;
+    dbName = parsed.pathname.replace(/^\//, '') || dbName;
+    dbUser = parsed.username || dbUser;
+    dbPass = parsed.password || dbPass;
+  } catch {}
+}
+
 export const pool = new Pool({
-    host: process.env.DB_HOST,
-    port: Number(process.env.DB_PORT),
-    database: process.env.DB_NAME,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
+    host: dbHost,
+    port: dbPort,
+    database: dbName,
+    user: dbUser,
+    password: dbPass,
     parseInt8: true,
     ssl: process.env.DB_SSL === 'true' || process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
 } as any);
 
 export async function connectDB() {
     try {
+        console.log(`🔌 Đang kết nối PostgreSQL: ${process.env.DB_HOST}:${process.env.DB_PORT}`);
         const client = await pool.connect();
         console.log('✅ PostgreSQL connected');
 
