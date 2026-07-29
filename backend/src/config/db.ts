@@ -1,6 +1,8 @@
 import { Pool, PoolClient } from 'pg';
 import dotenv from 'dotenv';
 import dns from 'dns';
+import fs from 'fs';
+import path from 'path';
 
 try {
   dns.setDefaultResultOrder('ipv4first');
@@ -49,11 +51,46 @@ export const pool = new Pool({
     ssl: process.env.DB_SSL === 'true' || process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
 } as any);
 
+function getSqlContent(): string | null {
+  const possiblePaths = [
+    path.join(__dirname, 'file.sql'),
+    path.join(__dirname, '../src/config/file.sql'),
+    path.join(process.cwd(), 'src/config/file.sql'),
+    path.join(process.cwd(), 'dist/config/file.sql'),
+    path.join(process.cwd(), 'backend/src/config/file.sql'),
+  ];
+  for (const p of possiblePaths) {
+    if (fs.existsSync(p)) {
+      return fs.readFileSync(p, 'utf8');
+    }
+  }
+  return null;
+}
+
 export async function connectDB() {
     try {
         console.log(`🔌 Đang kết nối PostgreSQL: ${process.env.DB_HOST}:${process.env.DB_PORT}`);
         const client = await pool.connect();
         console.log('✅ PostgreSQL connected');
+
+        // Kiểm tra xem bảng nguoi_dung đã tồn tại chưa (Nếu DB mới tinh thì tự khởi tạo Schema)
+        const checkTable = await client.query(`
+          SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_schema = 'public' AND table_name = 'nguoi_dung'
+          );
+        `);
+
+        if (!checkTable.rows[0]?.exists) {
+          console.log('📦 Database mới chưa có bảng, đang tự động khởi tạo toàn bộ Schema từ file.sql...');
+          const sqlContent = getSqlContent();
+          if (sqlContent) {
+            await client.query(sqlContent);
+            console.log('✅ Đã khởi tạo toàn bộ 40+ bảng cơ sở dữ liệu thành công!');
+          } else {
+            console.warn('⚠️ Không tìm thấy file.sql để tự động khởi tạo bảng.');
+          }
+        }
 
         // Migration tự động đảm bảo bảng chan và các cột tùy chọn quyền riêng tư luôn tồn tại
         await client.query(`
