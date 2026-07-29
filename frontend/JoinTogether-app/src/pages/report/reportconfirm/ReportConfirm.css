@@ -1,0 +1,452 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+
+:root {
+    --primary: #6fbf73;
+    --primary-dark: #5aae60;
+    --primary-light: #eaf7eb;
+
+    --secondary: #66c2b2;
+    --secondary-light: #e8f7f4;
+
+    --background: #f7f9f8;
+    --surface: #ffffff;
+
+    --text: #2f3a33;
+    --text-light: #78847c;
+
+    --border: #dce6df;
+
+    --warning: #f4b740;
+
+    --shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+
+    --radius: 16px;
+
+    --transition: 0.3s;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Roboto', sans-serif;
+}
+
+body {
+    background: var(--background);
+}
+
+.report-confirm-page {
+    min-height: 100vh;
+
+    background: var(--background);
+}
+
+.confirm-header {
+    position: sticky;
+
+    top: 0;
+
+    z-index: 99;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 18px;
+
+    padding: 18px 22px;
+
+    background: white;
+
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.confirm-header h1 {
+    font-size: 24px;
+
+    color: var(--text);
+}
+
+.back-button {
+    width: 42px;
+
+    height: 42px;
+
+    border: none;
+
+    border-radius: 50%;
+
+    background: var(--primary-light);
+
+    color: var(--primary-dark);
+
+    cursor: pointer;
+
+    font-size: 22px;
+
+    transition: var(--transition);
+}
+
+.back-button:hover {
+    background: var(--primary);
+
+    color: white;
+}
+
+.confirm-container {
+    width: min(900px, 92%);
+
+    margin: auto;
+
+    padding: 36px 0 60px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 24px;
+}
+
+.confirm-banner {
+    display: flex;
+
+    align-items: center;
+
+    gap: 22px;
+
+    background: linear-gradient(135deg, var(--primary-light), var(--secondary-light));
+
+    padding: 28px;
+
+    border-radius: var(--radius);
+
+    box-shadow: var(--shadow);
+}
+
+.banner-icon {
+    width: 72px;
+
+    height: 72px;
+
+    border-radius: 50%;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    background: white;
+
+    font-size: 34px;
+
+    flex-shrink: 0;
+}
+
+.confirm-banner h2 {
+    color: var(--primary-dark);
+
+    margin-bottom: 8px;
+}
+
+.confirm-banner p {
+    color: var(--text-light);
+
+    line-height: 1.8;
+}
+
+.confirm-card {
+    background: white;
+
+    border-radius: var(--radius);
+
+    padding: 30px;
+
+    box-shadow: var(--shadow);
+}
+
+.confirm-row {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 12px;
+
+    margin-bottom: 28px;
+}
+
+.confirm-row:last-child {
+    margin-bottom: 0;
+}
+
+.confirm-row label {
+    font-size: 16px;
+
+    font-weight: 700;
+
+    color: var(--text);
+}
+
+.reason-tag {
+    display: inline-flex;
+
+    align-items: center;
+
+    width: max-content;
+
+    padding: 10px 18px;
+
+    border-radius: 30px;
+
+    background: var(--secondary-light);
+
+    color: #2b8275;
+
+    font-weight: 600;
+}
+
+.description-box {
+    background: #fafbfa;
+
+    border: 1px solid var(--border);
+
+    border-radius: 14px;
+
+    padding: 18px;
+
+    line-height: 1.8;
+
+    color: var(--text-light);
+
+    min-height: 120px;
+}
+
+.image-list {
+    display: grid;
+
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+
+    gap: 18px;
+}
+
+.image-list img {
+    width: 100%;
+
+    aspect-ratio: 1;
+
+    object-fit: cover;
+
+    border-radius: 14px;
+
+    transition: 0.3s;
+
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.image-list img:hover {
+    transform: scale(1.03);
+}
+
+.empty-image {
+    color: var(--text-light);
+
+    font-style: italic;
+}
+.confirm-warning {
+    margin-top: 10px;
+
+    display: flex;
+
+    align-items: flex-start;
+
+    gap: 18px;
+
+    padding: 22px;
+
+    background: #fffdf5;
+
+    border-left: 6px solid var(--warning);
+
+    border-radius: 14px;
+}
+
+.warning-icon {
+    width: 52px;
+
+    height: 52px;
+
+    border-radius: 50%;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    background: #fff3d8;
+
+    font-size: 24px;
+
+    flex-shrink: 0;
+}
+
+.confirm-warning h3 {
+    color: #b7791f;
+
+    margin-bottom: 8px;
+
+    font-size: 20px;
+}
+
+.confirm-warning p {
+    color: var(--text-light);
+
+    line-height: 1.8;
+}
+
+.button-group {
+    display: flex;
+
+    justify-content: flex-end;
+
+    gap: 16px;
+}
+
+.edit-button {
+    min-width: 160px;
+
+    padding: 15px 24px;
+
+    border: 2px solid var(--primary);
+
+    border-radius: 12px;
+
+    background: white;
+
+    color: var(--primary-dark);
+
+    font-size: 16px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: var(--transition);
+}
+
+.edit-button:hover {
+    background: var(--primary-light);
+
+    transform: translateY(-2px);
+}
+
+.confirm-button {
+    min-width: 240px;
+
+    padding: 15px 24px;
+
+    border: none;
+
+    border-radius: 12px;
+
+    cursor: pointer;
+
+    font-size: 16px;
+
+    font-weight: 700;
+
+    color: white;
+
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+
+    box-shadow: 0 12px 26px rgba(102, 194, 178, 0.28);
+
+    transition: var(--transition);
+}
+
+.confirm-button:hover {
+    transform: translateY(-3px);
+
+    box-shadow: 0 16px 32px rgba(102, 194, 178, 0.36);
+}
+
+.confirm-button:active {
+    transform: scale(0.98);
+}
+
+.confirm-banner,
+.confirm-card {
+    animation: fadeUp 0.45s ease;
+}
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+
+        transform: translateY(18px);
+    }
+
+    to {
+        opacity: 1;
+
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 768px) {
+    .confirm-header h1 {
+        font-size: 20px;
+    }
+
+    .confirm-banner {
+        flex-direction: column;
+
+        text-align: center;
+    }
+
+    .confirm-card {
+        padding: 22px;
+    }
+
+    .button-group {
+        flex-direction: column;
+    }
+
+    .edit-button,
+    .confirm-button {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .confirm-container {
+        width: 94%;
+
+        padding-top: 24px;
+    }
+
+    .banner-icon {
+        width: 60px;
+
+        height: 60px;
+
+        font-size: 28px;
+    }
+
+    .confirm-banner h2 {
+        font-size: 22px;
+    }
+
+    .confirm-row {
+        margin-bottom: 22px;
+    }
+
+    .image-list {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .confirm-warning {
+        flex-direction: column;
+    }
+}
