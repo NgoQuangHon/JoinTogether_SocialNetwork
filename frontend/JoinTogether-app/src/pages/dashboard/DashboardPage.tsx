@@ -131,6 +131,7 @@ export default function DashboardPage() {
   const [postInput, setPostInput] = useState('');
   const [postImage, setPostImage] = useState('');
   const [posting, setPosting] = useState(false);
+  const [toast, setToast] = useState('');
   const [likedPosts, setLikedPosts] = useState<Set<number>>(new Set());
   const [commentInputs, setCommentInputs] = useState<Record<number, string>>({});
   const [commentsVisible, setCommentsVisible] = useState<Record<number, boolean>>({});
@@ -309,6 +310,12 @@ export default function DashboardPage() {
     } catch {}
   };
 
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(''), 3000);
+    return () => clearTimeout(t);
+  }, [toast]);
+
   const handlePostSubmit = async () => {
     if (!postInput.trim() && !postImage) return;
     setPosting(true);
@@ -322,6 +329,7 @@ export default function DashboardPage() {
       if (json.success) {
         setPostInput('');
         setPostImage('');
+        setToast('Đã đăng bài viết thành công!');
         const postsRes = await getPostsApi();
         if (postsRes.success && postsRes.data) setPosts(postsRes.data);
       }
@@ -368,6 +376,16 @@ export default function DashboardPage() {
         <div className="dashboard-grid-layout">
           {/* Main Feed Column */}
           <div className="dashboard-main-column">
+            {toast && (
+              <div style={{
+                position: 'fixed', top: 20, left: '50%', transform: 'translateX(-50%)', zIndex: 9999,
+                background: '#2e7d32', color: '#fff', padding: '12px 24px', borderRadius: 12,
+                fontSize: 14, fontWeight: 600, boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+                animation: 'slideDown 0.3s ease',
+              }}>
+                ✅ {toast}
+              </div>
+            )}
             {/* Post Create Box */}
             <div className="post-create-box">
               <div className="post-create-row">
