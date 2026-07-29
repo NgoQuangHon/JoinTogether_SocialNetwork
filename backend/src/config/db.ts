@@ -110,6 +110,21 @@ export async function connectDB() {
           ALTER TABLE ho_so_nguoi_dung ADD COLUMN IF NOT EXISTS vi_do DECIMAL(10,8);
           ALTER TABLE ho_so_nguoi_dung ADD COLUMN IF NOT EXISTS kinh_do DECIMAL(11,8);
 
+          CREATE TABLE IF NOT EXISTS phong_tro_chuyen (
+            phong_id BIGSERIAL PRIMARY KEY,
+            ten_phong VARCHAR(255),
+            loai_phong VARCHAR(50) DEFAULT 'DIRECT',
+            ngay_tao TIMESTAMPTZ DEFAULT NOW(),
+            het_han_luc TIMESTAMPTZ
+          );
+
+          CREATE TABLE IF NOT EXISTS thanh_vien_phong (
+            phong_id BIGINT REFERENCES phong_tro_chuyen(phong_id) ON DELETE CASCADE,
+            nguoi_dung_id BIGINT REFERENCES nguoi_dung(nguoi_dung_id) ON DELETE CASCADE,
+            ngay_tham_gia TIMESTAMPTZ DEFAULT NOW(),
+            PRIMARY KEY (phong_id, nguoi_dung_id)
+          );
+
           -- Phòng chat tạm thời (het_han_luc cho chat 10 phút)
           ALTER TABLE phong_tro_chuyen ADD COLUMN IF NOT EXISTS het_han_luc TIMESTAMPTZ;
 

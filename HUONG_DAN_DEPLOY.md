@@ -2,25 +2,24 @@
 
 Tài liệu này hướng dẫn chi tiết từng bước deploy toàn bộ hệ thống lên Cloud miễn phí:
 
-1. **Database PostgreSQL**: Supabase (Miễn phí)
-2. **Backend Express + Socket.IO**: Koyeb.com (Miễn phí, 24/7 không ngủ)
-3. **Frontend React Vite**: Vercel.com (Miễn phí, tốc độ cao)
+1. **Database PostgreSQL**: Neon.tech (Miễn phí 100%, hỗ trợ IPv4 mượt mà)
+2. **Backend Express + Socket.IO**: Render.com (Miễn phí, cài UptimeRobot 24/7 không ngủ)
+3. **Monitor Chống Sleep 24/7**: UptimeRobot.com (Miễn phí, ping giữ thức 5p/lần)
+4. **Frontend React Vite**: Vercel.com (Miễn phí 100%, tốc độ cao)
 
 ---
 
-## 🗄️ BƯỚC 1: TẠO DATABASE POSTGRESQL TRÊN SUPABASE
+## 🗄️ BƯỚC 1: TẠO DATABASE POSTGRESQL TRÊN NEON.TECH
 
-1. Truy cập [supabase.com](https://supabase.com) ➔ Đăng ký/Đăng nhập bằng GitHub.
-2. Bấm **New Project** ➔ Đặt tên dự án (VD: `JoinTogether-DB`).
-3. Tạo **Database Password** mạnh (Lưu lại mật khẩu này).
-4. Chọn Region (Ví dụ: `Singapore` hoặc `Tokyo` để tốc độ về Việt Nam nhanh nhất).
-5. Khi dự án khởi tạo xong, truy cập: **Project Settings ➔ Database ➔ Connection string (URI)**.
-6. Bạn sẽ thu được các tham số kết nối:
-   - `DB_HOST`: `db.xxxxxxxxx.supabase.co`
+1. Truy cập [neon.tech](https://neon.tech) ➔ Đăng ký/Đăng nhập bằng GitHub.
+2. Bấm **Create Project** ➔ Đặt tên dự án (VD: `JoinTogether-DB`).
+3. Chọn Region `Asia Pacific (Singapore)` ➔ Bấm **Create Project**.
+4. Sao chép các tham số kết nối điền vào Render:
+   - `DB_HOST`: `ep-xxxx.ap-southeast-1.aws.neon.tech` *(Hostname Neon của bạn)*
    - `DB_PORT`: `5432`
-   - `DB_NAME`: `postgres`
-   - `DB_USER`: `postgres`
-   - `DB_PASSWORD`: _(Mật khẩu bạn vừa đặt)_
+   - `DB_NAME`: `neondb`
+   - `DB_USER`: `neondb_owner`
+   - `DB_PASSWORD`: `npg_xxxx` *(Mật khẩu Neon)*
    - `DB_SSL`: `true`
 
 ---
