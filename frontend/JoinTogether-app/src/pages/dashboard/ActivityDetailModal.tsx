@@ -24,16 +24,20 @@ export default function ActivityDetailModal({
   onClose,
   onCancel,
   onEdited,
+  currentUserId,
 }: {
   activity: HoatDongResponse;
   onClose: () => void;
   onCancel: (id: number) => void;
   onEdited: () => void;
+  currentUserId?: number | null;
 }) {
   const [showEdit, setShowEdit] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const [cancelling, setCancelling] = useState(false);
+
+  const isOwner = currentUserId != null && activity.nguoiToChucId === currentUserId;
 
   const handleCancel = async () => {
     if (!cancelReason.trim()) return;
@@ -96,14 +100,14 @@ export default function ActivityDetailModal({
 
           {activity.thoiGianBatDau && (
             <p className="cam-review-time">
-              🕐 {new Date(activity.thoiGianBatDau).toLocaleString('vi-VN')}
+              {new Date(activity.thoiGianBatDau).toLocaleString('vi-VN')}
               {activity.thoiGianKetThuc && ` — ${new Date(activity.thoiGianKetThuc).toLocaleString('vi-VN')}`}
             </p>
           )}
 
           {activity.tenDiaDiem && (
             <p className="cam-review-place">
-              📍 {activity.tenDiaDiem}{activity.diaChi ? `, ${activity.diaChi}` : ''}
+              {activity.tenDiaDiem}{activity.diaChi ? `, ${activity.diaChi}` : ''}
             </p>
           )}
 
@@ -173,16 +177,30 @@ export default function ActivityDetailModal({
           )}
         </div>
 
-        {!isCancelled && (
+        {!isCancelled && isOwner && (
           <div className="cam-detail-actions">
             <button
               className="cam-btn-outline cam-btn-danger"
               onClick={() => setShowCancelConfirm(true)}
             >
-              🗑 Hủy hoạt động
+              Hủy hoạt động
             </button>
             <button className="cam-btn-primary" onClick={() => setShowEdit(true)}>
-              ✏️ Chỉnh sửa
+              Chỉnh sửa
+            </button>
+          </div>
+        )}
+
+        {!isCancelled && !isOwner && (
+          <div className="cam-detail-actions">
+            <button className="cam-btn-outline">
+              Nhắc lịch
+            </button>
+            <button className="cam-btn-outline">
+              Quan tâm
+            </button>
+            <button className="cam-btn-primary">
+              Đăng ký tham gia
             </button>
           </div>
         )}

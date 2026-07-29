@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import '../../styles/dashboard.css';
@@ -10,7 +10,26 @@ import { getSuggestionsApi, followUserApi, unfollowUserApi } from '../../service
 import { getPostsApi, likePostApi, unlikePostApi, getCommentsApi, addCommentApi, sharePostApi } from '../../services/post.service';
 import type { HoatDongResponse } from '../../types/activity';
 import type { BaiVietResponse, BinhLuanResponse } from '../../services/post.service';
-import { danhMucList, type DanhMuc } from './feedMockData';
+import { danhMucList, MOCK_ACTIVITIES, MOCK_FEATURED, MOCK_SUGGESTIONS, type DanhMuc } from './feedMockData';
+
+const LIMIT = 5;
+
+function fillMock<T>(arr: T[], mock: T[], key: keyof T): T[] {
+  const result = [...arr];
+  const ids = new Set(arr.map((item) => item[key]));
+  for (const m of mock) {
+    if (result.length >= LIMIT) break;
+    if (!ids.has(m[key])) {
+      result.push(m);
+      ids.add(m[key]);
+    }
+  }
+  return shuffle(result).slice(0, LIMIT);
+}
+
+function shuffle<T>(arr: T[]): T[] {
+  return [...arr].sort(() => Math.random() - 0.5);
+}
 
 function Avatar({ mau, chu, kichThuoc = 44 }: { mau: string; chu: string; kichThuoc?: number }) {
   return (
@@ -77,7 +96,8 @@ function ActivityCard({ hd }: { hd: HoatDongResponse }) {
         <span className="distance-badge">{hd.tenDanhMuc?.[0] || 'Khác'}</span>
       </div>
       <p className="activity-title">{hd.tenHoatDong}</p>
-      <p className="activity-time">🕐 {hd.thoiGianBatDau ? new Date(hd.thoiGianBatDau).toLocaleDateString('vi-VN') : ''}</p>
+      {hd.tenDiaDiem && <p className="activity-location">{hd.tenDiaDiem}</p>}
+      <p className="activity-time">{hd.thoiGianBatDau ? new Date(hd.thoiGianBatDau).toLocaleDateString('vi-VN') : ''}</p>
       <div className="activity-footer">
         <span className="participants-badge">{hd.soLuongThanhVien || 0} tham gia</span>
       </div>
@@ -126,9 +146,12 @@ function FeaturedCard({ hd, onClick }: { hd: HoatDongResponse; onClick: () => vo
     <div className="featured-card" style={{ cursor: 'pointer' }} onClick={onClick}>
       <div className="featured-thumb" style={{ background: thumb ? `url(${thumb}) center/cover` : '#e8f5e9' }}>
         <span className="featured-badge">{hd.tenDanhMuc?.[0] || 'Nổi bật'}</span>
-        <span className="featured-badge featured-badge-light">{hd.soLuongThanhVien || 0} tham gia</span>
+        {hd.soLuongThanhVien !== undefined && (
+          <span className="featured-badge featured-badge-light">{hd.soLuongThanhVien} tham gia</span>
+        )}
       </div>
       <p className="featured-title">{hd.tenHoatDong}</p>
+      {hd.thoiGianBatDau && <p className="featured-date">{new Date(hd.thoiGianBatDau).toLocaleDateString('vi-VN')}</p>}
     </div>
   );
 }
@@ -166,9 +189,9 @@ export default function DashboardPage() {
     ])
       .then(([myRes, actRes, featRes, sugRes, postRes]) => {
         if (myRes.success && myRes.data) setMyActivities(myRes.data);
-        if (actRes.success && actRes.data) setRecentActivities(actRes.data);
-        if (featRes.success && featRes.data) setFeaturedActivities(featRes.data);
-        if (sugRes.success && sugRes.data) setSuggestions(sugRes.data);
+        if (actRes.success && actRes.data) setRecentActivities(fillMock(actRes.data, MOCK_ACTIVITIES as any, 'hoatDongId'));
+        if (featRes.success && featRes.data) setFeaturedActivities(fillMock(featRes.data, MOCK_FEATURED as any, 'hoatDongId'));
+        if (sugRes.success && sugRes.data) setSuggestions(fillMock(sugRes.data, MOCK_SUGGESTIONS as any, 'nguoiDungId'));
         if (postRes.success && postRes.data) {
           setPosts(postRes.data);
           setLikedPosts(new Set(postRes.data.filter((p) => p.daThich).map((p) => p.baiVietId)));
@@ -177,6 +200,13 @@ export default function DashboardPage() {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
+
+  const filteredActivities = danhMucChon === 'tat-ca'
+    ? recentActivities
+    : recentActivities.filter((hd) => {
+        const slug = (hd.tenDanhMuc || '').toLowerCase().replace(/đ/g, 'd').replace(/ /g, '-');
+        return slug === danhMucChon || slug.includes(danhMucChon);
+      });
 
   const handleLogout = () => {
     logout();
@@ -274,9 +304,8 @@ export default function DashboardPage() {
             <button className="icon-btn" onClick={() => setMenuMo(true)} aria-label="Mở menu">
               ☰
             </button>
-            <span className="app-title">🌿</span>
+            <span className="app-title">JT</span>
             <button className="icon-btn icon-btn-bell" aria-label="Thông báo">
-              🔔
               <span className="bell-dot" />
             </button>
           </header>
@@ -286,11 +315,11 @@ export default function DashboardPage() {
               <div className="drawer-overlay" onClick={() => setMenuMo(false)} />
               <nav className="drawer-panel">
                 <div className="drawer-brand">
-                  <div className="brand-icon" style={{ width: 44, height: 44, fontSize: 22 }}>🌿</div>
+                  <div className="brand-icon" style={{ width: 44, height: 44, fontSize: 22 }}>JT</div>
                 </div>
                 <NavItems onClose={() => setMenuMo(false)} onNavigate={(href) => { if (href === '#my-activities') { document.getElementById('my-activities')?.scrollIntoView({ behavior: 'smooth' }); } }} />
                 <button className="logout-btn" onClick={handleLogout}>
-                  🚪 Đăng xuất
+                  Đăng xuất
                 </button>
               </nav>
             </>
@@ -298,7 +327,7 @@ export default function DashboardPage() {
 
           <div className="app-body">
             <div className="search-bar">
-              <span className="search-icon">🔍</span>
+              <span className="search-icon">T</span>
               <input type="text" placeholder="Tìm kiếm hoạt động, bạn bè..." />
             </div>
 
@@ -313,7 +342,7 @@ export default function DashboardPage() {
                   onChange={(e) => setPostInput(e.target.value)}
                 />
                 <label className="post-create-image-btn">
-                  📷
+                  H
                   <input type="file" accept="image/*" hidden onChange={handlePostImageChange} />
                 </label>
                 <button
@@ -333,7 +362,7 @@ export default function DashboardPage() {
             </div>
 
             <button className="create-activity-btn" onClick={() => setShowCreateModal(true)}>
-              ➕ Tạo hoạt động
+              + Tạo hoạt động
             </button>
             <CategoryChips chon={danhMucChon} onChon={setDanhMucChon} />
 
@@ -343,7 +372,7 @@ export default function DashboardPage() {
                 <a href="#" className="section-link">XEM THÊM</a>
               </div>
               <div className="hscroll">
-                {recentActivities.map((hd) => (
+                {filteredActivities.map((hd) => (
                   <ActivityCard key={hd.hoatDongId} hd={hd} />
                 ))}
               </div>
@@ -381,7 +410,7 @@ export default function DashboardPage() {
                           </span>
                         </div>
                         <p className="activity-title">{hd.tenHoatDong}</p>
-                        <p className="activity-time">🕐 {hd.thoiGianBatDau ? new Date(hd.thoiGianBatDau).toLocaleDateString('vi-VN') : ''}</p>
+                        <p className="activity-time">{hd.thoiGianBatDau ? new Date(hd.thoiGianBatDau).toLocaleDateString('vi-VN') : ''}</p>
                         <div className="activity-footer">
                           <span className="participants-badge">{hd.soLuongThanhVien || 0} tham gia</span>
                         </div>
@@ -406,19 +435,19 @@ export default function DashboardPage() {
 
           <nav className="bottom-nav">
             <button className="bottom-nav-item bottom-nav-active">
-              <span className="bottom-nav-icon">🏠</span>
+              <span className="bottom-nav-icon">H</span>
               Trang chủ
             </button>
             <button className="bottom-nav-item">
-              <span className="bottom-nav-icon">🎯</span>
+              <span className="bottom-nav-icon">A</span>
               Hoạt động
             </button>
             <button className="bottom-nav-item">
-              <span className="bottom-nav-icon">💬</span>
+              <span className="bottom-nav-icon">C</span>
               Tin nhắn
             </button>
             <button className="bottom-nav-item" onClick={() => setMenuMo(true)}>
-              <span className="bottom-nav-icon">👤</span>
+              <span className="bottom-nav-icon">P</span>
               Cá nhân
             </button>
           </nav>
@@ -431,29 +460,28 @@ export default function DashboardPage() {
     <div className="desktop-view">
       <aside className="sidebar">
         <div className="drawer-brand">
-          <div className="brand-icon" style={{ width: 44, height: 44, fontSize: 22 }}>🌿</div>
+          <div className="brand-icon" style={{ width: 44, height: 44, fontSize: 22 }}>JT</div>
         </div>
         <nav className="sidebar-nav">
           <NavItems onNavigate={(href) => { if (href === '#my-activities') { document.getElementById('my-activities')?.scrollIntoView({ behavior: 'smooth' }); } }} />
         </nav>
         <div className="sidebar-footer">
           <button className="logout-btn" onClick={handleLogout}>
-            🚪 Đăng xuất
+            Đăng xuất
           </button>
         </div>
       </aside>
 
       <main className="main-content">
         <header className="topbar">
-          <h1>Trang chủ</h1>
+            <h1>Trang chủ</h1>
           <div className="search-bar topbar-search">
-            <span className="search-icon">🔍</span>
+            <span className="search-icon">T</span>
             <input type="text" placeholder="Tìm kiếm hoạt động, bạn bè..." />
           </div>
           <div className="topbar-user">
             <span className="user-badge">ID: {nguoiDungId}</span>
             <button className="icon-btn icon-btn-bell" aria-label="Thông báo">
-              🔔
               <span className="bell-dot" />
             </button>
             <Avatar mau="var(--primary-600)" chu="B" kichThuoc={36} />
@@ -472,7 +500,7 @@ export default function DashboardPage() {
                 onChange={(e) => setPostInput(e.target.value)}
               />
               <label className="post-create-image-btn">
-                📷
+                H
                 <input type="file" accept="image/*" hidden onChange={handlePostImageChange} />
               </label>
               <button
@@ -492,17 +520,17 @@ export default function DashboardPage() {
           </div>
 
           <button className="create-activity-btn" onClick={() => setShowCreateModal(true)}>
-            ➕ Tạo hoạt động
+            + Tạo hoạt động
           </button>
           <CategoryChips chon={danhMucChon} onChon={setDanhMucChon} />
 
-          <section className="section-block">
+            <section className="section-block">
             <div className="section-heading">
               <h3>Hoạt động gần bạn</h3>
               <a href="#" className="section-link">XEM THÊM</a>
             </div>
             <div className="grid-activities">
-              {recentActivities.map((hd) => (
+              {filteredActivities.map((hd) => (
                 <ActivityCard key={hd.hoatDongId} hd={hd} />
               ))}
             </div>
@@ -532,15 +560,15 @@ export default function DashboardPage() {
                 {myActivities.map((hd) => {
                   const thumb = hd.hinhAnh?.find((h) => h.laAnhDaiDien)?.duongDan;
                   const statusLabel: Record<string, string> = { sap_dien_ra: 'Sắp diễn ra', dang_dien_ra: 'Đang diễn ra', da_ket_thuc: 'Đã kết thúc', da_huy: 'Đã hủy' };
-                  return (
-                    <div key={hd.hoatDongId} className="activity-card" style={{ cursor: 'pointer' }} onClick={() => setSelectedActivity(hd)}>
-                      <div className="activity-thumb" style={{ background: thumb ? `url(${thumb}) center/cover` : '#e8f5e9' }}>
-                        <span className="distance-badge" style={{ background: hd.trangThai === 'da_huy' ? '#f44336' : '#e8f5e9', color: hd.trangThai === 'da_huy' ? '#fff' : '#333' }}>
-                          {statusLabel[hd.trangThai || 'sap_dien_ra'] || 'Sắp diễn ra'}
-                        </span>
-                      </div>
-                      <p className="activity-title">{hd.tenHoatDong}</p>
-                      <p className="activity-time">🕐 {hd.thoiGianBatDau ? new Date(hd.thoiGianBatDau).toLocaleDateString('vi-VN') : ''}</p>
+                    return (
+                      <div key={hd.hoatDongId} className="activity-card" style={{ cursor: 'pointer' }} onClick={() => setSelectedActivity(hd)}>
+                        <div className="activity-thumb" style={{ background: thumb ? `url(${thumb}) center/cover` : '#e8f5e9' }}>
+                          <span className="distance-badge" style={{ background: hd.trangThai === 'da_huy' ? '#f44336' : '#e8f5e9', color: hd.trangThai === 'da_huy' ? '#fff' : '#333' }}>
+                            {statusLabel[hd.trangThai || 'sap_dien_ra'] || 'Sắp diễn ra'}
+                          </span>
+                        </div>
+                        <p className="activity-title">{hd.tenHoatDong}</p>
+                        <p className="activity-time">{hd.thoiGianBatDau ? new Date(hd.thoiGianBatDau).toLocaleDateString('vi-VN') : ''}</p>
                       <div className="activity-footer">
                         <span className="participants-badge">{hd.soLuongThanhVien || 0} tham gia</span>
                       </div>
@@ -579,7 +607,7 @@ export default function DashboardPage() {
                     <p className="post-meta">
                       {bv.thoiGianTao ? new Date(bv.thoiGianTao).toLocaleDateString('vi-VN') : ''}
                       {bv.hoatDongLienQuan && (
-                        <> · <span className="post-tag">🎯 {bv.hoatDongLienQuan}</span></>
+                        <> · <span className="post-tag">{bv.hoatDongLienQuan}</span></>
                       )}
                     </p>
                   </div>
@@ -587,13 +615,13 @@ export default function DashboardPage() {
                 <p className="post-content">{bv.noiDung}</p>
                 {bv.hinhAnh && <div className="post-image" style={{ background: `url(${bv.hinhAnh}) center/cover` }} />}
                 <div className="post-stats">
-                  <span>👍 {bv.soLuotThich || 0} lượt thích</span>
+                  <span>{bv.soLuotThich || 0} lượt thích</span>
                   <span>{bv.soBinhLuan || 0} bình luận · {bv.soLuotChiaSe || 0} chia sẻ</span>
                 </div>
                 <div className="post-actions">
-                  <button className={`post-action-btn ${liked ? 'post-action-active' : ''}`} onClick={() => handleLike(bv.baiVietId)}>👍 Thích</button>
-                  <button className="post-action-btn" onClick={() => toggleComments(bv.baiVietId)}>💬 Bình luận</button>
-                  <button className="post-action-btn" onClick={() => handleShare(bv.baiVietId)}>↗️ Chia sẻ</button>
+                  <button className={`post-action-btn ${liked ? 'post-action-active' : ''}`} onClick={() => handleLike(bv.baiVietId)}>Thích</button>
+                  <button className="post-action-btn" onClick={() => toggleComments(bv.baiVietId)}>Bình luận</button>
+                  <button className="post-action-btn" onClick={() => handleShare(bv.baiVietId)}>Chia sẻ</button>
                 </div>
                 {showComments && (
                   <div className="post-comments">
@@ -646,6 +674,7 @@ export default function DashboardPage() {
           onClose={() => setSelectedActivity(null)}
           onCancel={handleActivityDeleted}
           onEdited={handleActivityEdited}
+          currentUserId={nguoiDungId}
         />
       )}
       {selectedFeatured && (
@@ -654,6 +683,7 @@ export default function DashboardPage() {
           onClose={() => setSelectedFeatured(null)}
           onCancel={() => {}}
           onEdited={() => {}}
+          currentUserId={nguoiDungId}
         />
       )}
     </>

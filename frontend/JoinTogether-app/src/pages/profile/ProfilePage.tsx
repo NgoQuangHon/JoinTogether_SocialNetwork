@@ -81,6 +81,7 @@ export default function ProfilePage() {
       profile?.gioiTinh || '',
       profile?.mucTieuThamGia || '',
       profile?.thoiGianRanh || '',
+      profile?.anhDaiDien || '',
     ];
     const filledCount = allFields.filter((v) => v.trim().length > 0).length;
     const progressPct = Math.round((filledCount / allFields.length) * 100);

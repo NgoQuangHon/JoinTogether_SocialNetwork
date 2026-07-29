@@ -180,15 +180,14 @@ export default function ReviewPage() {
           flexDirection: 'column',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 28, padding: '0 8px' }}>
-          <div className="brand-icon">🌿</div>
-          <span className="brand-name">JoinTogether</span>
-        </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 28, padding: '0 8px' }}>
+            <div className="brand-icon">🌿</div>
+          </div>
         <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
           <NavItems />
         </nav>
         <button className="logout-btn" onClick={() => { logout(); navigate('/login'); }}>
-          <span className="nav-icon">🚪</span> Đăng xuất
+          <span className="nav-icon">L</span> Đăng xuất
         </button>
       </aside>
 

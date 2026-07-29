@@ -85,6 +85,10 @@ export default function App() {
                 element={
                     <ProtectedRoute>
                         <AIMatchPage />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
                 path="/report"
                 element={
                     <ProtectedRoute>
