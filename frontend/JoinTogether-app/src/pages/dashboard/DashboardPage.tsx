@@ -6,7 +6,7 @@ import CreateActivityModal from './CreateActivityModal';
 import ActivityDetailModal from './ActivityDetailModal';
 import NavItems from '../../components/NavItems';
 import { getMyActivitiesApi, getAllActivitiesApi, getFeaturedActivitiesApi, searchActivitiesApi, getCategoriesApi } from '../../services/activity.service';
-import { getSuggestionsApi, followUserApi, unfollowUserApi, getPendingRequestsApi } from '../../services/connection.service';
+import { getSuggestionsApi, followUserApi, unfollowUserApi } from '../../services/connection.service';
 import { getNotificationsApi, deleteNotificationApi } from '../../services/notification.service';
 import type { ThongBao } from '../../types/connection';
 import { getPostsApi, likePostApi, unlikePostApi, getCommentsApi, addCommentApi, sharePostApi } from '../../services/post.service';
@@ -177,6 +177,7 @@ function FeaturedCard({ hd, onClick }: { hd: HoatDongResponse; onClick: () => vo
 }
 
 function NotificationDropdown({ notifications, onDelete, onClose }: { notifications: ThongBao[]; onDelete: (id: number) => void; onClose: () => void }) {
+  const navigate = useNavigate();
   return (
     <div className="notif-dropdown" onClick={(e) => e.stopPropagation()}>
       <div className="notif-header">
@@ -188,12 +189,12 @@ function NotificationDropdown({ notifications, onDelete, onClose }: { notificati
           <p className="notif-empty">Không có thông báo.</p>
         ) : (
           notifications.map((n) => (
-            <div key={n.thongBaoId} className="notif-item">
+            <div key={n.thongBaoId} className="notif-item" style={n.duongDan ? { cursor: 'pointer' } : undefined} onClick={() => { if (n.duongDan) { onClose(); navigate(n.duongDan); } }}>
               <div className="notif-item-content">
                 <p className="notif-title">{n.tieuDe || 'Thông báo'}</p>
                 <p className="notif-text">{n.noiDung}</p>
               </div>
-              <button className="notif-delete" onClick={() => onDelete(n.thongBaoId)} title="Xóa">✕</button>
+              <button className="notif-delete" onClick={(e) => { e.stopPropagation(); onDelete(n.thongBaoId); }} title="Xóa">✕</button>
             </div>
           ))
         )}
@@ -227,16 +228,14 @@ export default function DashboardPage() {
 
   const [searchKeyword, setSearchKeyword] = useState('');
   const [searchResults, setSearchResults] = useState<HoatDongResponse[]>([]);
-  const [searchTotal, setSearchTotal] = useState(0);
   const [searchLoading, setSearchLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [apiDanhMucList, setApiDanhMucList] = useState<DanhMucHoatDong[]>([]);
   const [profilePct, setProfilePct] = useState(100);
   const [notifications, setNotifications] = useState<ThongBao[]>([]);
-  const [notifLoading, setNotifLoading] = useState(false);
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const displayDanhMuc = apiDanhMucList.length > 0
     ? [{ danhMucHoatDongId: 0, tenDanhMuc: 'Tất cả' }, ...apiDanhMucList]
@@ -256,14 +255,11 @@ export default function DashboardPage() {
       const res = await searchActivitiesApi(filters);
       if (res.success && res.data) {
         setSearchResults(res.data.rows);
-        setSearchTotal(res.data.total);
       } else {
         setSearchResults([]);
-        setSearchTotal(0);
       }
     } catch {
       setSearchResults([]);
-      setSearchTotal(0);
     } finally {
       setSearchLoading(false);
     }
@@ -273,14 +269,6 @@ export default function DashboardPage() {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => doSearch(keyword, categoryId), 400);
   }, [doSearch]);
-
-  const fetchNotifications = async () => {
-    setNotifLoading(true);
-    try {
-      const res = await getNotificationsApi(20);
-      if (res.success && res.data) setNotifications(res.data);
-    } catch {} finally { setNotifLoading(false); }
-  };
 
   useEffect(() => {
     Promise.all([

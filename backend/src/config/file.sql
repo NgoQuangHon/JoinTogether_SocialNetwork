@@ -238,7 +238,8 @@ CREATE TABLE thong_bao (
     nguoi_nhan_id BIGINT NOT NULL REFERENCES nguoi_dung(nguoi_dung_id) ON DELETE CASCADE,
     tieu_de VARCHAR(255),
     noi_dung TEXT,
-    loai_thong_bao VARCHAR(50)
+    loai_thong_bao VARCHAR(50),
+    duong_dan TEXT
 );
 
 CREATE TABLE chan (

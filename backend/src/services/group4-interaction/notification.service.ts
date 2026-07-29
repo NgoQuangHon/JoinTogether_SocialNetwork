@@ -27,12 +27,14 @@ export class NotificationService {
     tieuDe: string,
     noiDung: string,
     loaiThongBao?: string,
+    duongDan?: string,
   ): Promise<any> {
     return await this.thongBaoRepo.create({
       nguoiNhanId,
       tieuDe,
       noiDung,
       loaiThongBao: loaiThongBao === undefined || loaiThongBao === null ? 'CHUNG' : loaiThongBao,
+      duongDan: duongDan === undefined || duongDan === null ? null : duongDan,
     });
   }
 }

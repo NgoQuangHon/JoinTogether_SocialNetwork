@@ -19,4 +19,5 @@ export interface ThongBao {
   tieuDe?: string;
   noiDung?: string;
   loaiThongBao?: string;
+  duongDan?: string;
 }

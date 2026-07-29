@@ -30,6 +30,14 @@ export default function NavItems({ onClose, onNavigate }: { onClose?: () => void
         <span className="nav-icon">A</span>
         Hoạt động
       </a>
+      <a href="/requests" className={`nav-item ${isActive('/requests') ? 'active' : ''}`} onClick={go('/requests')}>
+        <span className="nav-icon">R</span>
+        Yêu cầu kết nối
+      </a>
+      <a href="/connections" className={`nav-item ${isActive('/connections') ? 'active' : ''}`} onClick={go('/connections')}>
+        <span className="nav-icon">C</span>
+        Kết nối
+      </a>
       <a href="/ai-match" className={`nav-item ${isActive('/ai-match') ? 'active' : ''}`} onClick={go('/ai-match')}>
         <span className="nav-icon">M</span>
         AI Match

@@ -68,6 +68,7 @@ export class ConnectionService {
       "Yêu cầu kết nối",
       `${senderName} đã gửi cho bạn một yêu cầu kết nối.`,
       "KET_NOI",
+      `/profile/${nguoiGuiId}`,
     );
 
     return request;
@@ -99,6 +100,7 @@ export class ConnectionService {
         "Yêu cầu kết nối bị từ chối",
         `${receiverName} đã từ chối yêu cầu kết nối của bạn.`,
         "KET_NOI",
+        `/profile/${request.nguoiNhanId}`,
       );
 
       return updated;
@@ -133,12 +135,14 @@ export class ConnectionService {
         "Yêu cầu kết nối được chấp nhận",
         `${receiverName} đã chấp nhận yêu cầu kết nối của bạn.`,
         "KET_NOI",
+        `/profile/${request.nguoiNhanId}`,
       );
       await this.notificationService.sendNotification(
         request.nguoiNhanId,
         "Kết nối mới",
         `Bạn đã kết nối với ${senderName}.`,
         "KET_NOI",
+        `/profile/${request.nguoiGuiId}`,
       );
 
       return updated;

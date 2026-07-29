@@ -8,6 +8,8 @@ import MyActivitiesPage from './pages/activities/MyActivitiesPage';
 import ProfilePage from './pages/profile/ProfilePage';
 import EditProfilePage from './pages/editprofile/EditProfilePage';
 import UserProfilePage from './pages/profile/UserProfilePage';
+import RequestsPage from './pages/connections/RequestsPage';
+import ConnectionsPage from './pages/connections/ConnectionsPage';
 import InterestsPage from './pages/onboarding/InterestsPage';
 import ReviewPage from './pages/reviews/ReviewPage';
 import AIMatchPage from './pages/aimatch/AIMatchPage';
@@ -71,6 +73,22 @@ export default function App() {
                 element={
                     <ProtectedRoute>
                         <UserProfilePage />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/requests"
+                element={
+                    <ProtectedRoute>
+                        <RequestsPage />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/connections"
+                element={
+                    <ProtectedRoute>
+                        <ConnectionsPage />
                     </ProtectedRoute>
                 }
             />

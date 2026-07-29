@@ -6,6 +6,7 @@ export interface ThongBao {
     tieuDe?: string | null;
     noiDung?: string | null;
     loaiThongBao?: string | null;
+    duongDan?: string | null;
 }
 
 export class ThongBaoModel {
@@ -14,6 +15,7 @@ export class ThongBaoModel {
     private _tieuDe?: string | null;
     private _noiDung?: string | null;
     private _loaiThongBao?: string | null;
+    private _duongDan?: string | null;
 
     constructor(data: Partial<ThongBao> = {}) {
         this._thongBaoId = data.thongBaoId === undefined || data.thongBaoId === null ? null : data.thongBaoId;
@@ -21,6 +23,7 @@ export class ThongBaoModel {
         this._tieuDe = data.tieuDe === undefined || data.tieuDe === null ? null : data.tieuDe;
         this._noiDung = data.noiDung === undefined || data.noiDung === null ? null : data.noiDung;
         this._loaiThongBao = data.loaiThongBao === undefined || data.loaiThongBao === null ? null : data.loaiThongBao;
+        this._duongDan = data.duongDan === undefined || data.duongDan === null ? null : data.duongDan;
     }
 
     get thongBaoId(): number | null | undefined {
@@ -43,6 +46,10 @@ export class ThongBaoModel {
         return this._loaiThongBao;
     }
 
+    get duongDan(): string | null | undefined {
+        return this._duongDan;
+    }
+
     updateTieuDe(newTieuDe: string | null | undefined): void {
         this._tieuDe = newTieuDe === undefined || newTieuDe === null ? null : newTieuDe;
     }
@@ -55,6 +62,10 @@ export class ThongBaoModel {
         this._loaiThongBao = newLoaiThongBao === undefined || newLoaiThongBao === null ? null : newLoaiThongBao;
     }
 
+    updateDuongDan(newDuongDan: string | null | undefined): void {
+        this._duongDan = newDuongDan === undefined || newDuongDan === null ? null : newDuongDan;
+    }
+
     static createThongBaoModel(data: Partial<ThongBao>): ThongBaoModel {
         return new ThongBaoModel(data);
     }
@@ -65,6 +76,7 @@ export class ThongBaoModel {
             tieuDe: data.tieuDe === undefined || data.tieuDe === null ? null : data.tieuDe,
             noiDung: data.noiDung === undefined || data.noiDung === null ? null : data.noiDung,
             loaiThongBao: data.loaiThongBao === undefined || data.loaiThongBao === null ? null : data.loaiThongBao,
+            duongDan: data.duongDan === undefined || data.duongDan === null ? null : data.duongDan,
         };
     }
 }
