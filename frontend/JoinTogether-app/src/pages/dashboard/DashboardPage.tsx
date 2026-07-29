@@ -29,6 +29,7 @@ function Avatar({ mau, chu, kichThuoc = 44 }: { mau: string; chu: string; kichTh
 }
 
 function AIBanner() {
+  const navigate = useNavigate();
   return (
     <section className="ai-banner">
       <div className="ai-banner-main">
@@ -41,7 +42,7 @@ function AIBanner() {
         </p>
       </div>
       <div className="ai-banner-bottom">
-        <button className="ai-banner-cta">
+        <button className="ai-banner-cta" onClick={() => navigate('/ai-match')}>
           THỬ NGAY <span>→</span>
         </button>
         <div className="ai-banner-slider">

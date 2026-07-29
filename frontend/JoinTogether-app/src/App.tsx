@@ -8,6 +8,10 @@ import MyActivitiesPage from './pages/activities/MyActivitiesPage';
 import ProfilePage from './pages/profile/ProfilePage';
 import EditProfilePage from './pages/editprofile/EditProfilePage';
 import InterestsPage from './pages/onboarding/InterestsPage';
+import ReviewPage from './pages/reviews/ReviewPage';
+import AIMatchPage from './pages/aimatch/AIMatchPage';
+import AdminLoginPage from './pages/admin/AdminLoginPage';
+import AdminDashboard from './pages/admin/AdminDashboard';
 import ReportDetail from './pages/report/reportdetail/ReportDetail';
 import ReportReason from './pages/report/reportreason/ReportReason';
 import ReportDescription from './pages/report/reportdescription/ReportDescription';
@@ -26,6 +30,8 @@ export default function App() {
                 <Route path="/register" element={<RegisterPage />} />
             </Route>
             <Route path="/verify-email" element={<VerifyEmailPage />} />
+
+            {/* User routes */}
             <Route
                 path="/dashboard"
                 element={
@@ -67,6 +73,18 @@ export default function App() {
                 }
             />
             <Route
+                path="/reviews"
+                element={
+                    <ProtectedRoute>
+                        <ReviewPage />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/ai-match"
+                element={
+                    <ProtectedRoute>
+                        <AIMatchPage />
                 path="/report"
                 element={
                     <ProtectedRoute>
@@ -110,6 +128,10 @@ export default function App() {
                     </ProtectedRoute>
                 }
             />
+
+            {/* Admin routes */}
+            <Route path="/admin/login" element={<AdminLoginPage />} />
+            <Route path="/admin" element={<AdminDashboard />} />
 
             <Route
                 path="/report/success"
