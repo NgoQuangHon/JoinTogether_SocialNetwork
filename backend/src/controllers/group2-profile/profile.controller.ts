@@ -40,11 +40,35 @@ export class ProfileController {
       const nguoiDungId = req.user!.nguoiDungId;
       const { hoTen, email, soDienThoai, tieuSu, ngaySinh, khuVuc, gioiTinh, mucTieuThamGia, thoiGianRanh } = req.body;
 
+      const invalidFields: string[] = [];
+
+      if (hoTen !== undefined && (!hoTen || typeof hoTen !== 'string' || hoTen.trim().length < 2)) {
+        invalidFields.push('hoTen');
+      }
+
+      if (email !== undefined && email !== '') {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+          invalidFields.push('email');
+        }
+      }
+
+      if (soDienThoai !== undefined && soDienThoai !== '') {
+        const phoneClean = soDienThoai.replace(/[\s\-()]/g, '');
+        if (phoneClean.length < 9 || phoneClean.length > 15 || !/^\d+$/.test(phoneClean)) {
+          invalidFields.push('soDienThoai');
+        }
+      }
+
       if (ngaySinh && isNaN(Date.parse(ngaySinh))) {
+        invalidFields.push('ngaySinh');
+      }
+
+      if (invalidFields.length > 0) {
         res.status(400).json({
           success: false,
-          message: "Ngày sinh không hợp lệ.",
-          invalidFields: ["ngaySinh"],
+          message: "Dữ liệu không hợp lệ.",
+          invalidFields,
         });
         return;
       }
