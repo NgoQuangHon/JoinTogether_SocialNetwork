@@ -48,4 +48,14 @@ export class AuthController {
     const result = await this.authService.resetPassword(req.body);
     res.status(200).json({ success: true, message: result.message });
   });
+
+  public changePassword = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const taiKhoanId = (req.user as any)?.taiKhoanId;
+    if (!taiKhoanId) {
+      res.status(401).json({ success: false, message: "Không tìm thấy thông tin tài khoản." });
+      return;
+    }
+    const result = await this.authService.changePassword(taiKhoanId, req.body);
+    res.status(200).json({ success: true, message: result.message });
+  });
 }

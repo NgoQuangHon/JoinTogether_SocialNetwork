@@ -381,4 +381,43 @@ export class AuthService {
 
     return { message: "Khôi phục mật khẩu thành công. Vui lòng đăng nhập bằng mật khẩu mới." };
   }
+
+  async changePassword(taiKhoanId: number, data: { matKhauCu: string; matKhauMoi: string; xacNhanMatKhauMoi: string }): Promise<any> {
+    const { matKhauCu, matKhauMoi, xacNhanMatKhauMoi } = data;
+
+    if (!matKhauCu || !matKhauMoi || !xacNhanMatKhauMoi) {
+      throw new AppError("Vui lòng cung cấp đầy đủ thông tin đổi mật khẩu.", 400);
+    }
+    if (matKhauMoi.length < MIN_PASSWORD_LENGTH) {
+      throw new AppError(`Mật khẩu mới phải có ít nhất ${MIN_PASSWORD_LENGTH} ký tự.`, 400);
+    }
+    if (matKhauMoi !== xacNhanMatKhauMoi) {
+      throw new AppError("Mật khẩu mới và xác nhận mật khẩu không khớp.", 400);
+    }
+    if (matKhauCu === matKhauMoi) {
+      throw new AppError("Mật khẩu mới phải khác mật khẩu hiện tại.", 400);
+    }
+
+    const result = await pool.query(
+      `SELECT mat_khau_ma_hoa as "matKhauMaHoa" FROM tai_khoan WHERE tai_khoan_id = $1`,
+      [taiKhoanId]
+    );
+    const tk = result.rows[0];
+    if (!tk) {
+      throw new AppError("Không tìm thấy tài khoản.", 404);
+    }
+
+    const isMatch = await bcrypt.compare(matKhauCu, tk.matKhauMaHoa);
+    if (!isMatch) {
+      throw new UnauthorizedError("Mật khẩu hiện tại không chính xác.");
+    }
+
+    const matKhauMaHoa = await bcrypt.hash(matKhauMoi, 10);
+    await pool.query(
+      `UPDATE tai_khoan SET mat_khau_ma_hoa = $1 WHERE tai_khoan_id = $2`,
+      [matKhauMaHoa, taiKhoanId]
+    );
+
+    return { message: "Đổi mật khẩu thành công." };
+  }
 }
