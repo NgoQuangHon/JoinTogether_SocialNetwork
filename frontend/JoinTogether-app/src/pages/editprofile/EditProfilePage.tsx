@@ -177,7 +177,7 @@ export default function EditProfilePage() {
       </div>
 
       <header className="edit-header">
-        <div className="edit-logo">🌿 JoinTogether</div>
+        <div className="edit-logo">JT</div>
         <div className="header-user">
           <span>🔔</span>
           <img src={avatar || `https://i.pravatar.cc/100?u=${nguoiDungId}`} alt="avatar" />

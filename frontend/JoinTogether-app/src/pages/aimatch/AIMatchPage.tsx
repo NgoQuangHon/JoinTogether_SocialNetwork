@@ -138,7 +138,7 @@ export default function AIMatchPage() {
         }}
       >
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 28, padding: '0 8px' }}>
-            <div className="brand-icon">🌿</div>
+            <div className="brand-icon">JT</div>
           </div>
         <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
           <NavItems />

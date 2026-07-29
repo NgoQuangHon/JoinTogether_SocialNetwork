@@ -102,7 +102,7 @@ export default function MyActivitiesPage() {
           <div className="phone-shell">
             <header className="app-header">
               <button className="icon-btn" onClick={() => setMenuMo(true)}>☰</button>
-              <span className="app-title">🌿 Hoạt động của tôi</span>
+              <span className="app-title">Hoạt động của tôi</span>
               <button className="icon-btn icon-btn-bell">🔔<span className="bell-dot" /></button>
             </header>
 
@@ -111,7 +111,7 @@ export default function MyActivitiesPage() {
                 <div className="drawer-overlay" onClick={() => setMenuMo(false)} />
                 <nav className="drawer-panel">
                   <div className="drawer-brand">
-                    <div className="brand-icon" style={{ width: 44, height: 44, fontSize: 22 }}>🌿</div>
+                    <div className="brand-icon" style={{ width: 44, height: 44, fontSize: 22 }}>JT</div>
                   </div>
                   <NavItems onClose={() => setMenuMo(false)} />
                   <button className="logout-btn" onClick={handleLogout}>🚪 Đăng xuất</button>

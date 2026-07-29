@@ -5,6 +5,7 @@ import { getProfile } from '../../services/profile.service';
 import { getConnectionStatusApi, sendConnectionRequestApi, respondToRequestApi, blockUserApi, unblockUserApi, checkFollowingApi, followUserApi, unfollowUserApi, checkBlockedApi } from '../../services/connection.service';
 import type { HoSoNguoiDung } from '../../types/profile';
 import type { ConnectionStatus } from '../../types/connection';
+import SidebarLayout from '../../components/SidebarLayout';
 import './Profile.css';
 
 export default function UserProfilePage() {
@@ -122,23 +123,23 @@ export default function UserProfilePage() {
 
   if (loading) {
     return (
-      <div className="profile-page">
+      <SidebarLayout title="Hồ sơ">
         <div className="profile-loading">
           <div className="spinner" />
           <p>Đang tải hồ sơ...</p>
         </div>
-      </div>
+      </SidebarLayout>
     );
   }
 
   if (error || !profile) {
     return (
-      <div className="profile-page">
+      <SidebarLayout title="Hồ sơ">
         <div className="profile-loading">
           <p className="error-text">{error || 'Không tìm thấy người dùng.'}</p>
           <button className="edit-button" onClick={() => navigate(-1)}>Quay lại</button>
         </div>
-      </div>
+      </SidebarLayout>
     );
   }
 
@@ -148,14 +149,8 @@ export default function UserProfilePage() {
   const soThich = profile.soThich || [];
 
   return (
-    <div className="profile-page">
-      <header className="profile-header">
-        <button className="menu-button" onClick={() => navigate(-1)}>←</button>
-        <span className="logo">JoinTogether</span>
-        <div className="header-user" />
-      </header>
-
-      <main className="profile-container">
+    <>
+      <SidebarLayout title={hoTen}>
         <section className="profile-card profile-summary">
           <img className="main-avatar" src={anhDaiDien} alt="avatar" />
           <div className="user-info">
@@ -204,7 +199,7 @@ export default function UserProfilePage() {
             </div>
           </section>
         )}
-      </main>
+      </SidebarLayout>
 
       {/* Send request modal */}
       {showRequestModal && (
@@ -227,6 +222,6 @@ export default function UserProfilePage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
