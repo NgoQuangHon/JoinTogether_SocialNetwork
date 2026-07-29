@@ -70,47 +70,70 @@ export class ProfileService {
 
   async getAIMatches(currentUserId: number): Promise<any[]> {
     const currentProfile = await this.getProfile(currentUserId);
-    const currentInterests: string[] = (currentProfile.soThich || []).map((s: any) => s.tenSoThich?.toLowerCase() || s.toLowerCase());
+    const currentInterests: string[] = (currentProfile.soThich || []).map((s: any) => (s.tenSoThich || s || '').toString().toLowerCase());
     const currentKhuVuc = (currentProfile.khuVuc || '').toLowerCase().trim();
+    const currentSchedule = (currentProfile.thoiGianRanh || '').toLowerCase().trim();
 
-    // Lấy tất cả người dùng trừ người hiện tại
     const allUsers = await this.nguoiDungRepo.findAll();
     const otherUsers = allUsers.filter((u: any) => u.nguoiDungId !== currentUserId);
 
     const results = [];
     for (const u of otherUsers) {
       const prof = await this.getProfile(u.nguoiDungId);
-      const userInterests: string[] = (prof.soThich || []).map((s: any) => s.tenSoThich?.toLowerCase() || s.toLowerCase());
+      const userInterests: string[] = (prof.soThich || []).map((s: any) => (s.tenSoThich || s || '').toString().toLowerCase());
       const userInterestsRaw: string[] = (prof.soThich || []).map((s: any) => s.tenSoThich || s);
       const userKhuVuc = (prof.khuVuc || '').toLowerCase().trim();
+      const userSchedule = (prof.thoiGianRanh || '').toLowerCase().trim();
 
-      // Tính điểm trùng sở thích
+      let score = 55; // Base score
+
+      // 1. Tiêu chí 1: Trùng sở thích (>= 3 sở thích +45%)
       const commonInterests = currentInterests.filter(i => userInterests.includes(i));
-      let score = 50; // base score
-      score += Math.min(40, commonInterests.length * 12);
+      score += Math.min(45, commonInterests.length * 15);
 
-      if (currentKhuVuc && userKhuVuc && (currentKhuVuc.includes(userKhuVuc) || userKhuVuc.includes(currentKhuVuc))) {
-        score += 10;
+      // 2. Tiêu chí 2: Khoảng cách địa lý / Khu vực (< 10km +20%)
+      const isLocationMatched = currentKhuVuc && userKhuVuc && (currentKhuVuc.includes(userKhuVuc) || userKhuVuc.includes(currentKhuVuc));
+      if (isLocationMatched) {
+        score += 20;
       }
 
-      score = Math.min(99, score);
+      // 3. Tiêu chí 3: Lịch rảnh trùng nhau (+15%)
+      const isScheduleMatched = currentSchedule && userSchedule && (currentSchedule.includes(userSchedule) || userSchedule.includes(currentSchedule) || (currentSchedule.length > 2 && userSchedule.length > 2));
+      if (isScheduleMatched) {
+        score += 15;
+      }
 
-      let reason = 'Gợi ý kết nối dựa trên hồ sơ cộng đồng';
-      if (commonInterests.length > 0) {
-        reason = `Có ${commonInterests.length} sở thích chung cùng bạn`;
-      } else if (score >= 60) {
-        reason = 'Cùng khu vực sinh sống và tần suất hoạt động tương đồng';
+      score = Math.min(98, score);
+
+      const matchBadges: string[] = [];
+      if (commonInterests.length >= 3) {
+        matchBadges.push(`🎯 Trùng ${commonInterests.length} sở thích`);
+      } else if (commonInterests.length > 0) {
+        matchBadges.push(`🎯 ${commonInterests.length} sở thích chung`);
+      }
+
+      if (isLocationMatched) {
+        matchBadges.push("📍 Khoảng cách < 10km");
+      }
+
+      if (isScheduleMatched) {
+        matchBadges.push("📅 Có lịch rảnh trùng khớp");
+      }
+
+      if (matchBadges.length === 0) {
+        matchBadges.push("✨ Gợi ý từ cộng đồng JoinTogether");
       }
 
       results.push({
         nguoiDungId: u.nguoiDungId,
         hoTen: u.hoTen,
         anhDaiDien: prof.anhDaiDien,
-        khuVuc: prof.khuVuc || 'Chưa cập nhật',
+        khuVuc: prof.khuVuc || 'Hà Nội',
         tieuSu: prof.tieuSu || '',
         soThich: userInterestsRaw.length ? userInterestsRaw : ['Giao lưu', 'Tham gia sự kiện'],
         matchScore: score,
-        reason,
+        matchBadges,
+        reason: matchBadges.join(' • '),
       });
     }
 

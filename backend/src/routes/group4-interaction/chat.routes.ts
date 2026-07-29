@@ -22,6 +22,13 @@ chatRouter.get(
   chatController.getOrCreateRoom,
 );
 
+// GET /api/chat/private/:targetUserId — Lấy/tạo phòng trò chuyện riêng với bạn bè
+chatRouter.get(
+  "/private/:targetUserId",
+  authenticateToken,
+  chatController.getOrCreatePrivateRoom,
+);
+
 // ==================== UC4.2: TIN NHẮN ====================
 
 // POST /api/chat/rooms/:phongId/messages — Gửi tin nhắn

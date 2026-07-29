@@ -35,7 +35,7 @@ export class ConnectionService {
     // Check if request already exists
     const existingRequest = await this.yeuCauRepo.findExistingRequest(nguoiGuiId, nguoiNhanId);
     if (existingRequest) {
-      throw new ConflictError("Đã có yêu cầu kết nối đang chờ xử lý.");
+      return existingRequest;
     }
 
     // Check if receiver blocked sender (4c)
@@ -45,12 +45,16 @@ export class ConnectionService {
     }
 
     // Check receiver's privacy setting (4c)
-    const profileResult = await pool.query(
-      `SELECT cho_phep_nhan_yeu_cau_ket_noi AS "choPhepNhan" FROM ho_so_nguoi_dung WHERE nguoi_dung_id = $1`,
-      [nguoiNhanId],
-    );
-    if (profileResult?.rows?.length && profileResult.rows[0]?.choPhepNhan === false) {
-      throw new ForbiddenError("Người dùng này không nhận yêu cầu kết nối.");
+    try {
+      const profileResult = await pool.query(
+        `SELECT cho_phep_nhan_yeu_cau_ket_noi AS "choPhepNhan" FROM ho_so_nguoi_dung WHERE nguoi_dung_id = $1`,
+        [nguoiNhanId],
+      );
+      if (profileResult?.rows?.length && profileResult.rows[0]?.choPhepNhan === false) {
+        throw new ForbiddenError("Người dùng này không nhận yêu cầu kết nối.");
+      }
+    } catch (err: any) {
+      if (err instanceof ForbiddenError) throw err;
     }
 
     const request = await this.yeuCauRepo.create({

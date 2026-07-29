@@ -31,6 +31,7 @@ export default function ActivityDetailModal({
   onClose,
   onCancel,
   onEdited,
+  onDataChanged,
   currentUserId,
 }: {
   activity: HoatDongResponse;
@@ -283,9 +284,11 @@ export default function ActivityDetailModal({
 
         {!isCancelled && isOwner && (
           <div className="cam-detail-actions">
-            <button className="cam-btn-outline" onClick={() => setShowReview(true)}>
-              ⭐ Đánh giá
-            </button>
+            {activity.trangThai === 'da_ket_thuc' && (
+              <button className="cam-btn-outline" onClick={() => setShowReview(true)}>
+                ⭐ Đánh giá
+              </button>
+            )}
             <button className="cam-btn-outline" onClick={() => setShowAttendance(true)}>
               📋 Điểm danh
             </button>

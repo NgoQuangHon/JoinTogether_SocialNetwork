@@ -4,6 +4,7 @@ export interface PhongTroChuyen {
     phongId?: number | null;
     hoatDongId?: number | null;
     tenPhong?: string | null;
+    loaiPhong?: string | null;
     trangThai?: string | null;
     ngayTao?: Date | string | null;
 }

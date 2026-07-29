@@ -11,11 +11,28 @@ const RETURN_COLUMNS = `
   muc_tieu_tham_gia as "mucTieuThamGia",
   thoi_gian_ranh as "thoiGianRanh",
   anh_dai_dien as "anhDaiDien",
-  ban_kinh_mong_muon as "banKinhMongMuon"
+  ban_kinh_mong_muon as "banKinhMongMuon",
+  an_ngay_sinh as "anNgaySinh",
+  an_so_dien_thoai as "anSoDienThoai",
+  an_dia_chi as "anDiaChi"
 `;
 
 export class HoSoNguoiDungRepository {
-  async findByNguoiDungId(nguoiDungId: number): Promise<HoSoNguoiDung | null> {
+  constructor() {
+    this.ensurePrivacyColumns();
+  }
+
+  private async ensurePrivacyColumns() {
+    try {
+      await pool.query(`
+        ALTER TABLE ho_so_nguoi_dung ADD COLUMN IF NOT EXISTS an_ngay_sinh BOOLEAN DEFAULT FALSE;
+        ALTER TABLE ho_so_nguoi_dung ADD COLUMN IF NOT EXISTS an_so_dien_thoai BOOLEAN DEFAULT FALSE;
+        ALTER TABLE ho_so_nguoi_dung ADD COLUMN IF NOT EXISTS an_dia_chi BOOLEAN DEFAULT FALSE;
+      `);
+    } catch {}
+  }
+
+  async findByNguoiDungId(nguoiDungId: number): Promise<any | null> {
     const query = `
       SELECT ${RETURN_COLUMNS}
       FROM ho_so_nguoi_dung
@@ -46,7 +63,7 @@ export class HoSoNguoiDungRepository {
     return result.rows[0];
   }
 
-  async update(nguoiDungId: number, data: Partial<HoSoNguoiDung>): Promise<HoSoNguoiDung | null> {
+  async update(nguoiDungId: number, data: any): Promise<any | null> {
     const setClauses: string[] = [];
     const values: any[] = [];
     let paramIndex = 1;
@@ -83,6 +100,18 @@ export class HoSoNguoiDungRepository {
       setClauses.push(`ban_kinh_mong_muon = $${paramIndex++}`);
       values.push(data.banKinhMongMuon);
     }
+    if (data.anNgaySinh !== undefined) {
+      setClauses.push(`an_ngay_sinh = $${paramIndex++}`);
+      values.push(data.anNgaySinh);
+    }
+    if (data.anSoDienThoai !== undefined) {
+      setClauses.push(`an_so_dien_thoai = $${paramIndex++}`);
+      values.push(data.anSoDienThoai);
+    }
+    if (data.anDiaChi !== undefined) {
+      setClauses.push(`an_dia_chi = $${paramIndex++}`);
+      values.push(data.anDiaChi);
+    }
 
     if (setClauses.length === 0) {
       return this.findByNguoiDungId(nguoiDungId);
@@ -99,7 +128,7 @@ export class HoSoNguoiDungRepository {
     return result.rows.length > 0 ? result.rows[0] : null;
   }
 
-  async updateAvatar(nguoiDungId: number, anhDaiDien: string): Promise<HoSoNguoiDung | null> {
+  async updateAvatar(nguoiDungId: number, anhDaiDien: string): Promise<any | null> {
     const query = `
       UPDATE ho_so_nguoi_dung
       SET anh_dai_dien = $1

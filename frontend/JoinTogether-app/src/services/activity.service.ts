@@ -79,6 +79,13 @@ export const searchActivitiesApi = async (filters: SearchFilters): Promise<ApiRe
   return response.data;
 };
 
+export const searchUsersApi = async (keyword: string): Promise<ApiResponse<any[]>> => {
+  const response = await api.get<ApiResponse<any[]>>('/activities/search/users', {
+    params: { keyword },
+  });
+  return response.data;
+};
+
 // ==================== JOIN REQUESTS MANAGEMENT ====================
 
 export interface YeuCauThamGia {

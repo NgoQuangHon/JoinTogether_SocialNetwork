@@ -5,8 +5,8 @@ import '../../styles/dashboard.css';
 import CreateActivityModal from './CreateActivityModal';
 import ActivityDetailModal from './ActivityDetailModal';
 import MainLayout from '../../components/layout/MainLayout';
-import { getMyActivitiesApi, getAllActivitiesApi, searchActivitiesApi, getCategoriesApi } from '../../services/activity.service';
-import { getSuggestionsApi, followUserApi } from '../../services/connection.service';
+import { getMyActivitiesApi, getAllActivitiesApi, searchActivitiesApi, searchUsersApi, getCategoriesApi } from '../../services/activity.service';
+import { getSuggestionsApi, sendConnectionRequestApi } from '../../services/connection.service';
 import { getNotificationsApi, deleteNotificationApi } from '../../services/notification.service';
 import type { ThongBao } from '../../types/connection';
 import { getPostsApi, likePostApi, unlikePostApi, getCommentsApi, addCommentApi, sharePostApi } from '../../services/post.service';
@@ -139,29 +139,58 @@ export default function DashboardPage() {
 
   const [searchKeyword, setSearchKeyword] = useState('');
   const [searchResults, setSearchResults] = useState<HoatDongResponse[]>([]);
+  const [searchUserResults, setSearchUserResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [apiDanhMucList, setApiDanhMucList] = useState<DanhMucHoatDong[]>([]);
   const [profilePct, setProfilePct] = useState(100);
   const [notifications, setNotifications] = useState<ThongBao[]>([]);
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
+  const [requestedUserIds, setRequestedUserIds] = useState<Set<number>>(new Set());
   const notifRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const handleSendConnect = async (userId: number) => {
+    setRequestedUserIds((prev) => new Set([...prev, userId]));
+    try {
+      await sendConnectionRequestApi(userId, 'Xin chào! Tôi muốn kết nối cùng bạn trên JoinTogether.');
+    } catch {
+      /* silent */
+    }
+  };
+
   const doSearch = useCallback(async (keyword: string, categoryId: number | null) => {
-    const filters: SearchFilters = {};
-    if (keyword.trim()) filters.keyword = keyword.trim();
-    if (categoryId && categoryId > 0) filters.danhMucHoatDongId = categoryId;
-    filters.limit = 20;
+    if (!keyword.trim() && (!categoryId || categoryId === 0)) {
+      setSearchResults([]);
+      setSearchUserResults([]);
+      setIsSearching(false);
+      return;
+    }
     setIsSearching(true);
     try {
-      const res = await searchActivitiesApi(filters);
-      if (res.success && res.data) {
-        setSearchResults(res.data.rows);
+      const filters: SearchFilters = {};
+      if (keyword.trim()) filters.keyword = keyword.trim();
+      if (categoryId && categoryId > 0) filters.danhMucHoatDongId = categoryId;
+      filters.limit = 20;
+
+      const [actRes, userRes] = await Promise.allSettled([
+        searchActivitiesApi(filters),
+        keyword.trim() ? searchUsersApi(keyword.trim()) : Promise.resolve({ success: true, data: [] } as any),
+      ]);
+
+      if (actRes.status === 'fulfilled' && actRes.value.success && actRes.value.data) {
+        setSearchResults(Array.isArray(actRes.value.data) ? actRes.value.data : []);
       } else {
         setSearchResults([]);
       }
+
+      if (userRes.status === 'fulfilled' && userRes.value.success && userRes.value.data) {
+        setSearchUserResults(Array.isArray(userRes.value.data) ? userRes.value.data : []);
+      } else {
+        setSearchUserResults([]);
+      }
     } catch {
       setSearchResults([]);
+      setSearchUserResults([]);
     } finally {
       setIsSearching(false);
     }
@@ -169,8 +198,12 @@ export default function DashboardPage() {
 
   const triggerSearch = useCallback((keyword: string, categoryId: number | null) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => doSearch(keyword, categoryId), 400);
+    debounceRef.current = setTimeout(() => doSearch(keyword, categoryId), 300);
   }, [doSearch]);
+
+  useEffect(() => {
+    triggerSearch(searchKeyword, null);
+  }, [searchKeyword, triggerSearch]);
 
   useEffect(() => {
     Promise.all([
@@ -234,12 +267,7 @@ export default function DashboardPage() {
     setSelectedCategory(catId);
   };
 
-  const handleFollow = async (userId: number) => {
-    try {
-      await followUserApi(userId);
-      setSuggestions((prev) => prev.filter((u) => u.nguoiDungId !== userId));
-    } catch {}
-  };
+
 
   const handleLike = async (postId: number) => {
     const wasLiked = likedPosts.has(postId);
@@ -344,7 +372,7 @@ export default function DashboardPage() {
 
   const displayActivities = (searchResults.length > 0 ? searchResults : recentActivities)
     .filter((a) => !a.isMember && a.trangThaiYeuCau !== 'PENDING');
-  const categoriesList = apiDanhMucList.length > 0 ? apiDanhMucList.map(c => ({ id: c.danhMucHoatDongId, ten: c.tenDanhMuc })) : danhMucList;
+  const categoriesList = apiDanhMucList.length > 0 ? apiDanhMucList.map(c => ({ id: c.danhMucHoatDongId, ten: c.tenDanhMuc })) : danhMucList.map((c, i) => ({ id: i + 1, ten: c.ten }));
 
   return (
     <MainLayout pageTitle="Trang chủ">
@@ -355,10 +383,66 @@ export default function DashboardPage() {
             <span className="search-icon">🔍</span>
             <input
               type="text"
-              placeholder="Tìm kiếm hoạt động, bạn bè, sở thích..."
+              placeholder="Tìm kiếm hoạt động, bạn bè, người dùng..."
               value={searchKeyword}
               onChange={(e) => setSearchKeyword(e.target.value)}
             />
+            {searchKeyword.trim().length > 0 && (
+              <div className="fb-search-panel">
+                <div className="fb-search-section">
+                  <h5 className="fb-search-section-title">👥 Người dùng & Bạn bè ({searchUserResults.length})</h5>
+                  {isSearching ? (
+                    <p className="fb-search-empty">Đang tìm kiếm...</p>
+                  ) : searchUserResults.length === 0 ? (
+                    <p className="fb-search-empty">Không tìm thấy người dùng phù hợp.</p>
+                  ) : (
+                    searchUserResults.map((u) => (
+                      <div key={u.nguoiDungId} className="fb-search-item" onClick={() => navigate(`/profile/${u.nguoiDungId}`)}>
+                        <Avatar mau="#66c2b2" chu={(u.hoTen || '?').charAt(0).toUpperCase()} kichThuoc={34} />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontWeight: 700, fontSize: 13, color: '#1a237e' }}>{u.hoTen}</div>
+                          <div style={{ fontSize: 11, color: '#607d8b' }}>{u.khuVuc || 'Cộng đồng'}</div>
+                        </div>
+                        {u.isFriend ? (
+                          <span className="fb-badge-friend">✓ Bạn bè</span>
+                        ) : u.trangThaiYeuCau === 'PENDING' || requestedUserIds.has(u.nguoiDungId) ? (
+                          <span className="fb-badge-pending">⏳ Đã gửi</span>
+                        ) : (
+                          <button
+                            className="fb-btn-connect"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSendConnect(u.nguoiDungId);
+                            }}
+                          >
+                            + Kết nối
+                          </button>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                <div className="fb-search-section" style={{ borderTop: '1px solid #e0e0e0', paddingTop: 10 }}>
+                  <h5 className="fb-search-section-title">📅 Hoạt động ({searchResults.length})</h5>
+                  {isSearching ? (
+                    <p className="fb-search-empty">Đang tìm kiếm...</p>
+                  ) : searchResults.length === 0 ? (
+                    <p className="fb-search-empty">Không tìm thấy hoạt động phù hợp.</p>
+                  ) : (
+                    searchResults.slice(0, 5).map((a) => (
+                      <div key={a.hoatDongId} className="fb-search-item" onClick={() => setSelectedActivity(a)}>
+                        <span style={{ fontSize: 18 }}>📅</span>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontWeight: 700, fontSize: 13, color: '#2e7d32' }}>{a.tenHoatDong}</div>
+                          <div style={{ fontSize: 11, color: '#607d8b' }}>📍 {a.tenDiaDiem || 'Địa điểm'}</div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
           </div>
           <div className="notif-wrapper" ref={notifRef}>
             <button className="icon-btn icon-btn-bell" aria-label="Thông báo" onClick={() => setShowNotifDropdown(!showNotifDropdown)}>
@@ -571,8 +655,13 @@ export default function DashboardPage() {
                       <div className="companion-name">{u.hoTen}</div>
                       <div className="companion-interest">{u.soThich ? u.soThich.join(', ') : u.khuVuc || 'Cộng đồng'}</div>
                     </div>
-                    <button className="btn-follow" onClick={() => handleFollow(u.nguoiDungId)}>
-                      + Theo dõi
+                    <button
+                      className="btn-follow"
+                      style={requestedUserIds.has(u.nguoiDungId) ? { background: '#e8f5e9', color: '#2e7d32', border: '1px solid #a5d6a7', cursor: 'default' } : {}}
+                      onClick={() => handleSendConnect(u.nguoiDungId)}
+                      disabled={requestedUserIds.has(u.nguoiDungId)}
+                    >
+                      {requestedUserIds.has(u.nguoiDungId) ? '✓ Đã gửi' : '+ Kết nối'}
                     </button>
                   </div>
                 ))}

@@ -279,6 +279,7 @@ export class AuthService {
     if (!taiKhoan.daXacThuc && taiKhoan.trangThai !== "ACTIVE") {
       throw new UnauthorizedError(
         "Tài khoản chưa được xác thực. Vui lòng kiểm tra email để hoàn tất xác thực.",
+        { taiKhoanId: taiKhoan.taiKhoanId }
       );
     }
 

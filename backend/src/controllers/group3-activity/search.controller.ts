@@ -39,6 +39,15 @@ export class SearchController {
     },
   );
 
+  public searchUsers = asyncHandler(
+    async (req: Request, res: Response): Promise<void> => {
+      const nguoiDungId = req.user!.nguoiDungId;
+      const keyword = (req.query.keyword as string) || "";
+      const result = await this.searchService.searchUsers(nguoiDungId, keyword);
+      res.status(200).json({ success: true, data: result });
+    },
+  );
+
   public getSearchHistory = asyncHandler(
     async (req: Request, res: Response): Promise<void> => {
       const nguoiDungId = req.user!.nguoiDungId;

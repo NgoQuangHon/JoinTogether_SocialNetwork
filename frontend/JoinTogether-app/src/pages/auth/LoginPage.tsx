@@ -31,11 +31,18 @@ export default function LoginPage() {
       await login(data);
       navigate("/dashboard", { replace: true });
     } catch (err: unknown) {
-      const errObj = err as { response?: { data?: { message?: string } } };
+      const errObj = err as { response?: { data?: { message?: string, data?: { taiKhoanId?: number } } } };
       const msg =
         errObj?.response?.data?.message ||
         (err instanceof Error ? err.message : "Đăng nhập thất bại");
       setError(msg);
+
+      const unverifiedId = errObj?.response?.data?.data?.taiKhoanId;
+      if (unverifiedId) {
+        setTimeout(() => {
+          navigate(`/verify-email?taiKhoanId=${unverifiedId}`);
+        }, 1500);
+      }
     }
   };
 

@@ -14,11 +14,6 @@ if (missingEnvVars.length > 0) {
     throw new Error(`Missing database environment variables: ${missingEnvVars.join(', ')}`);
 }
 
-/**
- * Cho phép các repository nhận vào `pool` (mặc định) hoặc một `PoolClient`
- * đang trong transaction (BEGIN/COMMIT/ROLLBACK), để nhiều lệnh ghi liên
- * quan tới nhau có thể được gộp vào cùng 1 transaction từ tầng service.
- */
 export type Queryable = Pool | PoolClient;
 
 export const pool = new Pool({
@@ -34,6 +29,22 @@ export async function connectDB() {
     try {
         const client = await pool.connect();
         console.log('✅ PostgreSQL connected');
+
+        // Migration tự động đảm bảo bảng chan và các cột tùy chọn quyền riêng tư luôn tồn tại
+        await client.query(`
+          CREATE TABLE IF NOT EXISTS chan (
+            nguoi_chan_id INT REFERENCES nguoi_dung(nguoi_dung_id) ON DELETE CASCADE,
+            nguoi_bi_chan_id INT REFERENCES nguoi_dung(nguoi_dung_id) ON DELETE CASCADE,
+            thoi_gian TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (nguoi_chan_id, nguoi_bi_chan_id)
+          );
+
+          ALTER TABLE ho_so_nguoi_dung ADD COLUMN IF NOT EXISTS cho_phep_nhan_yeu_cau_ket_noi BOOLEAN DEFAULT TRUE;
+          ALTER TABLE ho_so_nguoi_dung ADD COLUMN IF NOT EXISTS an_ngay_sinh BOOLEAN DEFAULT FALSE;
+          ALTER TABLE ho_so_nguoi_dung ADD COLUMN IF NOT EXISTS an_so_dien_thoai BOOLEAN DEFAULT FALSE;
+          ALTER TABLE ho_so_nguoi_dung ADD COLUMN IF NOT EXISTS an_dia_chi BOOLEAN DEFAULT FALSE;
+        `);
+
         client.release();
     } catch (error) {
         console.error('❌ PostgreSQL connection failed:', error);

@@ -78,6 +78,8 @@ export default function MyActivitiesPage() {
 
   const filteredActivities = filter === 'tat-ca'
     ? activities
+    : filter === 'da_ket_thuc'
+    ? activities.filter((a) => a.trangThai === 'da_ket_thuc' || a.trangThai === 'da_huy')
     : activities.filter((a) => a.trangThai === filter);
 
   useEffect(() => {
@@ -105,7 +107,7 @@ export default function MyActivitiesPage() {
         { key: 'tat-ca', label: 'Tất cả' },
         { key: 'sap_dien_ra', label: 'Sắp diễn ra' },
         { key: 'dang_dien_ra', label: 'Đang diễn ra' },
-        { key: 'da_huy', label: 'Đã hủy' },
+        { key: 'da_ket_thuc', label: 'Đã kết thúc / Đã hủy' },
       ].map((f) => (
         <button
           key={f.key}

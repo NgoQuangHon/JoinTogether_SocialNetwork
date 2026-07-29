@@ -25,6 +25,21 @@ export class ChatController {
     },
   );
 
+  public getOrCreatePrivateRoom = asyncHandler(
+    async (req: Request, res: Response): Promise<void> => {
+      const currentUserId = req.user!.nguoiDungId;
+      const targetUserId = parseInt(req.params.targetUserId as string, 10);
+
+      if (isNaN(targetUserId)) {
+        res.status(400).json({ success: false, message: "ID người dùng không hợp lệ." });
+        return;
+      }
+
+      const result = await this.chatService.getOrCreatePrivateRoom(currentUserId, targetUserId);
+      res.status(200).json({ success: true, data: result });
+    },
+  );
+
   public getUserRooms = asyncHandler(
     async (req: Request, res: Response): Promise<void> => {
       const nguoiDungId = req.user!.nguoiDungId;

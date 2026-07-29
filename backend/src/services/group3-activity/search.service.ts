@@ -2,6 +2,7 @@ import { HoatDongRepository } from "../../repositories/group3-activity/hoatDong.
 import { ThanhVienHoatDongRepository } from "../../repositories/group3-activity/thanhVienHoatDong.repository";
 import { YeuCauThamGiaRepository } from "../../repositories/group3-activity/yeuCauThamGia.repository";
 import { LichSuTimKiemRepository } from "../../repositories/group4-interaction/lichSuTimKiem.repository";
+import { pool } from "../../config/db";
 
 export class SearchService {
   private hoatDongRepo = new HoatDongRepository();
@@ -21,7 +22,6 @@ export class SearchService {
       offset?: number;
     }
   ): Promise<any> {
-    // Save search history
     const boLoc: any = {};
     if (filters.danhMucHoatDongId) boLoc.danhMucHoatDongId = filters.danhMucHoatDongId;
     if (filters.diaDiemId) boLoc.diaDiemId = filters.diaDiemId;
@@ -41,6 +41,36 @@ export class SearchService {
       activity.trangThaiYeuCau = req?.trangThai || null;
     }
     return result;
+  }
+
+  async searchUsers(currentUserId: number, keyword: string): Promise<any[]> {
+    if (!keyword || !keyword.trim()) return [];
+
+    const searchPattern = `%${keyword.trim()}%`;
+    const query = `
+      SELECT DISTINCT
+        nd.nguoi_dung_id AS "nguoiDungId",
+        nd.ho_ten AS "hoTen",
+        nd.email,
+        hs.anh_dai_dien AS "anhDaiDien",
+        hs.khu_vuc AS "khuVuc",
+        hs.tieu_su AS "tieuSu",
+        COALESCE(
+          (SELECT trang_thai FROM yeu_cau_ket_noi WHERE (nguoi_gui_id = $1 AND nguoi_nhan_id = nd.nguoi_dung_id) OR (nguoi_gui_id = nd.nguoi_dung_id AND nguoi_nhan_id = $1) ORDER BY yeu_cau_ket_noi_id DESC LIMIT 1),
+          'NONE'
+        ) AS "trangThaiYeuCau",
+        EXISTS (
+          SELECT 1 FROM quan_he_ket_noi WHERE ((nguoi_dung_id_1 = $1 AND nguoi_dung_id_2 = nd.nguoi_dung_id) OR (nguoi_dung_id_1 = nd.nguoi_dung_id AND nguoi_dung_id_2 = $1)) AND trang_thai = 'ACTIVE'
+        ) AS "isFriend"
+      FROM nguoi_dung nd
+      LEFT JOIN ho_so_nguoi_dung hs ON nd.nguoi_dung_id = hs.nguoi_dung_id
+      WHERE nd.nguoi_dung_id != $1
+        AND (nd.ho_ten ILIKE $2 OR nd.email ILIKE $2 OR hs.khu_vuc ILIKE $2 OR hs.tieu_su ILIKE $2)
+      ORDER BY nd.ho_ten ASC
+      LIMIT 10
+    `;
+    const result = await pool.query(query, [currentUserId, searchPattern]);
+    return result.rows;
   }
 
   async getSearchHistory(nguoiDungId: number): Promise<any[]> {

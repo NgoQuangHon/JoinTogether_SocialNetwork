@@ -53,20 +53,13 @@ export default function VerifyEmailPage() {
           <div className="step-item step-active">
             <div className="step-number">2</div>
             <div className="step-info">
-              <strong>Hồ sơ cá nhân</strong>
-              <span>Điền thông tin cá nhân</span>
-            </div>
-          </div>
-          <div className="step-item">
-            <div className="step-number">3</div>
-            <div className="step-info">
               <strong>Sở thích & Mục tiêu</strong>
               <span>Chọn sở thích, mục tiêu, thời gian rảnh</span>
             </div>
           </div>
         </div>
-        <button className="primary-btn" onClick={() => navigate('/profile?onboarding=true')}>
-          Tiếp tục — Bước 2: Hồ sơ
+        <button className="primary-btn" onClick={() => navigate('/interests?onboarding=true')}>
+          Tiếp tục — Bước 2: Sở thích & Mục tiêu
         </button>
       </div>
     );

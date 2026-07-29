@@ -2,7 +2,32 @@ import { pool } from "../../config/db";
 import { HoatDong } from "../../models/group3-activity/hoatDong.model";
 
 export class HoatDongRepository {
-    async create(data: Partial<HoatDong>): Promise<HoatDong> {
+  async syncActivityStatuses(): Promise<void> {
+    try {
+      // 1. Chuyển sang 'dang_dien_ra' nếu CURRENT_TIMESTAMP >= thoi_gian_bat_dau và < thoi_gian_ket_thuc
+      await pool.query(`
+        UPDATE hoat_dong
+        SET trang_thai = 'dang_dien_ra'
+        WHERE (trang_thai = 'sap_dien_ra' OR trang_thai IS NULL)
+          AND thoi_gian_bat_dau IS NOT NULL
+          AND CURRENT_TIMESTAMP >= thoi_gian_bat_dau
+          AND (thoi_gian_ket_thuc IS NULL OR CURRENT_TIMESTAMP < thoi_gian_ket_thuc);
+      `);
+
+      // 2. Chuyển sang 'da_ket_thuc' nếu CURRENT_TIMESTAMP >= thoi_gian_ket_thuc
+      await pool.query(`
+        UPDATE hoat_dong
+        SET trang_thai = 'da_ket_thuc'
+        WHERE (trang_thai = 'sap_dien_ra' OR trang_thai = 'dang_dien_ra' OR trang_thai IS NULL)
+          AND thoi_gian_ket_thuc IS NOT NULL
+          AND CURRENT_TIMESTAMP >= thoi_gian_ket_thuc;
+      `);
+    } catch (err) {
+      console.error("Lỗi tự động đồng bộ trạng thái hoạt động theo thời gian:", err);
+    }
+  }
+
+  async create(data: Partial<HoatDong>): Promise<HoatDong> {
     const query = `
       INSERT INTO hoat_dong (nguoi_to_chuc_id, danh_muc_hoat_dong_id, dia_diem_id, ten_hoat_dong, mo_ta, thoi_gian_bat_dau, thoi_gian_ket_thuc, so_luong_toi_da, do_tuoi_tu, do_tuoi_den, gioi_tinh_phu_hop, muc_do_kinh_nghiem, yeu_cau_khac, noi_quy_chung, luu_y_dac_biet, do_dung_can_mang, han_dang_ky, trang_thai)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
@@ -52,6 +77,7 @@ export class HoatDongRepository {
   }
 
   async findAll(): Promise<any[]> {
+    await this.syncActivityStatuses();
     const query = `
       SELECT
         hd.hoat_dong_id AS "hoatDongId",
@@ -92,6 +118,7 @@ export class HoatDongRepository {
   }
 
   async findById(id: number): Promise<any | null> {
+    await this.syncActivityStatuses();
     const query = `
       SELECT
         hd.hoat_dong_id AS "hoatDongId",
@@ -241,8 +268,8 @@ export class HoatDongRepository {
     return result.rows.length > 0 ? result.rows[0] : null;
   }
 
-
   async findByNguoiToChucId(nguoiDungId: number): Promise<any[]> {
+    await this.syncActivityStatuses();
     const query = `
       SELECT
         hd.hoat_dong_id AS "hoatDongId",
@@ -282,6 +309,7 @@ export class HoatDongRepository {
   }
 
   async findByMemberId(nguoiDungId: number): Promise<any[]> {
+    await this.syncActivityStatuses();
     const query = `
       SELECT
         hd.hoat_dong_id AS "hoatDongId",
@@ -323,6 +351,7 @@ export class HoatDongRepository {
   }
 
   async findByRequesterId(nguoiDungId: number): Promise<any[]> {
+    await this.syncActivityStatuses();
     const query = `
       SELECT
         hd.hoat_dong_id AS "hoatDongId",
@@ -378,6 +407,7 @@ export class HoatDongRepository {
   }
 
   async findFeatured(): Promise<any[]> {
+    await this.syncActivityStatuses();
     const query = `
       SELECT
         hd.hoat_dong_id AS "hoatDongId",
@@ -423,6 +453,7 @@ export class HoatDongRepository {
     limit?: number;
     offset?: number;
   }): Promise<{ rows: any[]; total: number }> {
+    await this.syncActivityStatuses();
     const conditions: string[] = [];
     const values: any[] = [];
     let paramIndex = 1;

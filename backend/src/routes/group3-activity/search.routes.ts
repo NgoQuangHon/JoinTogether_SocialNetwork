@@ -7,6 +7,7 @@ const searchRouter = Router();
 const searchController = new SearchController();
 
 searchRouter.get("/", authenticateToken, searchController.searchActivities);
+searchRouter.get("/users", authenticateToken, searchController.searchUsers);
 
 export default searchRouter;
 

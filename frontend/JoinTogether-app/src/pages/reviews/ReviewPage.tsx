@@ -11,6 +11,7 @@ import {
   createReviewApi,
   replyToReviewApi,
 } from '../../services/review.service';
+import { getMyActivitiesApi, getMembersApi } from '../../services/activity.service';
 import type {
   DiemUyTin,
   LichSuDiemUyTin,
@@ -49,6 +50,39 @@ export default function ReviewPage() {
   const [nguoiDuocDanhGiaId, setNguoiDuocDanhGiaId] = useState('');
   const [nhanXet, setNhanXet] = useState('');
   const [scores, setScores] = useState<Record<number, number>>({});
+
+  // Dropdown options
+  const [completedActivities, setCompletedActivities] = useState<any[]>([]);
+  const [activityMembers, setActivityMembers] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (tab === 'write') {
+      getMyActivitiesApi().then((res) => {
+        if (res.success && res.data) {
+          setCompletedActivities(res.data);
+          if (res.data.length > 0) {
+            const firstId = res.data[0].hoatDongId;
+            setHoatDongId(String(firstId));
+            loadMembersForActivity(firstId);
+          }
+        }
+      }).catch(() => {});
+    }
+  }, [tab]);
+
+  const loadMembersForActivity = (actId: number) => {
+    getMembersApi(actId).then((res) => {
+      if (res.success && res.data) {
+        const filtered = res.data.filter((m: any) => m.nguoiDungId !== nguoiDungId);
+        setActivityMembers(filtered);
+        if (filtered.length > 0) {
+          setNguoiDuocDanhGiaId(String(filtered[0].nguoiDungId));
+        } else {
+          setNguoiDuocDanhGiaId('');
+        }
+      }
+    }).catch(() => setActivityMembers([]));
+  };
 
   useEffect(() => {
     if (!isAuthenticated || !nguoiDungId) return;
@@ -105,7 +139,7 @@ export default function ReviewPage() {
         setCriteria(res.data);
         const init: Record<number, number> = {};
         res.data.forEach((c) => {
-          init[c.tieuChiDanhGiaId] = 0;
+          init[c.tieuChiDanhGiaId] = 5;
         });
         setScores(init);
       }
@@ -120,16 +154,13 @@ export default function ReviewPage() {
     const hdId = parseInt(hoatDongId, 10);
     const targetId = parseInt(nguoiDuocDanhGiaId, 10);
     if (isNaN(hdId) || isNaN(targetId)) {
-      setMsg({ type: 'err', text: 'Vui lòng nhập ID hoạt động và ID người được đánh giá hợp lệ.' });
+      setMsg({ type: 'err', text: 'Vui lòng chọn Hoạt động và Thành viên cần đánh giá hợp lệ.' });
       return;
     }
-    const chiTiet = Object.entries(scores)
-      .filter(([, diem]) => diem > 0)
-      .map(([id, diem]) => ({ tieuChiDanhGiaId: parseInt(id, 10), diem }));
-    if (chiTiet.length === 0) {
-      setMsg({ type: 'err', text: 'Vui lòng chấm điểm ít nhất một tiêu chí.' });
-      return;
-    }
+    const chiTiet = criteria.map((c) => ({
+      tieuChiDanhGiaId: c.tieuChiDanhGiaId,
+      diem: scores[c.tieuChiDanhGiaId] || 5,
+    }));
     setLoading(true);
     try {
       const res = await createReviewApi({
@@ -449,25 +480,47 @@ export default function ReviewPage() {
             )}
             <form onSubmit={handleSubmit} className="review-form">
               <div className="form-row">
-                <label>ID Hoạt động</label>
-                <input
-                  type="number"
+                <label>1. Chọn Hoạt động đã tham gia <span style={{ color: '#f44336' }}>*</span></label>
+                <select
                   value={hoatDongId}
-                  onChange={(e) => setHoatDongId(e.target.value)}
-                  placeholder="Nhập ID hoạt động nhóm..."
+                  onChange={(e) => {
+                    const id = e.target.value;
+                    setHoatDongId(id);
+                    if (id) loadMembersForActivity(Number(id));
+                  }}
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '1px solid #cfd8dc', fontSize: 14 }}
                   required
-                />
+                >
+                  {completedActivities.length === 0 ? (
+                    <option value="">Chưa có hoạt động đã tham gia</option>
+                  ) : (
+                    completedActivities.map((a) => (
+                      <option key={a.hoatDongId} value={a.hoatDongId}>
+                        #{a.hoatDongId} - {a.tenHoatDong} ({a.trangThai === 'da_ket_thuc' ? 'Đã kết thúc' : 'Đang diễn ra'})
+                      </option>
+                    ))
+                  )}
+                </select>
               </div>
 
               <div className="form-row">
-                <label>ID Người được đánh giá</label>
-                <input
-                  type="number"
+                <label>2. Chọn Thành viên cùng tham gia cần đánh giá <span style={{ color: '#f44336' }}>*</span></label>
+                <select
                   value={nguoiDuocDanhGiaId}
                   onChange={(e) => setNguoiDuocDanhGiaId(e.target.value)}
-                  placeholder="Nhập ID thành viên..."
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '1px solid #cfd8dc', fontSize: 14 }}
                   required
-                />
+                >
+                  {activityMembers.length === 0 ? (
+                    <option value="">Không có thành viên nào khác trong hoạt động này</option>
+                  ) : (
+                    activityMembers.map((m) => (
+                      <option key={m.nguoiDungId} value={m.nguoiDungId}>
+                        {m.hoTen || `Thành viên #${m.nguoiDungId}`} (ID #{m.nguoiDungId})
+                      </option>
+                    ))
+                  )}
+                </select>
               </div>
 
               {criteria.length > 0 && (
@@ -483,7 +536,7 @@ export default function ReviewPage() {
                               type="button"
                               key={star}
                               className={`star-btn ${
-                                (scores[c.tieuChiDanhGiaId] || 0) >= star ? 'selected' : ''
+                                (scores[c.tieuChiDanhGiaId] ?? 5) >= star ? 'selected' : ''
                               }`}
                               onClick={() =>
                                 setScores((prev) => ({
