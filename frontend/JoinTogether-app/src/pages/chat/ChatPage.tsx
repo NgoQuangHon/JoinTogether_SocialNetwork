@@ -7,7 +7,7 @@ import { getUserRoomsApi, getMessagesApi, sendMessageApi } from '../../services/
 import type { PhongTroChuyen, TinNhan } from '../../services/chat.service';
 import '../../styles/dashboard.css';
 
-const SOCKET_URL = 'http://localhost:5000';
+import { SOCKET_URL } from '../../config/constants';
 
 export default function ChatPage() {
   const { nguoiDungId } = useAuth();

@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { getMyProfile } from '../../services/profile.service';
 import SidebarLayout from '../../components/SidebarLayout';
 import type { HoSoNguoiDung, SoThich } from '../../types/profile';
+import { API_BASE_URL } from '../../config/constants';
 import './Profile.css';
 
 function ChangePasswordModal({ onClose }: { onClose: () => void }) {
@@ -36,7 +37,7 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
 
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:5000/api/auth/change-password', {
+      const res = await fetch(`${API_BASE_URL.replace(/\/$/, '')}/api/auth/change-password`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

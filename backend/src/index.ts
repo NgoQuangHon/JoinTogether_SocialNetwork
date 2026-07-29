@@ -260,7 +260,7 @@ async function start() {
     });
   });
 
-  const server = httpServer.listen(PORT, () => {
+  const server = httpServer.listen(Number(PORT), "0.0.0.0", () => {
     console.log(`🚀 Server & Socket.IO running on port ${PORT}`);
   });
 

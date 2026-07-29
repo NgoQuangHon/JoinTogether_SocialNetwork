@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { API_BASE_URL } from '../../config/constants';
 import '../../styles/dashboard.css';
 
 interface VerifyPhoneModalProps {
@@ -27,7 +28,7 @@ export default function VerifyPhoneModal({ currentPhone = '', onClose, onSuccess
     setLoading(true);
 
     try {
-      const res = await fetch('http://localhost:5000/api/auth/send-phone-otp', {
+      const res = await fetch(`${API_BASE_URL.replace(/\/$/, '')}/api/auth/send-phone-otp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -61,7 +62,7 @@ export default function VerifyPhoneModal({ currentPhone = '', onClose, onSuccess
     setLoading(true);
 
     try {
-      const res = await fetch('http://localhost:5000/api/auth/verify-phone-otp', {
+      const res = await fetch(`${API_BASE_URL.replace(/\/$/, '')}/api/auth/verify-phone-otp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

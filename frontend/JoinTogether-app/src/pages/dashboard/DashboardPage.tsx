@@ -15,6 +15,7 @@ import type { HoatDongResponse, SearchFilters, DanhMucHoatDong } from '../../typ
 import type { HoSoNguoiDung } from '../../types/profile';
 import type { BaiVietResponse, BinhLuanResponse } from '../../services/post.service';
 import { danhMucList, MOCK_ACTIVITIES, MOCK_SUGGESTIONS, MOCK_POSTS } from './feedMockData';
+import { API_BASE_URL } from '../../config/constants';
 
 const LIMIT = 5;
 
@@ -411,7 +412,7 @@ export default function DashboardPage() {
     if (!postInput.trim() && !postImage) return;
     setPosting(true);
     try {
-      const res = await fetch('http://localhost:5000/api/posts', {
+      const res = await fetch(`${API_BASE_URL.replace(/\/$/, '')}/api/posts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` },
         body: JSON.stringify({ noiDung: postInput.trim(), hinhAnh: postImage || null }),

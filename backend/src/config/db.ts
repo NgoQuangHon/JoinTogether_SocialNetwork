@@ -23,6 +23,7 @@ export const pool = new Pool({
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     parseInt8: true,
+    ssl: process.env.DB_SSL === 'true' || process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
 } as any);
 
 export async function connectDB() {

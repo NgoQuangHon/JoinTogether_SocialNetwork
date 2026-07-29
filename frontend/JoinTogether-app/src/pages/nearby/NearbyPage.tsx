@@ -6,7 +6,8 @@ import { getMyProfile } from '../../services/profile.service';
 import SidebarLayout from '../../components/SidebarLayout';
 import './Nearby.css';
 
-const SOCKET_URL = 'http://localhost:5000';
+import { SOCKET_URL } from '../../config/constants';
+
 const TIMER_SECONDS = 30;
 const RADIUS_KM = 10;
 
