@@ -2,13 +2,13 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { getMyProfile } from '../../services/profile.service';
+import SidebarLayout from '../../components/SidebarLayout';
 import type { HoSoNguoiDung, SoThich } from '../../types/profile';
 import './Profile.css';
 
 export default function ProfilePage() {
-    const { logout, nguoiDungId } = useAuth();
+    const { nguoiDungId } = useAuth();
     const navigate = useNavigate();
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [profile, setProfile] = useState<HoSoNguoiDung | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -29,32 +29,27 @@ export default function ProfilePage() {
             .finally(() => setLoading(false));
     }, []);
 
-    const handleLogout = () => {
-        logout();
-        navigate('/login', { replace: true });
-    };
-
     if (loading) {
         return (
-            <div className="profile-page">
+            <SidebarLayout title="Hồ sơ">
                 <div className="profile-loading">
                     <div className="spinner" />
                     <p>Đang tải hồ sơ...</p>
                 </div>
-            </div>
+            </SidebarLayout>
         );
     }
 
     if (error) {
         return (
-            <div className="profile-page">
+            <SidebarLayout title="Hồ sơ">
                 <div className="profile-loading">
                     <p className="error-text">{error}</p>
                     <button className="edit-button" onClick={() => navigate('/dashboard')}>
                         Quay về bảng tin
                     </button>
                 </div>
-            </div>
+            </SidebarLayout>
         );
     }
 
@@ -87,52 +82,8 @@ export default function ProfilePage() {
     const progressPct = Math.round((filledCount / allFields.length) * 100);
 
     return (
-        <div className="profile-page">
-            {/* ================= HEADER ================= */}
-            <header className="profile-header">
-                <button className="menu-button" onClick={() => setIsSidebarOpen(true)}>
-                    ☰
-                </button>
-                <Link to="/dashboard" className="logo" style={{ textDecoration: 'none' }}>
-                    JoinTogether
-                </Link>
-                <div className="header-user">
-                    <span>🔔</span>
-                    <img src={anhDaiDien} alt="avatar" />
-                </div>
-            </header>
-
-            {/* ================= OVERLAY ================= */}
-            {isSidebarOpen && <div className="sidebar-overlay" onClick={() => setIsSidebarOpen(false)} />}
-
-            {/* ================= SIDEBAR ================= */}
-            <aside className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
-                <button className="close-sidebar" onClick={() => setIsSidebarOpen(false)}>
-                    ✕
-                </button>
-
-                <div className="sidebar-profile">
-                    <img src={anhDaiDien} alt="avatar" />
-                    <h3>{hoTen}</h3>
-                    <span>@{tenDangNhap}</span>
-                </div>
-
-                <ul className="sidebar-menu">
-                    <li className="active">👤 Hồ sơ</li>
-                    <li onClick={() => { setIsSidebarOpen(false); navigate('/dashboard'); }}>📝 Bảng tin</li>
-                    <li onClick={() => { setIsSidebarOpen(false); navigate('/activities'); }}>📅 Hoạt động</li>
-                    <li>🌱 Sở thích</li>
-                    <li>⭐ Đánh giá</li>
-                    <li>⚙ Cài đặt</li>
-                </ul>
-
-                <button className="logout-button" onClick={handleLogout}>
-                    🚪 Đăng xuất
-                </button>
-            </aside>
-
-            {/* ================= PROFILE CONTENT ================= */}
-            <main className="profile-container">
+        <SidebarLayout title="Hồ sơ">
+            <div className="profile-container">
                 {/* PROFILE HEADER CARD */}
                 <section className="profile-card profile-summary">
                     <img className="main-avatar" src={anhDaiDien} alt="avatar" />
@@ -223,7 +174,7 @@ export default function ProfilePage() {
                         )}
                     </div>
                 </section>
-            </main>
-        </div>
+            </div>
+        </SidebarLayout>
     );
 }
