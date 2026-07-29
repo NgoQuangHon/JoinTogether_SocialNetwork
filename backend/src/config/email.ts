@@ -50,6 +50,7 @@ export async function sendVerificationEmail(
   if (mailjetApiKey && mailjetSecretKey) {
     try {
       const authHeader = 'Basic ' + Buffer.from(`${mailjetApiKey}:${mailjetSecretKey}`).toString('base64');
+      const fromEmail = process.env.MAILJET_FROM_EMAIL?.trim() || process.env.SMTP_USER?.trim() || 'phucviplc12@gmail.com';
       const response = await fetch('https://api.mailjet.com/v3.1/send', {
         method: 'POST',
         headers: {
@@ -59,7 +60,7 @@ export async function sendVerificationEmail(
         body: JSON.stringify({
           Messages: [
             {
-              From: { Email: process.env.SMTP_USER || 'phucviplc12@gmail.com', Name: 'JoinTogether Network' },
+              From: { Email: fromEmail, Name: 'JoinTogether Network' },
               To: [{ Email: email }],
               Subject: 'Xác thực tài khoản JoinTogether',
               HTMLPart: htmlContent,
