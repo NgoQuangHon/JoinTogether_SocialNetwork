@@ -53,15 +53,18 @@ export async function sendVerificationEmail(
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          from: 'JoinTogether <onboarding@resend.dev>',
+          from: 'onboarding@resend.dev',
           to: [email],
           subject: 'Xác thực tài khoản JoinTogether',
           html: htmlContent,
         }),
       });
+      const resJson: any = await response.json();
       if (response.ok) {
-        console.log(`✉️ [RESEND API SUCCESS] Đã gửi email qua HTTP API tới: ${email}`);
+        console.log(`✉️ [RESEND API SUCCESS] Đã gửi email qua HTTP API tới ${email} (ID: ${resJson.id})`);
         return;
+      } else {
+        console.error(`❌ [RESEND API REJECTED]:`, JSON.stringify(resJson));
       }
     } catch (err: any) {
       console.error(`❌ [RESEND API ERROR]:`, err.message || err);
