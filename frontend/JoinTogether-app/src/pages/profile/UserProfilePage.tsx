@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { getProfile } from '../../services/profile.service';
-import { getConnectionStatusApi, sendConnectionRequestApi, respondToRequestApi, blockUserApi, unblockUserApi, checkFollowingApi, followUserApi, unfollowUserApi } from '../../services/connection.service';
+import { getConnectionStatusApi, sendConnectionRequestApi, respondToRequestApi, blockUserApi, unblockUserApi, checkFollowingApi, followUserApi, unfollowUserApi, checkBlockedApi } from '../../services/connection.service';
 import type { HoSoNguoiDung } from '../../types/profile';
 import type { ConnectionStatus } from '../../types/connection';
 import './Profile.css';
@@ -37,8 +37,9 @@ export default function UserProfilePage() {
       getProfile(targetUserId),
       getConnectionStatusApi(targetUserId),
       checkFollowingApi(targetUserId),
+      checkBlockedApi(targetUserId),
     ])
-      .then(([profileRes, statusRes, followRes]) => {
+      .then(([profileRes, statusRes, followRes, blockRes]) => {
         if (profileRes.success && profileRes.data) {
           setProfile(profileRes.data);
         } else {
@@ -49,6 +50,9 @@ export default function UserProfilePage() {
         }
         if (followRes.success && followRes.data) {
           setIsFollowing(followRes.data.isFollowing);
+        }
+        if (blockRes.success && blockRes.data) {
+          setIsBlocked(blockRes.data.blocked);
         }
       })
       .catch(() => setError('Lỗi tải hồ sơ.'))
