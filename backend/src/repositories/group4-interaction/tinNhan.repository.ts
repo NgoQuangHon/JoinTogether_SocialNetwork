@@ -48,7 +48,7 @@ export class TinNhanRepository {
       FROM tin_nhan tn
       LEFT JOIN nguoi_dung nd ON tn.nguoi_gui_id = nd.nguoi_dung_id
       WHERE tn.phong_id = $1
-      ORDER BY tn.thoi_gian_gui DESC
+      ORDER BY tn.thoi_gian_gui ASC
       LIMIT $2 OFFSET $3
     `;
     const result = await pool.query(query, [phongId, limit, offset]);

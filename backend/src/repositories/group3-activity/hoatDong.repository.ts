@@ -241,6 +241,7 @@ export class HoatDongRepository {
     return result.rows.length > 0 ? result.rows[0] : null;
   }
 
+
   async findByNguoiToChucId(nguoiDungId: number): Promise<any[]> {
     const query = `
       SELECT
@@ -274,6 +275,88 @@ export class HoatDongRepository {
       LEFT JOIN danh_muc_hoat_dong dm ON hd.danh_muc_hoat_dong_id = dm.danh_muc_hoat_dong_id
       LEFT JOIN dia_diem dd ON hd.dia_diem_id = dd.dia_diem_id
       WHERE hd.nguoi_to_chuc_id = $1
+      ORDER BY hd.thoi_gian_bat_dau DESC NULLS LAST
+    `;
+    const result = await pool.query(query, [nguoiDungId]);
+    return result.rows;
+  }
+
+  async findByMemberId(nguoiDungId: number): Promise<any[]> {
+    const query = `
+      SELECT
+        hd.hoat_dong_id AS "hoatDongId",
+        hd.nguoi_to_chuc_id AS "nguoiToChucId",
+        nd.ho_ten AS "nguoiToChuc",
+        hd.danh_muc_hoat_dong_id AS "danhMucHoatDongId",
+        dm.ten_danh_muc AS "tenDanhMuc",
+        hd.dia_diem_id AS "diaDiemId",
+        dd.ten_dia_diem AS "tenDiaDiem",
+        dd.dia_chi AS "diaChi",
+        hd.ten_hoat_dong AS "tenHoatDong",
+        hd.mo_ta AS "moTa",
+        hd.thoi_gian_bat_dau AS "thoiGianBatDau",
+        hd.thoi_gian_ket_thuc AS "thoiGianKetThuc",
+        hd.so_luong_toi_da AS "soLuongToiDa",
+        hd.do_tuoi_tu AS "doTuoiTu",
+        hd.do_tuoi_den AS "doTuoiDen",
+        hd.gioi_tinh_phu_hop AS "gioiTinhPhuHop",
+        hd.muc_do_kinh_nghiem AS "mucDoKinhNghiem",
+        hd.yeu_cau_khac AS "yeuCauKhac",
+        hd.noi_quy_chung AS "noiQuyChung",
+        hd.luu_y_dac_biet AS "luuYDatBiet",
+        hd.do_dung_can_mang AS "doDungCanMang",
+        hd.han_dang_ky AS "hanDangKy",
+        hd.trang_thai AS "trangThai",
+        hd.ly_do_huy AS "lyDoHuy",
+        (SELECT COUNT(*) FROM thanh_vien_hoat_dong tv WHERE tv.hoat_dong_id = hd.hoat_dong_id) AS "soLuongThanhVien"
+      FROM hoat_dong hd
+      LEFT JOIN nguoi_dung nd ON hd.nguoi_to_chuc_id = nd.nguoi_dung_id
+      LEFT JOIN danh_muc_hoat_dong dm ON hd.danh_muc_hoat_dong_id = dm.danh_muc_hoat_dong_id
+      LEFT JOIN dia_diem dd ON hd.dia_diem_id = dd.dia_diem_id
+      WHERE hd.hoat_dong_id IN (
+        SELECT hoat_dong_id FROM thanh_vien_hoat_dong WHERE nguoi_dung_id = $1
+      )
+      ORDER BY hd.thoi_gian_bat_dau DESC NULLS LAST
+    `;
+    const result = await pool.query(query, [nguoiDungId]);
+    return result.rows;
+  }
+
+  async findByRequesterId(nguoiDungId: number): Promise<any[]> {
+    const query = `
+      SELECT
+        hd.hoat_dong_id AS "hoatDongId",
+        hd.nguoi_to_chuc_id AS "nguoiToChucId",
+        nd.ho_ten AS "nguoiToChuc",
+        hd.danh_muc_hoat_dong_id AS "danhMucHoatDongId",
+        dm.ten_danh_muc AS "tenDanhMuc",
+        hd.dia_diem_id AS "diaDiemId",
+        dd.ten_dia_diem AS "tenDiaDiem",
+        dd.dia_chi AS "diaChi",
+        hd.ten_hoat_dong AS "tenHoatDong",
+        hd.mo_ta AS "moTa",
+        hd.thoi_gian_bat_dau AS "thoiGianBatDau",
+        hd.thoi_gian_ket_thuc AS "thoiGianKetThuc",
+        hd.so_luong_toi_da AS "soLuongToiDa",
+        hd.do_tuoi_tu AS "doTuoiTu",
+        hd.do_tuoi_den AS "doTuoiDen",
+        hd.gioi_tinh_phu_hop AS "gioiTinhPhuHop",
+        hd.muc_do_kinh_nghiem AS "mucDoKinhNghiem",
+        hd.yeu_cau_khac AS "yeuCauKhac",
+        hd.noi_quy_chung AS "noiQuyChung",
+        hd.luu_y_dac_biet AS "luuYDatBiet",
+        hd.do_dung_can_mang AS "doDungCanMang",
+        hd.han_dang_ky AS "hanDangKy",
+        hd.trang_thai AS "trangThai",
+        hd.ly_do_huy AS "lyDoHuy",
+        (SELECT COUNT(*) FROM thanh_vien_hoat_dong tv WHERE tv.hoat_dong_id = hd.hoat_dong_id) AS "soLuongThanhVien"
+      FROM hoat_dong hd
+      LEFT JOIN nguoi_dung nd ON hd.nguoi_to_chuc_id = nd.nguoi_dung_id
+      LEFT JOIN danh_muc_hoat_dong dm ON hd.danh_muc_hoat_dong_id = dm.danh_muc_hoat_dong_id
+      LEFT JOIN dia_diem dd ON hd.dia_diem_id = dd.dia_diem_id
+      WHERE hd.hoat_dong_id IN (
+        SELECT hoat_dong_id FROM yeu_cau_tham_gia WHERE nguoi_dung_id = $1
+      )
       ORDER BY hd.thoi_gian_bat_dau DESC NULLS LAST
     `;
     const result = await pool.query(query, [nguoiDungId]);

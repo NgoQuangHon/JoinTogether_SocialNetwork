@@ -48,8 +48,9 @@ export class ActivityController {
   );
 
   public getAllActivities = asyncHandler(
-    async (_req: Request, res: Response): Promise<void> => {
-      const result = await this.activityService.getAllActivities();
+    async (req: Request, res: Response): Promise<void> => {
+      const nguoiDungId = req.user!.nguoiDungId;
+      const result = await this.activityService.getAllActivities(nguoiDungId);
       res.status(200).json({ success: true, data: result });
     },
   );
@@ -60,7 +61,8 @@ export class ActivityController {
       if (isNaN(id)) {
         throw new Error("ID hoạt động không hợp lệ.");
       }
-      const result = await this.activityService.getActivityById(id);
+      const nguoiDungId = req.user!.nguoiDungId;
+      const result = await this.activityService.getActivityById(id, nguoiDungId);
       res.status(200).json({ success: true, data: result });
     },
   );

@@ -1,12 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { HoatDongResponse } from '../../types/activity';
-import { cancelActivityApi } from '../../services/activity.service';
+import { cancelActivityApi, joinActivityApi, leaveActivityApi } from '../../services/activity.service';
 import EditActivityModal from './EditActivityModal';
 import CriteriaManagerModal from './CriteriaManagerModal';
 import ActivityChatModal from '../../components/chat/ActivityChatModal';
 import CheckInModal from './CheckInModal';
 import AttendanceManagerModal from './AttendanceManagerModal';
 import SubmitReviewModal from './SubmitReviewModal';
+import RequestManagerModal from './RequestManagerModal';
 import ReportModal from '../../components/report/ReportModal';
 import './CreateActivity.css';
 import './ActivityDetail.css';
@@ -37,6 +38,7 @@ export default function ActivityDetailModal({
   onCancel: (id: number) => void;
   onEdited: () => void;
   currentUserId?: number | null;
+  onDataChanged?: () => void;
 }) {
   const [showEdit, setShowEdit] = useState(false);
   const [showCriteria, setShowCriteria] = useState(false);
@@ -45,11 +47,70 @@ export default function ActivityDetailModal({
   const [showAttendance, setShowAttendance] = useState(false);
   const [showReview, setShowReview] = useState(false);
   const [showReport, setShowReport] = useState(false);
+  const [showRequests, setShowRequests] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const [cancelling, setCancelling] = useState(false);
+  const [joining, setJoining] = useState(false);
+  const [leaving, setLeaving] = useState(false);
+  const [actionMsg, setActionMsg] = useState('');
+  const [actionError, setActionError] = useState(false);
+  const [isMember, setIsMember] = useState(activity.isMember ?? false);
+  const [trangThaiYeuCau, setTrangThaiYeuCau] = useState<string | null>(activity.trangThaiYeuCau ?? null);
+
+  useEffect(() => {
+    setIsMember(activity.isMember ?? false);
+    setTrangThaiYeuCau(activity.trangThaiYeuCau ?? null);
+  }, [activity.isMember, activity.trangThaiYeuCau]);
 
   const isOwner = currentUserId != null && activity.nguoiToChucId === currentUserId;
+
+  const handleJoin = async () => {
+    if (joining) return;
+    setJoining(true);
+    setActionMsg('');
+    setActionError(false);
+    try {
+      const res = await joinActivityApi(activity.hoatDongId);
+      if (res.success) {
+        setTrangThaiYeuCau('PENDING');
+        setActionMsg('Đã gửi yêu cầu tham gia thành công! Người tổ chức sẽ xem xét và phê duyệt.');
+        onDataChanged?.();
+      } else {
+        setActionMsg(res.message || 'Gửi yêu cầu thất bại.');
+        setActionError(true);
+      }
+    } catch (err: any) {
+      setActionMsg(err?.response?.data?.message || 'Không thể gửi yêu cầu tham gia.');
+      setActionError(true);
+    } finally {
+      setJoining(false);
+    }
+  };
+
+  const handleLeave = async () => {
+    if (leaving || !window.confirm('Bạn có chắc muốn rời khỏi hoạt động này?')) return;
+    setLeaving(true);
+    setActionMsg('');
+    setActionError(false);
+    try {
+      const res = await leaveActivityApi(activity.hoatDongId);
+      if (res.success) {
+        setIsMember(false);
+        setTrangThaiYeuCau(null);
+        setActionMsg('Đã rời khỏi hoạt động.');
+        onDataChanged?.();
+      } else {
+        setActionMsg(res.message || 'Rời hoạt động thất bại.');
+        setActionError(true);
+      }
+    } catch (err: any) {
+      setActionMsg(err?.response?.data?.message || 'Không thể rời hoạt động.');
+      setActionError(true);
+    } finally {
+      setLeaving(false);
+    }
+  };
 
   const handleCancel = async () => {
     if (!cancelReason.trim()) return;
@@ -101,9 +162,23 @@ export default function ActivityDetailModal({
 
           <div className="cam-detail-header">
             <h3>{activity.tenHoatDong}</h3>
-            <span className="cam-detail-status" style={{ background: statusColor }}>
-              {statusLabel}
-            </span>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              {(() => {
+                if (isOwner) {
+                  return <span style={{ background: '#2e7d32', color: '#fff', padding: '2px 10px', borderRadius: 12, fontSize: 11, fontWeight: 700 }}>owner</span>;
+                }
+                if (isMember) {
+                  return <span style={{ background: '#1565c0', color: '#fff', padding: '2px 10px', borderRadius: 12, fontSize: 11, fontWeight: 700 }}>member</span>;
+                }
+                if (trangThaiYeuCau === 'PENDING') {
+                  return <span style={{ background: '#e65100', color: '#fff', padding: '2px 10px', borderRadius: 12, fontSize: 11, fontWeight: 700 }}>đã gửi yêu cầu</span>;
+                }
+                return null;
+              })()}
+              <span className="cam-detail-status" style={{ background: statusColor }}>
+                {statusLabel}
+              </span>
+            </div>
           </div>
 
           {activity.tenDanhMuc && (
@@ -214,6 +289,9 @@ export default function ActivityDetailModal({
             <button className="cam-btn-outline" onClick={() => setShowAttendance(true)}>
               📋 Điểm danh
             </button>
+            <button className="cam-btn-outline" onClick={() => setShowRequests(true)}>
+              📋 Yêu cầu
+            </button>
             <button className="cam-btn-outline" onClick={() => setShowChat(true)}>
               💬 Trò chuyện
             </button>
@@ -233,35 +311,81 @@ export default function ActivityDetailModal({
         )}
 
         {!isCancelled && !isOwner && (
-          <>
+          <div className="cam-detail-actions">
+            {actionMsg && (
+              <div style={{
+                width: '100%',
+                padding: '10px 14px',
+                borderRadius: 10,
+                fontSize: 13,
+                fontWeight: 600,
+                background: actionError ? '#ffebee' : '#e8f5e9',
+                color: actionError ? '#c62828' : '#2e7d32',
+                border: actionError ? '1px solid #ffcdd2' : '1px solid #c8e6c9',
+                marginBottom: 8,
+                textAlign: 'center',
+              }}>
+                {actionError ? '⚠️ ' : '✅ '}{actionMsg}
+              </div>
+            )}
+            <button className="cam-btn-outline" onClick={() => setShowReport(true)} style={{ color: '#d32f2f', borderColor: '#ffcdd2' }}>
+              🚩 Báo cáo
+            </button>
+            {isMember && (
+              <button className="cam-btn-outline" onClick={() => setShowReview(true)}>
+                ⭐ Đánh giá
+              </button>
+            )}
+            {isMember && (
+              <button className="cam-btn-outline" onClick={() => setShowCheckIn(true)}>
+                📲 Check-in
+              </button>
+            )}
+            <button className="cam-btn-outline" onClick={() => setShowChat(true)}>
+              💬 Trò chuyện
+            </button>
             {(() => {
               const isFull = activity.soLuongToiDa != null && activity.soLuongThanhVien != null && activity.soLuongThanhVien >= activity.soLuongToiDa;
               const isExpired = activity.hanDangKy != null && new Date(activity.hanDangKy) < new Date();
+              if (isMember) {
+                return (
+                  <button
+                    className="cam-btn-outline"
+                    onClick={handleLeave}
+                    disabled={leaving}
+                    style={{ color: '#d32f2f', borderColor: '#ffcdd2' }}
+                  >
+                    {leaving ? 'Đang rời...' : 'Rời hoạt động'}
+                  </button>
+                );
+              }
+              if (trangThaiYeuCau === 'PENDING') {
+                return (
+                  <span style={{ color: '#ff9800', fontSize: 13, fontWeight: 600, padding: '10px 16px', background: '#fff3e0', borderRadius: 12, border: '1px solid #ffe0b2' }}>
+                    ⏳ Đã gửi yêu cầu (đang chờ)
+                  </span>
+                );
+              }
+              if (trangThaiYeuCau === 'REJECTED') {
+                return (
+                  <span style={{ color: '#d32f2f', fontSize: 13, fontWeight: 600, padding: '10px 16px', background: '#ffebee', borderRadius: 12, border: '1px solid #ffcdd2' }}>
+                    ❌ Yêu cầu bị từ chối
+                  </span>
+                );
+              }
+              if (isFull) {
+                return <span style={{ color: '#f44336', fontSize: 13, fontWeight: 600 }}>Đã đầy</span>;
+              }
+              if (isExpired) {
+                return <span style={{ color: '#ff9800', fontSize: 13, fontWeight: 600 }}>Hết hạn</span>;
+              }
               return (
-                <div className="cam-detail-actions">
-                  <button className="cam-btn-outline" onClick={() => setShowReport(true)} style={{ color: '#d32f2f', borderColor: '#ffcdd2' }}>
-                    🚩 Báo cáo
-                  </button>
-                  <button className="cam-btn-outline" onClick={() => setShowReview(true)}>
-                    ⭐ Đánh giá
-                  </button>
-                  <button className="cam-btn-outline" onClick={() => setShowCheckIn(true)}>
-                    📲 Check-in
-                  </button>
-                  <button className="cam-btn-outline" onClick={() => setShowChat(true)}>
-                    💬 Trò chuyện
-                  </button>
-                  {isFull ? (
-                    <span style={{ color: '#f44336', fontSize: 13, fontWeight: 600 }}>Đã đầy</span>
-                  ) : isExpired ? (
-                    <span style={{ color: '#ff9800', fontSize: 13, fontWeight: 600 }}>Hết hạn</span>
-                  ) : (
-                    <button className="cam-btn-primary">Đăng ký tham gia</button>
-                  )}
-                </div>
+                <button className="cam-btn-primary" onClick={handleJoin} disabled={joining}>
+                  {joining ? 'Đang gửi...' : 'Đăng ký tham gia'}
+                </button>
               );
             })()}
-          </>
+          </div>
         )}
 
         {isCancelled && (
@@ -322,6 +446,18 @@ export default function ActivityDetailModal({
           <CriteriaManagerModal
             hoatDongId={activity.hoatDongId}
             onClose={() => setShowCriteria(false)}
+          />
+        )}
+
+        {showRequests && (
+          <RequestManagerModal
+            hoatDongId={activity.hoatDongId}
+            tenHoatDong={activity.tenHoatDong}
+            onClose={() => setShowRequests(false)}
+            onProcessed={() => {
+              setShowRequests(false);
+              onEdited();
+            }}
           />
         )}
 

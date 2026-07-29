@@ -334,7 +334,8 @@ export default function DashboardPage() {
     return new Date(iso).toLocaleDateString('vi-VN');
   };
 
-  const displayActivities = searchResults.length > 0 ? searchResults : recentActivities;
+  const displayActivities = (searchResults.length > 0 ? searchResults : recentActivities)
+    .filter((a) => !a.isMember && a.trangThaiYeuCau !== 'PENDING');
   const categoriesList = apiDanhMucList.length > 0 ? apiDanhMucList.map(c => ({ id: c.danhMucHoatDongId, ten: c.tenDanhMuc })) : danhMucList;
 
   return (
@@ -436,9 +437,21 @@ export default function DashboardPage() {
                 <div className="hscroll">
                   {displayActivities.map((act) => (
                     <div key={act.hoatDongId} className="activity-card" style={{ cursor: 'pointer' }} onClick={() => setSelectedActivity(act)}>
-                      <div className="activity-thumb" style={{ background: '#e5f6e7' }}>
-                        <span className="distance-badge">{act.tenDanhMuc || 'Hoạt động'}</span>
-                      </div>
+                        {(() => {
+                          const t = act.hinhAnh?.find(h => h.laAnhDaiDien)?.duongDan;
+                          const loc = act.tenDiaDiem || act.diaChi;
+                          if (t) {
+                            return <div className="activity-thumb" style={{ background: `url(${t}) center/cover` }}><span className="distance-badge">{act.tenDanhMuc || 'Hoạt động'}</span></div>;
+                          }
+                          if (loc) {
+                            return <div className="activity-thumb" style={{ background: 'linear-gradient(135deg, #0d47a1, #42a5f5)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 4, padding: 8 }}>
+                              <span className="distance-badge" style={{ position: 'absolute', top: 8, left: 8 }}>{act.tenDanhMuc || 'Hoạt động'}</span>
+                              <span style={{ fontSize: 28 }}>📍</span>
+                              <span style={{ color: '#fff', fontSize: 11, fontWeight: 600, textAlign: 'center', lineHeight: 1.3 }}>{loc}</span>
+                            </div>;
+                          }
+                          return <div className="activity-thumb" style={{ background: '#e5f6e7' }}><span className="distance-badge">{act.tenDanhMuc || 'Hoạt động'}</span></div>;
+                        })()}
                       <div className="activity-title">{act.tenHoatDong}</div>
                       <div className="activity-time">{formatThoiGian(act.thoiGianBatDau)}</div>
                       <div className="activity-location">{act.tenDiaDiem || act.diaChi || 'Trực tuyến / Chưa định vị'}</div>
@@ -562,9 +575,22 @@ export default function DashboardPage() {
           }}
           onEdited={() => {
             setSelectedActivity(null);
-            getMyActivitiesApi()
-              .then((res) => { if (res.success && res.data) setMyActivities(res.data); })
-              .catch(() => {});
+            Promise.all([
+              getMyActivitiesApi(),
+              getAllActivitiesApi(),
+            ]).then(([myRes, actRes]) => {
+              if (myRes.success && myRes.data) setMyActivities(myRes.data);
+              if (actRes.success && actRes.data) setRecentActivities(actRes.data);
+            }).catch(() => {});
+          }}
+          onDataChanged={() => {
+            Promise.all([
+              getMyActivitiesApi(),
+              getAllActivitiesApi(),
+            ]).then(([myRes, actRes]) => {
+              if (myRes.success && myRes.data) setMyActivities(myRes.data);
+              if (actRes.success && actRes.data) setRecentActivities(actRes.data);
+            }).catch(() => {});
           }}
           currentUserId={nguoiDungId}
         />

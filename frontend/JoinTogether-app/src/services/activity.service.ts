@@ -79,6 +79,45 @@ export const searchActivitiesApi = async (filters: SearchFilters): Promise<ApiRe
   return response.data;
 };
 
+// ==================== JOIN REQUESTS MANAGEMENT ====================
+
+export interface YeuCauThamGia {
+  yeuCauId: number;
+  hoatDongId: number;
+  nguoiDungId: number;
+  hoTen?: string;
+  email?: string;
+  trangThai: string;
+  thoiGianGui?: string;
+}
+
+export const getPendingRequestsApi = async (hoatDongId: number): Promise<ApiResponse<YeuCauThamGia[]>> => {
+  const response = await api.get<ApiResponse<YeuCauThamGia[]>>(`/activities/${hoatDongId}/requests`);
+  return response.data;
+};
+
+export const approveRequestApi = async (hoatDongId: number, yeuCauId: number): Promise<ApiResponse<any>> => {
+  const response = await api.put<ApiResponse<any>>(`/activities/${hoatDongId}/requests/${yeuCauId}/approve`);
+  return response.data;
+};
+
+export const rejectRequestApi = async (hoatDongId: number, yeuCauId: number): Promise<ApiResponse<any>> => {
+  const response = await api.put<ApiResponse<any>>(`/activities/${hoatDongId}/requests/${yeuCauId}/reject`);
+  return response.data;
+};
+
+// ==================== JOIN / LEAVE ====================
+
+export const joinActivityApi = async (hoatDongId: number): Promise<ApiResponse<any>> => {
+  const response = await api.post<ApiResponse<any>>(`/activities/${hoatDongId}/join`);
+  return response.data;
+};
+
+export const leaveActivityApi = async (hoatDongId: number): Promise<ApiResponse<void>> => {
+  const response = await api.delete<ApiResponse<void>>(`/activities/${hoatDongId}/leave`);
+  return response.data;
+};
+
 // ==================== CHECK-IN & ATTENDANCE ====================
 
 export const getMembersApi = async (hoatDongId: number): Promise<ApiResponse<any[]>> => {

@@ -8,6 +8,8 @@ import { HoatDongModel } from "../../models/group3-activity/hoatDong.model";
 import { DanhMucHoatDongModel } from "../../models/group3-activity/danhMucHoatDong.model";
 import { DiaDiemModel } from "../../models/group3-activity/diaDiem.model";
 import { HinhAnhHoatDongModel } from "../../models/group3-activity/hinhAnhHoatDong.model";
+import { ThanhVienHoatDongRepository } from "../../repositories/group3-activity/thanhVienHoatDong.repository";
+import { YeuCauThamGiaRepository } from "../../repositories/group3-activity/yeuCauThamGia.repository";
 import { NotFoundError, BadRequestError, ForbiddenError } from "../../utils/AppError";
 
 export class ActivityService {
@@ -16,6 +18,8 @@ export class ActivityService {
   private diaDiemRepo = new DiaDiemRepository();
   private hinhAnhRepo = new HinhAnhHoatDongRepository();
   private tieuChiRepo = new TieuChiThamGiaRepository();
+  private thanhVienRepo = new ThanhVienHoatDongRepository();
+  private yeuCauRepo = new YeuCauThamGiaRepository();
 
   // ==================== ACTIVITIES ====================
 
@@ -29,12 +33,25 @@ export class ActivityService {
   }
 
   async getMyActivities(nguoiDungId: number): Promise<any[]> {
-    const activities = await this.hoatDongRepo.findByNguoiToChucId(nguoiDungId);
-    for (const activity of activities) {
+    const [ownerActivities, memberActivities, requestedActivities] = await Promise.all([
+      this.hoatDongRepo.findByNguoiToChucId(nguoiDungId),
+      this.hoatDongRepo.findByMemberId(nguoiDungId),
+      this.hoatDongRepo.findByRequesterId(nguoiDungId),
+    ]);
+    const seen = new Set<number>();
+    const merged = [...ownerActivities, ...memberActivities, ...requestedActivities].filter((a) => {
+      if (seen.has(a.hoatDongId)) return false;
+      seen.add(a.hoatDongId);
+      return true;
+    });
+    for (const activity of merged) {
       const images = await this.hinhAnhRepo.findByHoatDongId(activity.hoatDongId);
       activity.hinhAnh = images;
+      activity.isMember = await this.thanhVienRepo.isMember(nguoiDungId, activity.hoatDongId);
+      const req = await this.yeuCauRepo.findExistingRequest(activity.hoatDongId, nguoiDungId);
+      activity.trangThaiYeuCau = req?.trangThai || null;
     }
-    return activities;
+    return merged;
   }
 
   async cancelActivity(id: number, nguoiDungId: number, lyDoHuy?: string): Promise<any> {
@@ -191,18 +208,32 @@ export class ActivityService {
     }
   }
 
-  async getAllActivities(): Promise<any[]> {
-    return await this.hoatDongRepo.findAll();
+  async getAllActivities(nguoiDungId: number): Promise<any[]> {
+    const activities = await this.hoatDongRepo.findAll();
+    for (const activity of activities) {
+      const images = await this.hinhAnhRepo.findByHoatDongId(activity.hoatDongId);
+      activity.hinhAnh = images;
+      activity.isMember = await this.thanhVienRepo.isMember(nguoiDungId, activity.hoatDongId);
+      const req = await this.yeuCauRepo.findExistingRequest(activity.hoatDongId, nguoiDungId);
+      activity.trangThaiYeuCau = req?.trangThai || null;
+    }
+    return activities;
   }
 
-  async getActivityById(id: number): Promise<any> {
+  async getActivityById(id: number, nguoiDungId?: number): Promise<any> {
     const activity = await this.hoatDongRepo.findById(id);
     if (!activity) {
       throw new NotFoundError("Hoạt động không tồn tại.");
     }
 
     const images = await this.hinhAnhRepo.findByHoatDongId(id);
-    return { ...activity, hinhAnh: images };
+    const result = { ...activity, hinhAnh: images };
+    if (nguoiDungId) {
+      result.isMember = await this.thanhVienRepo.isMember(nguoiDungId, id);
+      const req = await this.yeuCauRepo.findExistingRequest(id, nguoiDungId);
+      result.trangThaiYeuCau = req?.trangThai || null;
+    }
+    return result;
   }
 
   async updateActivity(id: number, data: any): Promise<any> {

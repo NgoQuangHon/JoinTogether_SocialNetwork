@@ -80,4 +80,6 @@ export interface HoatDongResponse {
   soLuongThanhVien?: number;
   trangThai?: string;
   lyDoHuy?: string;
+  isMember?: boolean;
+  trangThaiYeuCau?: string | null;
 }

@@ -1,8 +1,12 @@
 import { HoatDongRepository } from "../../repositories/group3-activity/hoatDong.repository";
+import { ThanhVienHoatDongRepository } from "../../repositories/group3-activity/thanhVienHoatDong.repository";
+import { YeuCauThamGiaRepository } from "../../repositories/group3-activity/yeuCauThamGia.repository";
 import { LichSuTimKiemRepository } from "../../repositories/group4-interaction/lichSuTimKiem.repository";
 
 export class SearchService {
   private hoatDongRepo = new HoatDongRepository();
+  private thanhVienRepo = new ThanhVienHoatDongRepository();
+  private yeuCauRepo = new YeuCauThamGiaRepository();
   private lichSuRepo = new LichSuTimKiemRepository();
 
   async searchActivities(
@@ -30,7 +34,13 @@ export class SearchService {
       boLocTimKiem: Object.keys(boLoc).length > 0 ? JSON.stringify(boLoc) : null,
     });
 
-    return await this.hoatDongRepo.search(filters);
+    const result = await this.hoatDongRepo.search(filters);
+    for (const activity of result.rows) {
+      activity.isMember = await this.thanhVienRepo.isMember(nguoiDungId, activity.hoatDongId);
+      const req = await this.yeuCauRepo.findExistingRequest(activity.hoatDongId, nguoiDungId);
+      activity.trangThaiYeuCau = req?.trangThai || null;
+    }
+    return result;
   }
 
   async getSearchHistory(nguoiDungId: number): Promise<any[]> {
