@@ -31,7 +31,8 @@ export class PhongTroChuyenRepository {
         ten_phong AS "tenPhong",
         loai_phong AS "loaiPhong",
         trang_thai AS "trangThai",
-        ngay_tao AS "ngayTao"
+        ngay_tao AS "ngayTao",
+        het_han_luc AS "hetHanLuc"
       FROM phong_tro_chuyen
       WHERE phong_id = $1
     `;
@@ -74,6 +75,21 @@ export class PhongTroChuyenRepository {
         pt.loai_phong AS "loaiPhong",
         pt.trang_thai AS "trangThai",
         pt.ngay_tao AS "ngayTao",
+        pt.het_han_luc AS "hetHanLuc",
+        EXISTS (
+          SELECT 1 FROM quan_he_ket_noi qhk
+          WHERE ((qhk.nguoi_dung_id_1 = $1 AND qhk.nguoi_dung_id_2 = (
+            SELECT tvp2.nguoi_dung_id FROM thanh_vien_phong tvp2 WHERE tvp2.phong_id = pt.phong_id AND tvp2.nguoi_dung_id != $1 LIMIT 1
+          )) OR (qhk.nguoi_dung_id_2 = $1 AND qhk.nguoi_dung_id_1 = (
+            SELECT tvp2.nguoi_dung_id FROM thanh_vien_phong tvp2 WHERE tvp2.phong_id = pt.phong_id AND tvp2.nguoi_dung_id != $1 LIMIT 1
+          ))) AND qhk.trang_thai = 'ACTIVE'
+        ) AS "isFriend",
+        COALESCE((
+          SELECT trang_thai FROM de_xuat_ket_ban WHERE phong_id = pt.phong_id AND nguoi_dung_id = $1 LIMIT 1
+        ), 'NONE') AS "myProposal",
+        COALESCE((
+          SELECT trang_thai FROM de_xuat_ket_ban WHERE phong_id = pt.phong_id AND nguoi_dung_id != $1 LIMIT 1
+        ), 'NONE') AS "otherProposal",
         (SELECT COUNT(*) FROM tin_nhan tn WHERE tn.phong_id = pt.phong_id) AS "soLuongTinNhan"
       FROM phong_tro_chuyen pt
       LEFT JOIN hoat_dong hd ON pt.hoat_dong_id = hd.hoat_dong_id

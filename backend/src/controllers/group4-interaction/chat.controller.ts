@@ -76,6 +76,19 @@ export class ChatController {
         nguoiGuiId,
         noiDung,
       );
+
+      const io = req.app.get("io");
+      if (io) {
+        io.to(`room_${phongId}`).emit("receive_message", {
+          tinNhanId: result.tinNhanId,
+          phongId,
+          nguoiGuiId,
+          noiDung: result.noiDung,
+          taoLuc: result.taoLuc || result.thoiGianTao || result.guiLuc || new Date().toISOString(),
+          nguoiGuiName: result.nguoiGuiName || result.nguoiGui || "Người dùng",
+        });
+      }
+
       res
         .status(201)
         .json({ success: true, message: "Đã gửi tin nhắn.", data: result });

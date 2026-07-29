@@ -47,23 +47,36 @@ function Avatar({ mau, chu, kichThuoc = 44 }: { mau: string; chu: string; kichTh
   );
 }
 
-function AIBanner() {
+function MatchBannersSection() {
   const navigate = useNavigate();
   return (
-    <section className="ai-banner">
-      <div className="ai-banner-main">
-        <div className="ai-banner-icon">✦</div>
-        <h2>Gợi ý AI cho hôm nay</h2>
-        <p className="ai-banner-sub">Hơn 12 người cùng sở thích thể thao & du lịch đang sẵn sàng kết nối!</p>
-        <p className="ai-banner-desc">Hệ thống AI phân tích vị trí và sở thích cá nhân để đề xuất người đồng hành tối ưu.</p>
-        <div className="ai-banner-bottom">
-          <button className="ai-banner-cta" onClick={() => navigate('/ai-match')}>
-            Khám phá AI Matching <span>→</span>
-          </button>
-          <div className="ai-banner-slider">
-            <span className="ai-banner-slider-dot" />
-          </div>
+    <section className="match-banners-container">
+      {/* NỬA TRÁI: AI MATCHING */}
+      <div className="match-banner-card ai-card" onClick={() => navigate('/ai-match')}>
+        <div className="match-banner-header">
+          <div className="match-icon-badge ai-icon">✦ AI MATCHING</div>
+          <span className="match-tag-badge">Thuật toán AI</span>
         </div>
+        <h3 className="match-banner-title">AI Matching</h3>
+        <p className="match-banner-sub">Kết nối thông minh theo độ tương thích!</p>
+        <p className="match-banner-desc">Phân tích sở thích cá nhân và điểm uy tín để đề xuất người đồng hành tối ưu nhất cho bạn.</p>
+        <button className="match-banner-btn ai-btn">
+          Khám phá AI Match <span>→</span>
+        </button>
+      </div>
+
+      {/* NỬA PHẢI: AREA MATCHING (QUÉT LÂN CẬN) */}
+      <div className="match-banner-card area-card" onClick={() => navigate('/nearby')}>
+        <div className="match-banner-header">
+          <div className="match-icon-badge area-icon">📍 AREA MATCHING</div>
+          <span className="match-tag-badge live-tag">● Trực tiếp</span>
+        </div>
+        <h3 className="match-banner-title">Area Matching</h3>
+        <p className="match-banner-sub">Quét vị trí GPS bán kính 10km!</p>
+        <p className="match-banner-desc">Định vị người dùng cùng sở thích đang bật tìm kiếm lân cận quanh khu vực bạn sinh sống.</p>
+        <button className="match-banner-btn area-btn">
+          Bắt đầu quét lân cận <span>→</span>
+        </button>
       </div>
     </section>
   );
@@ -504,7 +517,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <AIBanner />
+        <MatchBannersSection />
 
         {/* Dashboard Main Grid Layout */}
         <div className="dashboard-grid-layout">

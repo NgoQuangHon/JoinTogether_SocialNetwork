@@ -10,7 +10,7 @@ const SOCKET_URL = 'http://localhost:5000';
 const TIMER_SECONDS = 30;
 const RADIUS_KM = 10;
 
-type ScanState = 'idle' | 'scanning' | 'match_found' | 'waiting_other' | 'success' | 'cancelled';
+type ScanState = 'idle' | 'scanning' | 'match_found' | 'waiting_other' | 'cancelled';
 
 interface MatchData {
   matchId: string;
@@ -35,11 +35,11 @@ export default function NearbyPage() {
 
   const [scanState, setScanState] = useState<ScanState>('idle');
   const [matchData, setMatchData] = useState<MatchData | null>(null);
-  const [successData, setSuccessData] = useState<SuccessData | null>(null);
   const [countdown, setCountdown] = useState(TIMER_SECONDS);
   const [soThich, setSoThich] = useState<string[]>([]);
   const [locationError, setLocationError] = useState('');
   const [accepted, setAccepted] = useState(false);
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
 
   const socketRef = useRef<Socket | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -52,6 +52,22 @@ export default function NearbyPage() {
         setSoThich(res.data.soThich.map((s: any) => s.tenSoThich));
       }
     }).catch(() => {});
+  }, []);
+
+  // Tự động lấy vị trí khi vào trang để nạp Google Map làm background
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          posRef.current = { lat, lng };
+          setCoords({ lat, lng });
+        },
+        () => {},
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    }
   }, []);
 
   // Kết nối Socket.IO
@@ -71,24 +87,24 @@ export default function NearbyPage() {
       startCountdown();
     });
 
+    // CẢ 2 BẤM ĐỒNG Ý -> CHUYỂN NGAY SANG TRANG CHAT
     socket.on('nearby_match_success', (data: SuccessData) => {
       stopCountdown();
-      setSuccessData(data);
-      setScanState('success');
+      setMatchData(null);
+      setScanState('idle');
+      navigate(`/chat?room=${data.chatRoomId}`);
     });
 
-    socket.on('nearby_match_cancelled', (data: { reason: string }) => {
+    socket.on('nearby_match_waiting', () => {
+      setScanState('waiting_other');
+    });
+
+    socket.on('nearby_match_cancelled', () => {
       stopCountdown();
       setMatchData(null);
       setAccepted(false);
-      if (data.reason === 'timeout') {
-        setScanState('scanning');
-        // Tự động tìm lại sau 3 giây
-        setTimeout(() => retrySearch(), 3000);
-      } else {
-        setScanState('scanning');
-        setTimeout(() => retrySearch(), 3000);
-      }
+      setScanState('scanning');
+      setTimeout(() => retrySearch(), 3000);
     });
 
     socket.on('nearby_scan_stopped', () => {
@@ -104,6 +120,13 @@ export default function NearbyPage() {
       socket.disconnect();
       stopCountdown();
     };
+  }, [navigate]);
+
+  const stopCountdown = useCallback(() => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
   }, []);
 
   const startCountdown = useCallback(() => {
@@ -118,29 +141,31 @@ export default function NearbyPage() {
         return prev - 1;
       });
     }, 1000);
-  }, []);
-
-  const stopCountdown = useCallback(() => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
-  }, []);
+  }, [stopCountdown]);
 
   const retrySearch = useCallback(() => {
     if (!posRef.current || !nguoiDungId) return;
     socketRef.current?.emit('nearby_scan_start', {
-      nguoiDungId,
+      nguoiDungId: Number(nguoiDungId),
       viDo: posRef.current.lat,
       kinhDo: posRef.current.lng,
     });
   }, [nguoiDungId]);
 
+  // Tự động quét tìm định kỳ mỗi 4s khi đang bật radar scanning
+  useEffect(() => {
+    if (scanState !== 'scanning') return;
+    const interval = setInterval(() => {
+      retrySearch();
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [scanState, retrySearch]);
+
   // Bắt đầu quét — xin vị trí GPS
   const handleStartScan = () => {
     setLocationError('');
     if (!navigator.geolocation) {
-      setLocationError('Trình duyệt không hỗ trợ định vị GPS. Vui lòng dùng thiết bị khác.');
+      setLocationError('Trình duyệt không hỗ trợ định vị GPS.');
       return;
     }
 
@@ -151,9 +176,10 @@ export default function NearbyPage() {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
         posRef.current = { lat, lng };
+        setCoords({ lat, lng });
 
         socketRef.current?.emit('nearby_scan_start', {
-          nguoiDungId,
+          nguoiDungId: Number(nguoiDungId),
           viDo: lat,
           kinhDo: lng,
         });
@@ -172,7 +198,7 @@ export default function NearbyPage() {
 
   // Dừng quét
   const handleStopScan = () => {
-    socketRef.current?.emit('nearby_scan_stop', { nguoiDungId });
+    socketRef.current?.emit('nearby_scan_stop', { nguoiDungId: Number(nguoiDungId) });
     stopCountdown();
     setMatchData(null);
     setScanState('idle');
@@ -185,7 +211,7 @@ export default function NearbyPage() {
     setScanState('waiting_other');
     socketRef.current?.emit('nearby_match_accept', {
       matchId: matchData.matchId,
-      nguoiDungId,
+      nguoiDungId: Number(nguoiDungId),
     });
   };
 
@@ -194,7 +220,7 @@ export default function NearbyPage() {
     if (!matchData) return;
     socketRef.current?.emit('nearby_match_decline', {
       matchId: matchData.matchId,
-      nguoiDungId,
+      nguoiDungId: Number(nguoiDungId),
     });
     stopCountdown();
     setMatchData(null);
@@ -209,68 +235,83 @@ export default function NearbyPage() {
   return (
     <SidebarLayout title="Tìm bạn lân cận">
       <div className="nearby-page">
-        {/* Header */}
-        <div className="nearby-header">
-          <h1>📍 Tìm bạn lân cận</h1>
-          <p>
-            Kết nối với người có cùng sở thích trong bán kính <strong>{RADIUS_KM}km</strong>.
-            Cả hai cùng đồng ý thì sẽ trở thành bạn bè!
-          </p>
+        {/* GOOGLE MAP FIXED BACKGROUND (cố định không thể kéo vuốt) */}
+        <div className="nearby-map-bg">
+          <iframe
+            title="nearby-bg-map"
+            width="100%"
+            height="100%"
+            style={{ border: 0, pointerEvents: 'none' }}
+            loading="lazy"
+            src={`https://www.google.com/maps?q=${coords ? `${coords.lat},${coords.lng}` : '21.0285,105.8542'}&z=14&output=embed`}
+          />
+          <div className="nearby-map-overlay" />
         </div>
 
-        {/* Radar */}
-        <div className="radar-container">
-          {scanState === 'scanning' && (
-            <>
-              <div className="radar-ring" />
-              <div className="radar-ring" />
-              <div className="radar-ring" />
-            </>
-          )}
-          <button
-            className={`radar-center-btn ${scanState === 'scanning' ? 'scanning' : ''}`}
-            onClick={scanState === 'idle' ? handleStartScan : handleStopScan}
-          >
-            <span className="btn-icon">{scanState === 'scanning' ? '⏹' : '🔍'}</span>
-            <span className="btn-label">{scanState === 'scanning' ? 'Dừng' : 'Tìm bạn'}</span>
-          </button>
-        </div>
-
-        {/* Status */}
-        {scanState === 'scanning' && (
-          <div className="scan-status-chip">
-            <div className="dot" />
-            Đang quét trong bán kính {RADIUS_KM}km...
+        {/* Content Container */}
+        <div className="nearby-content">
+          {/* Header */}
+          <div className="nearby-header">
+            <h1>📍 Tìm bạn lân cận</h1>
+            <p>
+              Kết nối với người có cùng sở thích trong bán kính <strong>{RADIUS_KM}km</strong>.
+            </p>
           </div>
-        )}
 
-        {/* Location error */}
-        {locationError && (
-          <div style={{ background: '#ffeaea', border: '1px solid #ffcdd2', color: '#c62828', borderRadius: 12, padding: '10px 16px', fontSize: 13, maxWidth: 380, marginBottom: 16, textAlign: 'center' }}>
-            ⚠️ {locationError}
-          </div>
-        )}
-
-        {/* Interests */}
-        <div className="interests-section">
-          <h4>Sở thích dùng để ghép cặp</h4>
-          <div className="interest-chips">
-            {soThich.length > 0 ? (
-              soThich.map((s, i) => (
-                <span key={i} className="interest-chip">🌱 {s}</span>
-              ))
-            ) : (
-              <span className="interest-chip empty">
-                Chưa có sở thích — <a href="/interests" style={{ color: '#2e7d32' }}>Thêm ngay</a>
-              </span>
+          {/* Radar */}
+          <div className="radar-container">
+            {scanState === 'scanning' && (
+              <>
+                <div className="radar-ring" />
+                <div className="radar-ring" />
+                <div className="radar-ring" />
+              </>
             )}
+            <button
+              className={`radar-center-btn ${scanState === 'scanning' ? 'scanning' : ''}`}
+              onClick={scanState === 'idle' ? handleStartScan : handleStopScan}
+            >
+              <span className="btn-icon">{scanState === 'scanning' ? '⏹' : '🔍'}</span>
+              <span className="btn-label">{scanState === 'scanning' ? 'Dừng' : 'Tìm bạn'}</span>
+            </button>
           </div>
-        </div>
 
-        {/* Info */}
-        <div style={{ maxWidth: 400, width: '100%', background: '#fff', borderRadius: 16, padding: '16px 20px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', fontSize: 13, color: '#546e7a', lineHeight: 1.6 }}>
-          <p style={{ margin: '0 0 6px', fontWeight: 700, color: '#37474f' }}>🔒 Quyền riêng tư</p>
-          <p style={{ margin: 0 }}>Vị trí của bạn chỉ được dùng khi đang quét và sẽ <strong>xóa ngay</strong> sau khi dừng. Chúng tôi không lưu vị trí lâu dài.</p>
+          {/* Status */}
+          {scanState === 'scanning' && (
+            <div className="scan-status-chip">
+              <div className="dot" />
+              Đang quét trong bán kính {RADIUS_KM}km...
+            </div>
+          )}
+
+          {/* Location error */}
+          {locationError && (
+            <div style={{ background: '#ffeaea', border: '1px solid #ffcdd2', color: '#c62828', borderRadius: 12, padding: '10px 16px', fontSize: 13, maxWidth: 380, marginBottom: 16, textAlign: 'center' }}>
+              ⚠️ {locationError}
+            </div>
+          )}
+
+          {/* Interests */}
+          <div className="interests-section">
+            <h4>Sở thích dùng để ghép cặp</h4>
+            <div className="interest-chips">
+              {soThich.length > 0 ? (
+                soThich.map((s, i) => (
+                  <span key={i} className="interest-chip">🌱 {s}</span>
+                ))
+              ) : (
+                <span className="interest-chip empty">
+                  Chưa có sở thích — <a href="/interests" style={{ color: '#2e7d32' }}>Thêm ngay</a>
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Privacy Note */}
+          <div className="privacy-note">
+            <p style={{ margin: '0 0 4px', fontWeight: 700, color: '#37474f' }}>🔒 Quyền riêng tư & Bản đồ</p>
+            <p style={{ margin: 0 }}>Bản đồ vị trí hiện tại của bạn được nhúng cố định làm hình nền. Vị trí GPS của bạn chỉ dùng để tìm bạn bè lân cận và không lưu trữ lâu dài.</p>
+          </div>
         </div>
       </div>
 
@@ -315,7 +356,7 @@ export default function NearbyPage() {
 
             {scanState === 'waiting_other' ? (
               <div className="waiting-chip">
-                ⏳ Đang chờ phản hồi từ đối phương...
+                ⏳ Đã gửi đồng ý, đang chờ đối phương...
               </div>
             ) : (
               <div className="match-actions">
@@ -327,33 +368,6 @@ export default function NearbyPage() {
                 </button>
               </div>
             )}
-          </div>
-        </div>
-      )}
-
-      {/* Success Overlay */}
-      {scanState === 'success' && successData && (
-        <div className="match-overlay">
-          <div className="success-card">
-            <div className="success-icon">🎊</div>
-            <p className="success-title">Kết nối thành công!</p>
-            <p className="success-subtitle">
-              Bạn và <strong>{successData.friend.hoTen}</strong> đã kết nối.
-              Hãy bắt đầu cuộc trò chuyện!
-            </p>
-
-            <button
-              className="btn-go-chat"
-              onClick={() => navigate(`/chat?room=${successData.chatRoomId}`)}
-            >
-              💬 Bắt đầu trò chuyện
-            </button>
-            <button
-              className="btn-stay"
-              onClick={() => { setSuccessData(null); setScanState('idle'); }}
-            >
-              Quay lại tìm kiếm
-            </button>
           </div>
         </div>
       )}

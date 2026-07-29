@@ -31,6 +31,13 @@ async function start() {
     },
   });
 
+  app.set("io", io);
+
+  // Interval dọn dẹp các phòng chat tạm thời 10 phút đã hết hạn
+  const cleanupInterval = setInterval(() => {
+    nearbyService.cleanupExpiredRooms().catch(() => {});
+  }, 10000);
+
   io.on("connection", (socket) => {
     // ================= CHAT EVENTS =================
     socket.on("join_room", (phongId: number | string) => {
@@ -155,7 +162,7 @@ async function start() {
       } catch {}
     });
 
-    // Client đồng ý kết nối
+    // Client đồng ý kết nối ở màn hình 30s
     socket.on("nearby_match_accept", async (data: { matchId: string; nguoiDungId: number }) => {
       const { matchId, nguoiDungId } = data;
       const session = nearbyService.getMatchSession(matchId);
@@ -164,7 +171,7 @@ async function start() {
         return;
       }
 
-      const { bothAccepted } = nearbyService.acceptMatch(matchId, nguoiDungId);
+      const { bothAccepted } = nearbyService.acceptMatch(matchId, Number(nguoiDungId));
 
       if (bothAccepted) {
         try {
@@ -193,16 +200,49 @@ async function start() {
           console.error("nearby finalize error:", err);
           socket.emit("nearby_error", { message: "Lỗi khi kết nối. Vui lòng thử lại." });
         }
+      } else {
+        // Thông báo cho người dùng này là đã ghi nhận đồng ý
+        socket.emit("nearby_match_waiting", { message: "Đang chờ đối phương đồng ý..." });
       }
     });
 
-    // Client từ chối kết nối
+    // Client từ chối kết nối ở màn hình 30s
     socket.on("nearby_match_decline", (data: { matchId: string; nguoiDungId: number }) => {
       const session = nearbyService.getMatchSession(data.matchId);
       if (!session) return;
       nearbyService.clearMatchSession(data.matchId);
       io.to(session.socketAId).emit("nearby_match_cancelled", { reason: "declined" });
       io.to(session.socketBId).emit("nearby_match_cancelled", { reason: "declined" });
+    });
+
+    // ================= CHAT FRIEND PROPOSAL EVENTS =================
+    socket.on("nearby_friend_proposal_agree", async (data: { phongId: number; nguoiDungId: number }) => {
+      const { phongId, nguoiDungId } = data;
+      if (!phongId || !nguoiDungId) return;
+
+      try {
+        const { bothAccepted, isFriend } = await nearbyService.acceptFriendProposal(Number(phongId), Number(nguoiDungId));
+        const roomName = `room_${phongId}`;
+
+        if (bothAccepted && isFriend) {
+          io.to(roomName).emit("nearby_friend_accepted", { phongId, isFriend: true });
+        } else {
+          io.to(roomName).emit("nearby_friend_pending", { phongId, agreedByUserId: Number(nguoiDungId) });
+        }
+      } catch (err: any) {
+        socket.emit("chat_error", { message: "Lỗi khi xử lý đề xuất kết bạn." });
+      }
+    });
+
+    socket.on("nearby_friend_proposal_decline", async (data: { phongId: number; nguoiDungId: number }) => {
+      const { phongId, nguoiDungId } = data;
+      if (!phongId || !nguoiDungId) return;
+
+      try {
+        await nearbyService.declineFriendProposal(Number(phongId), Number(nguoiDungId));
+        const roomName = `room_${phongId}`;
+        io.to(roomName).emit("nearby_friend_declined", { phongId, declinedByUserId: Number(nguoiDungId) });
+      } catch {}
     });
 
     // Dọn dẹp khi ngắt kết nối

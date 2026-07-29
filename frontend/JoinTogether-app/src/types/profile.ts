@@ -18,6 +18,7 @@ export interface HoSoNguoiDung {
   anhDaiDien?: string | null;
   soThich: SoThich[];
   user?: NguoiDungInfo;
+  daXacThuc?: boolean;
 }
 
 export interface NguoiDungInfo {

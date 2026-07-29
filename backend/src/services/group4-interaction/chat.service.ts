@@ -139,6 +139,14 @@ export class ChatService {
       throw new NotFoundError("Phòng trò chuyện không tồn tại.");
     }
 
+    if (room.trangThai === 'CLOSED') {
+      throw new BadRequestError("Phòng trò chuyện này đã đóng.");
+    }
+
+    if (room.hetHanLuc && new Date(room.hetHanLuc) < new Date()) {
+      throw new ForbiddenError("Đã hết thời gian 10 phút trò chuyện tạm thời. Vui lòng kết bạn để tiếp tục trò chuyện.");
+    }
+
     const isPrivate = room.loaiPhong === 'RIENG_TU';
 
     if (isPrivate) {

@@ -58,4 +58,17 @@ export class AuthController {
     const result = await this.authService.changePassword(taiKhoanId, req.body);
     res.status(200).json({ success: true, message: result.message });
   });
+
+  public sendPhoneOtp = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const nguoiDungId = (req.user as any)?.nguoiDungId;
+    const { soDienThoai } = req.body;
+    const result = await this.authService.sendPhoneOtp(nguoiDungId, soDienThoai);
+    res.status(200).json({ success: true, message: result.message, otpDemo: result.otpDemo });
+  });
+
+  public verifyPhoneOtp = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const nguoiDungId = (req.user as any)?.nguoiDungId;
+    const result = await this.authService.verifyPhoneOtp(nguoiDungId, req.body);
+    res.status(200).json({ success: true, message: result.message });
+  });
 }

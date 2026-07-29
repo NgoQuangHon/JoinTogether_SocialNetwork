@@ -3,6 +3,7 @@ import { NguoiDungRepository } from "../../repositories/group1-user/nguoiDung.re
 import { SoThichRepository } from "../../repositories/group2-profile/soThich.repository";
 import { HoSoSoThichRepository } from "../../repositories/group2-profile/hoSoSoThich.repository";
 import { BadRequestError, ConflictError, NotFoundError } from "../../utils/AppError";
+import { pool } from "../../config/db";
 
 export class ProfileService {
   private hoSoNguoiDungRepo = new HoSoNguoiDungRepository();
@@ -27,9 +28,17 @@ export class ProfileService {
 
     const user = await this.nguoiDungRepo.findById(nguoiDungId);
 
+    // Kiểm tra trạng thái xác thực tài khoản từ tai_khoan
+    const accountRes = await pool.query(
+      `SELECT da_xac_thuc FROM tai_khoan WHERE nguoi_dung_id = $1`,
+      [nguoiDungId]
+    );
+    const daXacThuc = accountRes.rows[0]?.da_xac_thuc === true;
+
     const result: any = {};
     Object.assign(result, profile);
     result.soThich = interests;
+    result.daXacThuc = daXacThuc;
     result.user = user
       ? { hoTen: user.hoTen, email: user.email, soDienThoai: user.soDienThoai }
       : null;

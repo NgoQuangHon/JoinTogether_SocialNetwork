@@ -36,8 +36,17 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 2px;
   overflow-y: auto;
+  padding: 6px 0;
+}
+
+.nav-items-list {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex: 1;
+  height: 100%;
+  gap: 4px;
 }
 
 .sidebar-footer {
@@ -367,17 +376,23 @@
 }
 
 .nav-item {
-  display: block;
-  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
   border-radius: 10px;
   text-decoration: none;
   color: var(--text, #263238);
   font-size: 13.5px;
   font-weight: 500;
   white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.nav-item > span:first-child {
   overflow: hidden;
   text-overflow: ellipsis;
-  transition: all 0.15s ease;
+  white-space: nowrap;
 }
 
 .nav-item:hover {
@@ -2292,4 +2307,284 @@
 
 .fb-btn-connect:hover {
   background: #1b5e20;
+}
+
+/* -------- Friend Proposal Banner in Chat -------- */
+.friend-proposal-banner {
+  background: linear-gradient(135deg, #e8f5e9, #f1f8f0);
+  border-bottom: 1.5px solid #a5d6a7;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  animation: slideBannerDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 12px rgba(46, 125, 50, 0.08);
+}
+
+@keyframes slideBannerDown {
+  from { opacity: 0; transform: translateY(-100%); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.friend-proposal-banner .proposal-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.friend-proposal-banner .proposal-icon {
+  font-size: 22px;
+}
+
+.friend-proposal-banner .proposal-text {
+  font-size: 13px;
+  color: #1b5e20;
+  line-height: 1.4;
+}
+
+.friend-proposal-banner .proposal-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.btn-agree-friend {
+  background: linear-gradient(135deg, #4caf50, #2e7d32);
+  color: #ffffff;
+  border: none;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 7px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(46, 125, 50, 0.3);
+  transition: all 0.15s ease;
+}
+
+.btn-agree-friend:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(46, 125, 50, 0.4);
+}
+
+.btn-decline-friend {
+  background: #ffffff;
+  color: #d32f2f;
+  border: 1px solid #ffcdd2;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 7px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-decline-friend:hover {
+  background: #ffeaea;
+}
+
+.proposal-status-chip {
+  font-size: 12px;
+  font-weight: 700;
+  color: #e65100;
+  background: #fff3e0;
+  border: 1px solid #ffe0b2;
+  padding: 6px 14px;
+  border-radius: 999px;
+}
+
+.temp-chat-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #e65100;
+  background: #fff3e0;
+  border: 1px solid #ffe0b2;
+  padding: 3px 10px;
+  border-radius: 999px;
+  margin-left: 10px;
+}
+
+/* =====================================================
+   DUAL MATCH BANNERS (AI MATCH & AREA MATCH)
+===================================================== */
+.match-banners-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .match-banners-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+.match-banner-card {
+  position: relative;
+  border-radius: 20px;
+  padding: 22px 24px;
+  cursor: pointer;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+}
+
+.match-banner-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+}
+
+/* AI Matching Card */
+.match-banner-card.ai-card {
+  background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 50%, #40916c 100%);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+/* Area Matching Card */
+.match-banner-card.area-card {
+  background: linear-gradient(135deg, #0d3b66 0%, #006666 50%, #0096c7 100%);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.match-banner-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.match-icon-badge {
+  font-size: 12px;
+  font-weight: 800;
+  padding: 4px 12px;
+  border-radius: 999px;
+  letter-spacing: 0.5px;
+}
+
+.match-icon-badge.ai-icon {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(8px);
+  color: #b7e4c7;
+}
+
+.match-icon-badge.area-icon {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(8px);
+  color: #90e0ef;
+}
+
+.match-tag-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+}
+
+.match-tag-badge.live-tag {
+  background: rgba(239, 83, 80, 0.25);
+  color: #ff8a80;
+  border: 1px solid rgba(239, 83, 80, 0.4);
+}
+
+.match-banner-title {
+  font-size: 20px;
+  font-weight: 800;
+  margin: 0 0 6px;
+  letter-spacing: -0.3px;
+}
+
+.match-banner-sub {
+  font-size: 13px;
+  font-weight: 700;
+  opacity: 0.95;
+  margin: 0 0 6px;
+  line-height: 1.4;
+}
+
+.match-banner-desc {
+  font-size: 12px;
+  opacity: 0.8;
+  margin: 0 0 16px;
+  line-height: 1.5;
+}
+
+.match-banner-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border-radius: 12px;
+  border: none;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: fit-content;
+}
+
+.match-banner-btn.ai-btn {
+  background: #ffffff;
+  color: #1b4332;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.match-banner-btn.ai-btn:hover {
+  background: #d8f3dc;
+}
+
+.match-banner-btn.area-btn {
+  background: #ffffff;
+  color: #0d3b66;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.match-banner-btn.area-btn:hover {
+  background: #e0f7fa;
+}
+
+/* =====================================================
+   PROFILE VERIFICATION BADGES
+===================================================== */
+.verified {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #c8e6c9;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  margin-top: 6px;
+  width: fit-content;
+}
+
+.unverified-warning {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff3e0;
+  color: #d84315;
+  border: 1px solid #ffe0b2;
+  padding: 4px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  margin-top: 6px;
+  width: fit-content;
+  box-shadow: 0 2px 6px rgba(216, 67, 21, 0.08);
 }

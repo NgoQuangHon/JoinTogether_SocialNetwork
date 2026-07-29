@@ -48,6 +48,9 @@ export async function connectDB() {
           ALTER TABLE ho_so_nguoi_dung ADD COLUMN IF NOT EXISTS vi_do DECIMAL(10,8);
           ALTER TABLE ho_so_nguoi_dung ADD COLUMN IF NOT EXISTS kinh_do DECIMAL(11,8);
 
+          -- Phòng chat tạm thời (het_han_luc cho chat 10 phút)
+          ALTER TABLE phong_tro_chuyen ADD COLUMN IF NOT EXISTS het_han_luc TIMESTAMPTZ;
+
           -- Bảng lưu phiên quét tạm thời (tự xóa sau 10 phút)
           CREATE TABLE IF NOT EXISTS phien_quet_ban (
             phien_id      BIGSERIAL PRIMARY KEY,
@@ -57,6 +60,15 @@ export async function connectDB() {
             socket_id     VARCHAR(255),
             bat_dau_luc   TIMESTAMPTZ DEFAULT NOW(),
             het_han_luc   TIMESTAMPTZ DEFAULT NOW() + INTERVAL '10 minutes'
+          );
+
+          -- Bảng lưu lựa chọn đề xuất kết bạn trong khung chat tạm thời
+          CREATE TABLE IF NOT EXISTS de_xuat_ket_ban (
+            phong_id      BIGINT REFERENCES phong_tro_chuyen(phong_id) ON DELETE CASCADE,
+            nguoi_dung_id BIGINT REFERENCES nguoi_dung(nguoi_dung_id) ON DELETE CASCADE,
+            trang_thai    VARCHAR(20) NOT NULL DEFAULT 'NONE',
+            ngay_tao      TIMESTAMPTZ DEFAULT NOW(),
+            PRIMARY KEY (phong_id, nguoi_dung_id)
           );
         `);
 

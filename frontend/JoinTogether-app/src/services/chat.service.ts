@@ -8,6 +8,10 @@ export interface PhongTroChuyen {
   loaiPhong?: 'NHOM' | 'RIENG_TU';
   trangThai?: 'ACTIVE' | 'CLOSED';
   activityStatus?: string;
+  hetHanLuc?: string | null;
+  isFriend?: boolean;
+  myProposal?: 'NONE' | 'AGREED' | 'DECLINED';
+  otherProposal?: 'NONE' | 'AGREED' | 'DECLINED';
 }
 
 export interface TinNhan {

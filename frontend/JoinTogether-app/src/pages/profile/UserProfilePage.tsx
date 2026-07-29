@@ -155,8 +155,15 @@ export default function UserProfilePage() {
           <img className="main-avatar" src={anhDaiDien} alt="avatar" />
           <div className="user-info">
             <h1>{hoTen}</h1>
+            {profile.daXacThuc ? (
+              <span className="verified">✓ Tài khoản xác thực</span>
+            ) : (
+              <span className="unverified-warning">
+                ⚠️ Tài khoản chưa xác thực, người dùng này có thể là ảo
+              </span>
+            )}
             {profile.tieuSu && <p className="about" style={{ marginTop: 8 }}>{profile.tieuSu}</p>}
-            {profile.khuVuc && <p style={{ fontSize: 13, color: '#607d8b' }}>{profile.khuVuc}</p>}
+            {profile.khuVuc && <p style={{ fontSize: 13, color: '#607d8b', marginTop: 4 }}>📍 {profile.khuVuc}</p>}
           </div>
         </section>
 

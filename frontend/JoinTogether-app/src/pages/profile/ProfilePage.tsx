@@ -161,6 +161,8 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
   );
 }
 
+import VerifyPhoneModal from './VerifyPhoneModal';
+
 export default function ProfilePage() {
     const { nguoiDungId } = useAuth();
     const navigate = useNavigate();
@@ -168,8 +170,9 @@ export default function ProfilePage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [showChangePassword, setShowChangePassword] = useState(false);
+    const [showVerifyPhone, setShowVerifyPhone] = useState(false);
 
-    useEffect(() => {
+    const loadProfile = () => {
         getMyProfile()
             .then((res) => {
                 if (res.success && res.data) {
@@ -183,6 +186,10 @@ export default function ProfilePage() {
                 setError(msg);
             })
             .finally(() => setLoading(false));
+    };
+
+    useEffect(() => {
+        loadProfile();
     }, []);
 
     if (loading) {
@@ -243,6 +250,14 @@ export default function ProfilePage() {
                 <ChangePasswordModal onClose={() => setShowChangePassword(false)} />
             )}
 
+            {showVerifyPhone && (
+                <VerifyPhoneModal
+                    currentPhone={user?.soDienThoai || ''}
+                    onClose={() => setShowVerifyPhone(false)}
+                    onSuccess={() => loadProfile()}
+                />
+            )}
+
             <div className="profile-container">
                 {/* PROFILE HEADER CARD */}
                 <section className="profile-card profile-summary">
@@ -250,7 +265,31 @@ export default function ProfilePage() {
                     <div className="user-info">
                         <h1>{hoTen}</h1>
                         <p>@{tenDangNhap}</p>
-                        <span className="verified">✓ Tài khoản xác thực</span>
+                        {profile?.daXacThuc ? (
+                            <span className="verified">✓ Tài khoản xác thực</span>
+                        ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-start' }}>
+                                <span className="unverified-warning">
+                                    ⚠️ Tài khoản chưa xác thực, người dùng này có thể là ảo
+                                </span>
+                                <button
+                                    onClick={() => setShowVerifyPhone(true)}
+                                    style={{
+                                        border: 'none',
+                                        background: '#2e7d32',
+                                        color: '#fff',
+                                        fontSize: 12,
+                                        fontWeight: 700,
+                                        padding: '4px 12px',
+                                        borderRadius: 999,
+                                        cursor: 'pointer',
+                                        boxShadow: '0 2px 6px rgba(46,125,50,0.3)',
+                                    }}
+                                >
+                                    📱 Xác thực SĐT ngay
+                                </button>
+                            </div>
+                        )}
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignSelf: 'flex-start' }}>
                         <Link to="/profile" className="edit-button" style={{ textDecoration: 'none' }}>

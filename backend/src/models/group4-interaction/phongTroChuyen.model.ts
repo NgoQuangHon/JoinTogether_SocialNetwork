@@ -7,6 +7,7 @@ export interface PhongTroChuyen {
     loaiPhong?: string | null;
     trangThai?: string | null;
     ngayTao?: Date | string | null;
+    hetHanLuc?: Date | string | null;
 }
 
 export class PhongTroChuyenModel {

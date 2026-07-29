@@ -1,10 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { io, Socket } from 'socket.io-client';
 import { useAuth } from '../../contexts/AuthContext';
 import SidebarLayout from '../../components/SidebarLayout';
 import { getUserRoomsApi, getMessagesApi, sendMessageApi } from '../../services/chat.service';
 import type { PhongTroChuyen, TinNhan } from '../../services/chat.service';
 import '../../styles/dashboard.css';
+
+const SOCKET_URL = 'http://localhost:5000';
 
 export default function ChatPage() {
   const { nguoiDungId } = useAuth();
@@ -20,12 +23,70 @@ export default function ChatPage() {
   const [sending, setSending] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [isReadOnly, setIsReadOnly] = useState(false);
+
+  // Proposal state
+  const [myProposal, setMyProposal] = useState<'NONE' | 'AGREED' | 'DECLINED'>('NONE');
+  const [showSuccessBanner, setShowSuccessBanner] = useState(false);
+  const [tempRemainingSeconds, setTempRemainingSeconds] = useState<number | null>(null);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const socketRef = useRef<Socket | null>(null);
+  const countdownTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // 1. Socket Connection & Listeners
+  useEffect(() => {
+    const socket = io(SOCKET_URL, { transports: ['websocket'] });
+    socketRef.current = socket;
+
+    socket.on('receive_message', (msg: TinNhan) => {
+      setMessages((prev) => {
+        if (prev.some((m) => m.tinNhanId === msg.tinNhanId)) return prev;
+        return [...prev, msg];
+      });
+    });
+
+    socket.on('nearby_friend_pending', (data: { phongId: number; agreedByUserId: number }) => {
+      if (data.agreedByUserId === Number(nguoiDungId)) {
+        setMyProposal('AGREED');
+      }
+    });
+
+    socket.on('nearby_friend_accepted', (data: { phongId: number; isFriend: boolean }) => {
+      setMyProposal('AGREED');
+      setShowSuccessBanner(true);
+      setActiveRoom((prev) => (prev ? { ...prev, isFriend: true, hetHanLuc: null } : null));
+      setRooms((prev) =>
+        prev.map((r) => (r.phongId === data.phongId ? { ...r, isFriend: true, hetHanLuc: null } : r))
+      );
+      setTimeout(() => setShowSuccessBanner(false), 6000);
+    });
+
+    socket.on('nearby_friend_declined', (data: { phongId: number; declinedByUserId: number }) => {
+      if (data.declinedByUserId === Number(nguoiDungId)) {
+        setMyProposal('DECLINED');
+      }
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [nguoiDungId]);
+
+  // 2. Socket Join/Leave Room
+  useEffect(() => {
+    if (activeRoom && socketRef.current) {
+      socketRef.current.emit('join_room', activeRoom.phongId);
+      return () => {
+        socketRef.current?.emit('leave_room', activeRoom.phongId);
+      };
+    }
+  }, [activeRoom]);
+
+  // 3. Load User Rooms
   useEffect(() => {
     setLoadingRooms(true);
     getUserRoomsApi()
@@ -52,11 +113,42 @@ export default function ChatPage() {
     scrollToBottom();
   }, [messages]);
 
+  // 4. Calculate 10-Minute Temporary Countdown & Auto Cleanup
+  useEffect(() => {
+    if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
+    setTempRemainingSeconds(null);
+
+    if (activeRoom?.hetHanLuc && !activeRoom?.isFriend) {
+      const calcSec = () => {
+        const diffMs = new Date(activeRoom.hetHanLuc!).getTime() - Date.now();
+        const sec = Math.max(0, Math.floor(diffMs / 1000));
+        setTempRemainingSeconds(sec);
+
+        // KHI HẾT 10 PHÚT: Khóa khung chat & tự động loại phòng khỏi danh sách
+        if (sec <= 0) {
+          setIsReadOnly(true);
+          setRooms((prev) => prev.filter((r) => r.phongId !== activeRoom.phongId));
+        }
+      };
+      calcSec();
+      countdownTimerRef.current = setInterval(calcSec, 1000);
+    }
+
+    return () => {
+      if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
+    };
+  }, [activeRoom]);
+
   const selectRoom = async (roomItem: PhongTroChuyen) => {
     setActiveRoom(roomItem);
     setLoadingMessages(true);
     setErrorMsg('');
-    setIsReadOnly(roomItem.trangThai === 'CLOSED');
+    setShowSuccessBanner(false);
+    setMyProposal(roomItem.myProposal || 'NONE');
+
+    const isClosed = roomItem.trangThai === 'CLOSED';
+    const isExpired = roomItem.hetHanLuc ? new Date(roomItem.hetHanLuc).getTime() < Date.now() && !roomItem.isFriend : false;
+    setIsReadOnly(isClosed || isExpired);
 
     try {
       const res = await getMessagesApi(roomItem.phongId);
@@ -66,7 +158,7 @@ export default function ChatPage() {
     } catch (err: any) {
       const msg = err?.response?.data?.message || 'Không thể tải tin nhắn phòng trò chuyện.';
       setErrorMsg(msg);
-      if (msg.includes('chỉ đọc') || msg.includes('không phải là thành viên')) {
+      if (msg.includes('chỉ đọc') || msg.includes('không phải là thành viên') || msg.includes('tạm thời')) {
         setIsReadOnly(true);
       }
     } finally {
@@ -83,7 +175,10 @@ export default function ChatPage() {
     try {
       const res = await sendMessageApi(activeRoom.phongId, textToSend);
       if (res.success && res.data) {
-        setMessages((prev) => [...prev, res.data!]);
+        setMessages((prev) => {
+          if (prev.some((m) => m.tinNhanId === res.data!.tinNhanId)) return prev;
+          return [...prev, res.data!];
+        });
         setInputText('');
       } else {
         setErrorMsg(res.message || 'Gửi tin nhắn thất bại.');
@@ -96,10 +191,29 @@ export default function ChatPage() {
     }
   };
 
+  const handleAgreeFriend = () => {
+    if (!activeRoom) return;
+    setMyProposal('AGREED');
+    socketRef.current?.emit('nearby_friend_proposal_agree', {
+      phongId: activeRoom.phongId,
+      nguoiDungId: Number(nguoiDungId),
+    });
+  };
+
+  const handleDeclineFriend = () => {
+    if (!activeRoom) return;
+    setMyProposal('DECLINED');
+    socketRef.current?.emit('nearby_friend_proposal_decline', {
+      phongId: activeRoom.phongId,
+      nguoiDungId: Number(nguoiDungId),
+    });
+    // LƯU Ý: Vẫn cho chat tiếp trong 10 phút, không khóa phòng ngay lập tức!
+  };
+
   const isClosed = activeRoom?.trangThai === 'CLOSED' || isReadOnly;
 
   return (
-    <SidebarLayout title="Tin nhắn nhóm">
+    <SidebarLayout title="Trò chuyện">
       <div
         className="chat-page-container"
         style={{
@@ -126,7 +240,7 @@ export default function ChatPage() {
         >
           <div style={{ padding: '16px 18px', borderBottom: '1px solid var(--border, #e4ece6)' }}>
             <h3 style={{ margin: 0, fontSize: 15, color: 'var(--primary-800, #3d7d43)' }}>
-              💬 Phòng chat nhóm ({rooms.length})
+              💬 Danh sách trò chuyện ({rooms.length})
             </h3>
           </div>
 
@@ -135,7 +249,7 @@ export default function ChatPage() {
               <div style={{ textAlign: 'center', color: '#90a4ae', padding: 20, fontSize: 13 }}>Đang tải danh sách phòng...</div>
             ) : rooms.length === 0 ? (
               <div style={{ textAlign: 'center', color: '#90a4ae', padding: 20, fontSize: 13 }}>
-                Bạn chưa tham gia hoạt động nhóm nào. Hãy tham gia hoạt động để mở phòng chat!
+                Bạn chưa có cuộc trò chuyện nào. Hãy tham gia hoạt động hoặc quét tìm bạn lân cận!
               </div>
             ) : (
               rooms.map((r) => {
@@ -154,11 +268,16 @@ export default function ChatPage() {
                       transition: 'all 0.15s ease',
                     }}
                   >
-                    <h4 style={{ margin: 0, fontSize: 14, color: isActive ? '#2e7d32' : '#263238', fontWeight: isActive ? 700 : 500 }}>
-                      {r.tenPhong}
-                    </h4>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <h4 style={{ margin: 0, fontSize: 14, color: isActive ? '#2e7d32' : '#263238', fontWeight: isActive ? 700 : 500 }}>
+                        {r.tenPhong}
+                      </h4>
+                      {r.loaiPhong === 'RIENG_TU' && !r.isFriend && (
+                        <span style={{ fontSize: 10, background: '#fff3e0', color: '#e65100', padding: '2px 6px', borderRadius: 8, fontWeight: 700 }}>Tạm thời 10p</span>
+                      )}
+                    </div>
                     <span style={{ fontSize: 11, color: r.trangThai === 'CLOSED' ? '#d32f2f' : '#607d8b', marginTop: 4, display: 'block' }}>
-                      {r.trangThai === 'CLOSED' ? '🔒 Đã đóng' : '🟢 Đang hoạt động'}
+                      {r.trangThai === 'CLOSED' ? '🔒 Đã đóng' : r.isFriend ? '👫 Bạn bè' : r.loaiPhong === 'RIENG_TU' ? '💬 Chat tạm thời 10p' : '🟢 Hoạt động'}
                     </span>
                   </div>
                 );
@@ -191,14 +310,55 @@ export default function ChatPage() {
                 }}
               >
                 <div>
-                  <h3 style={{ margin: 0, fontSize: 16, color: '#3d7d43' }}>
+                  <h3 style={{ margin: 0, fontSize: 16, color: '#3d7d43', display: 'flex', alignItems: 'center', gap: 8 }}>
                     💬 {activeRoom.tenPhong}
+                    {tempRemainingSeconds !== null && tempRemainingSeconds > 0 && !activeRoom.isFriend && (
+                      <span className="temp-chat-badge">
+                        ⏱️ Chat 10p ({Math.floor(tempRemainingSeconds / 60)}:{(tempRemainingSeconds % 60).toString().padStart(2, '0')})
+                      </span>
+                    )}
                   </h3>
                   <span style={{ fontSize: 12, color: isClosed ? '#d32f2f' : '#2e7d32', fontWeight: 600 }}>
-                    {isClosed ? '🔒 Phòng trò chuyện (Chế độ chỉ đọc / Đã đóng)' : '🟢 Phòng trò chuyện đang hoạt động'}
+                    {isClosed ? '🔒 Cuộc trò chuyện tạm thời đã kết thúc' : activeRoom.isFriend ? '👫 Bạn bè trực tiếp' : '🟢 Đang trò chuyện tạm thời (Tự xóa sau 10p)'}
                   </span>
                 </div>
               </div>
+
+              {/* SLIDING PROPOSAL BANNER (ĐỀ XUẤT KẾT BẠN TRƯỢT XUỐNG - LƯU TRẠNG THÁI VĨNH VIỄN KHÔNG MẤT KHI RELOAD) */}
+              {activeRoom.loaiPhong === 'RIENG_TU' && !activeRoom.isFriend && !isClosed && (
+                <div className="friend-proposal-banner">
+                  <div className="proposal-content">
+                    <span className="proposal-icon">🤝</span>
+                    <div className="proposal-text">
+                      <strong>Đề xuất kết bạn:</strong> Bạn có muốn thêm <strong>{activeRoom.tenPhong}</strong> vào danh sách bạn bè không?
+                    </div>
+                  </div>
+
+                  {myProposal === 'AGREED' ? (
+                    <span className="proposal-status-chip">⏳ Bạn đã đồng ý kết bạn. Đang chờ đối phương...</span>
+                  ) : myProposal === 'DECLINED' ? (
+                    <span className="proposal-status-chip" style={{ background: '#ffebee', color: '#c62828', borderColor: '#ffcdd2' }}>
+                      ❌ Bạn đã từ chối kết bạn. Bạn vẫn có thể trò chuyện trong 10 phút.
+                    </span>
+                  ) : (
+                    <div className="proposal-buttons">
+                      <button onClick={handleAgreeFriend} className="btn-agree-friend">
+                        ✅ Đồng ý kết bạn
+                      </button>
+                      <button onClick={handleDeclineFriend} className="btn-decline-friend">
+                        ❌ Từ chối
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* SUCCESS BANNER WHEN BOTH AGREE */}
+              {showSuccessBanner && (
+                <div style={{ background: '#e8f5e9', borderBottom: '1.5px solid #a5d6a7', padding: '12px 20px', color: '#2e7d32', fontSize: 13, fontWeight: 700, textAlign: 'center' }}>
+                  🎉 Cả hai đã đồng ý! Bạn và {activeRoom.tenPhong} đã chính thức trở thành bạn bè và có thể trò chuyện vĩnh viễn!
+                </div>
+              )}
 
               {/* Error Notice */}
               {errorMsg && (
@@ -245,7 +405,7 @@ export default function ChatPage() {
                   </div>
                 ) : (
                   messages.map((msg) => {
-                    const isMine = msg.nguoiGuiId === nguoiDungId;
+                    const isMine = msg.nguoiGuiId === Number(nguoiDungId);
                     return (
                       <div
                         key={msg.tinNhanId}
@@ -253,29 +413,34 @@ export default function ChatPage() {
                           display: 'flex',
                           flexDirection: 'column',
                           alignItems: isMine ? 'flex-end' : 'flex-start',
-                          maxWidth: '75%',
-                          alignSelf: isMine ? 'flex-end' : 'flex-start',
                         }}
                       >
-                        <span style={{ fontSize: 11, color: '#90a4ae', marginBottom: 3 }}>
-                          {msg.nguoiGui || `Thành viên #${msg.nguoiGuiId}`}
+                        <span style={{ fontSize: 11, color: '#78909c', marginBottom: 2, paddingLeft: 4, paddingRight: 4 }}>
+                          {isMine ? 'Bạn' : msg.nguoiGuiName || msg.nguoiGui || 'Người dùng'}
                         </span>
                         <div
                           style={{
-                            padding: '11px 16px',
-                            borderRadius: isMine ? '18px 18px 2px 18px' : '18px 18px 18px 2px',
-                            background: isMine ? '#6fbf73' : '#ffffff',
+                            maxWidth: '65%',
+                            padding: '10px 16px',
+                            borderRadius: isMine ? '16px 16px 2px 16px' : '16px 16px 16px 2px',
+                            background: isMine ? 'linear-gradient(135deg, #4caf50, #2e7d32)' : '#ffffff',
                             color: isMine ? '#ffffff' : '#263238',
+                            boxShadow: '0 2px 6px rgba(0, 0, 0, 0.04)',
+                            border: isMine ? 'none' : '1px solid #e0e7e0',
                             fontSize: 14,
                             lineHeight: 1.45,
-                            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
                             wordBreak: 'break-word',
                           }}
                         >
                           {msg.noiDung}
                         </div>
-                        <span style={{ fontSize: 10, color: '#b0bec5', marginTop: 3 }}>
-                          {msg.guiLuc || msg.thoiGianTao ? new Date(msg.guiLuc || msg.thoiGianTao!).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : ''}
+                        <span style={{ fontSize: 10, color: '#b0bec5', marginTop: 3, paddingLeft: 4, paddingRight: 4 }}>
+                          {msg.thoiGianGui || msg.guiLuc || msg.thoiGianTao
+                            ? new Date(msg.thoiGianGui || msg.guiLuc || msg.thoiGianTao!).toLocaleTimeString('vi-VN', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })
+                            : ''}
                         </span>
                       </div>
                     );
@@ -284,55 +449,84 @@ export default function ChatPage() {
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Input Area */}
+              {/* Message Input Box */}
               <div
                 style={{
-                  padding: '14px 20px',
+                  padding: '16px 24px',
+                  borderTop: '1px solid var(--border, #e4ece6)',
                   background: '#ffffff',
-                  borderTop: '1px solid #e4ece6',
-                  display: 'flex',
-                  gap: 12,
-                  alignItems: 'center',
                 }}
               >
-                <input
-                  type="text"
-                  placeholder={isClosed ? 'Phòng trò chuyện đã đóng hoặc ở chế độ chỉ đọc' : 'Nhập tin nhắn...'}
-                  value={inputText}
-                  disabled={isClosed || sending}
-                  onChange={(e) => setInputText(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !isClosed) handleSend();
-                  }}
-                  style={{
-                    flex: 1,
-                    padding: '11px 18px',
-                    borderRadius: 24,
-                    border: '1px solid #e4ece6',
-                    fontSize: 14,
-                    outline: 'none',
-                    background: isClosed ? '#f5f5f5' : '#fff',
-                  }}
-                />
-                <button
-                  className="save-btn"
-                  disabled={isClosed || !inputText.trim() || sending}
-                  onClick={handleSend}
-                  style={{
-                    borderRadius: 24,
-                    padding: '11px 24px',
-                    fontSize: 14,
-                    fontWeight: 600,
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {sending ? 'Đang gửi...' : 'Gửi'}
-                </button>
+                {isClosed ? (
+                  <div
+                    style={{
+                      textAlign: 'center',
+                      color: '#d32f2f',
+                      fontSize: 13,
+                      fontWeight: 600,
+                      padding: '10px',
+                      background: '#ffebee',
+                      borderRadius: 12,
+                    }}
+                  >
+                    🔒 Hết thời gian trò chuyện tạm thời (10 phút). Toàn bộ tin nhắn và phòng chat đã bị xóa khỏi hệ thống.
+                  </div>
+                ) : (
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      handleSend();
+                    }}
+                    style={{ display: 'flex', gap: 10 }}
+                  >
+                    <input
+                      type="text"
+                      placeholder="Nhập nội dung tin nhắn..."
+                      value={inputText}
+                      onChange={(e) => setInputText(e.target.value)}
+                      disabled={sending || isReadOnly}
+                      style={{
+                        flex: 1,
+                        padding: '12px 18px',
+                        borderRadius: 24,
+                        border: '1px solid var(--border, #e4ece6)',
+                        outline: 'none',
+                        fontSize: 14,
+                        background: '#f7f9f8',
+                      }}
+                    />
+                    <button
+                      type="submit"
+                      disabled={!inputText.trim() || sending || isReadOnly}
+                      style={{
+                        padding: '12px 24px',
+                        borderRadius: 24,
+                        border: 'none',
+                        background: !inputText.trim() || sending || isReadOnly ? '#c8e6c9' : '#2e7d32',
+                        color: '#ffffff',
+                        fontWeight: 700,
+                        cursor: !inputText.trim() || sending || isReadOnly ? 'not-allowed' : 'pointer',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      {sending ? 'Đang gửi...' : 'Gửi'}
+                    </button>
+                  </form>
+                )}
               </div>
             </>
           ) : (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#90a4ae' }}>
-              Chọn một phòng trò chuyện ở cột bên trái để bắt đầu trao đổi tin nhắn.
+            <div
+              style={{
+                flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#90a4ae',
+                fontSize: 14,
+              }}
+            >
+              Chọn một phòng trò chuyện từ danh sách bên trái để bắt đầu.
             </div>
           )}
         </div>
