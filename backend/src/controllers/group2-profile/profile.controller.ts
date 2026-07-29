@@ -188,19 +188,20 @@ export class ProfileController {
 
   public updateGoals = asyncHandler(async (req: Request, res: Response): Promise<void> => {
       const nguoiDungId = req.user!.nguoiDungId;
-      const { mucTieuThamGia, thoiGianRanh } = req.body;
+      const { mucTieuThamGia, thoiGianRanh, banKinhMongMuon } = req.body;
 
       const updated = await this.profileService.updateProfileGoals(
         nguoiDungId,
         {
           mucTieuThamGia,
           thoiGianRanh,
+          banKinhMongMuon: banKinhMongMuon !== undefined ? banKinhMongMuon : null,
         }
       );
 
       res.status(200).json({
         success: true,
-        message: "Cập nhật mục tiêu và thời gian rảnh thành công.",
+        message: "Cập nhật mục tiêu, thời gian rảnh và phạm vi mong muốn thành công.",
         data: updated,
       });
     });

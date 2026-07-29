@@ -1,69 +1,67 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { addInterest, updateGoals } from '../../services/interest.service';
+import { getInterestCategories, addInterest, updateGoals } from '../../services/interest.service';
+import type { InterestCategory } from '../../services/interest.service';
 import './Onboarding.css';
 
-const MOCK_INTERESTS = [
-  { soThichId: 1, tenSoThich: 'Đá bóng', icon: '⚽', color: '#4CAF50' },
-  { soThichId: 2, tenSoThich: 'Chạy bộ', icon: '🏃', color: '#FF9800' },
-  { soThichId: 3, tenSoThich: 'Bơi lội', icon: '🏊', color: '#03A9F4' },
-  { soThichId: 4, tenSoThich: 'Cầu lông', icon: '🏸', color: '#26A69A' },
-  { soThichId: 5, tenSoThich: 'Yoga', icon: '🧘', color: '#9E9E9E' },
-  { soThichId: 6, tenSoThich: 'Xem phim', icon: '🎬', color: '#9C27B0' },
-  { soThichId: 7, tenSoThich: 'Chơi game', icon: '🎮', color: '#673AB7' },
-  { soThichId: 8, tenSoThich: 'Nghe nhạc', icon: '🎵', color: '#E91E63' },
-  { soThichId: 9, tenSoThich: 'Nhảy múa', icon: '💃', color: '#F06292' },
-  { soThichId: 10, tenSoThich: 'Học tập', icon: '📚', color: '#2196F3' },
-  { soThichId: 11, tenSoThich: 'Đọc sách', icon: '📖', color: '#795548' },
-  { soThichId: 12, tenSoThich: 'Cờ vua', icon: '♟️', color: '#424242' },
-  { soThichId: 13, tenSoThich: 'Du lịch', icon: '✈️', color: '#00BCD4' },
-  { soThichId: 14, tenSoThich: 'Cắm trại', icon: '🏕️', color: '#8BC34A' },
-  { soThichId: 15, tenSoThich: 'Tình nguyện', icon: '💚', color: '#4CAF50' },
-  { soThichId: 16, tenSoThich: 'Vẽ tranh', icon: '🎨', color: '#FFC107' },
-  { soThichId: 17, tenSoThich: 'Chụp ảnh', icon: '📷', color: '#607D8B' },
-  { soThichId: 18, tenSoThich: 'Viết lách', icon: '✍️', color: '#5C6BC0' },
-  { soThichId: 19, tenSoThich: 'Nấu ăn', icon: '🍳', color: '#FF5722' },
-  { soThichId: 20, tenSoThich: 'Làm vườn', icon: '🌱', color: '#66BB6A' },
-];
-
 const GOAL_OPTIONS = [
-  { value: 'ket-ban', label: 'Kết bạn mới', icon: '🤝' },
-  { value: 'hoc-hoi', label: 'Học hỏi kỹ năng', icon: '📚' },
-  { value: 'giao-luu', label: 'Giao lưu cộng đồng', icon: '🗣️' },
-  { value: 'thu-gian', label: 'Thư giãn giải trí', icon: '😌' },
-  { value: 'the-duc', label: 'Rèn luyện sức khỏe', icon: '💪' },
-  { value: 'thien-nguyen', label: 'Hoạt động tình nguyện', icon: '💚' },
-  { value: 'trai-nghiem', label: 'Trải nghiệm mới', icon: '✨' },
-  { value: 'khac', label: 'Mục đích khác', icon: '🎯' },
+  { value: 'ket-ban', label: 'Kết bạn mới' },
+  { value: 'hoc-hoi', label: 'Học hỏi kỹ năng' },
+  { value: 'giao-luu', label: 'Giao lưu cộng đồng' },
+  { value: 'thu-gian', label: 'Thư giãn giải trí' },
+  { value: 'the-duc', label: 'Rèn luyện sức khỏe' },
+  { value: 'thien-nguyen', label: 'Hoạt động tình nguyện' },
+  { value: 'trai-nghiem', label: 'Trải nghiệm mới' },
+  { value: 'khac', label: 'Mục đích khác' },
 ];
 
 const DAY_OPTIONS = [
-  { value: 'thu-2', label: 'Thứ 2' },
-  { value: 'thu-3', label: 'Thứ 3' },
-  { value: 'thu-4', label: 'Thứ 4' },
-  { value: 'thu-5', label: 'Thứ 5' },
-  { value: 'thu-6', label: 'Thứ 6' },
-  { value: 'thu-7', label: 'Thứ 7' },
+  { value: 'thu-2', label: 'Thứ 2' }, { value: 'thu-3', label: 'Thứ 3' },
+  { value: 'thu-4', label: 'Thứ 4' }, { value: 'thu-5', label: 'Thứ 5' },
+  { value: 'thu-6', label: 'Thứ 6' }, { value: 'thu-7', label: 'Thứ 7' },
   { value: 'cn', label: 'Chủ nhật' },
 ];
 
 const TIME_OPTIONS = [
-  { value: 'sang', label: 'Buổi sáng (6h-12h)', icon: '🌅' },
-  { value: 'chieu', label: 'Buổi chiều (12h-18h)', icon: '☀️' },
-  { value: 'toi', label: 'Buổi tối (18h-22h)', icon: '🌆' },
-  { value: 'dem', label: 'Đêm khuya (22h-6h)', icon: '🌙' },
+  { value: 'sang', label: 'Buổi sáng (6h-12h)' },
+  { value: 'chieu', label: 'Buổi chiều (12h-18h)' },
+  { value: 'toi', label: 'Buổi tối (18h-22h)' },
+  { value: 'dem', label: 'Đêm khuya (22h-6h)' },
+];
+
+const RADIUS_OPTIONS = [
+  { value: 5, label: '5 km' },
+  { value: 10, label: '10 km' },
+  { value: 25, label: '25 km' },
+  { value: 50, label: '50 km' },
+  { value: 0, label: 'Không giới hạn' },
 ];
 
 export default function InterestsPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const onboarding = searchParams.get('onboarding') === 'true';
+  const [categories, setCategories] = useState<InterestCategory[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedInterests, setSelectedInterests] = useState<Set<number>>(new Set());
   const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
   const [selectedTimes, setSelectedTimes] = useState<string[]>([]);
+  const [radius, setRadius] = useState<number>(25);
   const [saving, setSaving] = useState(false);
   const [showComplete, setShowComplete] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    getInterestCategories()
+      .then((res) => {
+        if (res.success && res.data) {
+          setCategories(res.data);
+        }
+      })
+      .catch(() => setError('Không thể tải danh sách sở thích.'))
+      .finally(() => setLoading(false));
+  }, []);
 
   const toggleInterest = (id: number) => {
     setSelectedInterests((prev) => {
@@ -92,11 +90,12 @@ export default function InterestsPage() {
     );
   };
 
-  const canFinish = selectedInterests.size >= 3;
+  const canFinish = true;
+  const needsMoreInterests = selectedInterests.size < 3;
 
   const handleFinish = async () => {
-    if (!canFinish) return;
     setSaving(true);
+    setError('');
     try {
       await Promise.all(
         Array.from(selectedInterests).map((soThichId) =>
@@ -107,11 +106,26 @@ export default function InterestsPage() {
       const daysText = selectedDays.length > 0 ? `Các ngày: ${selectedDays.join(', ')}` : '';
       const timesText = selectedTimes.length > 0 ? `Thời gian: ${selectedTimes.join(', ')}` : '';
       const thoiGianRanh = [daysText, timesText].filter(Boolean).join('; ');
-      await updateGoals({ mucTieuThamGia, thoiGianRanh });
-    } catch {}
+      await updateGoals({ mucTieuThamGia, thoiGianRanh, banKinhMongMuon: radius || null });
+    } catch {
+      setError('Lưu thông tin thất bại. Vui lòng thử lại.');
+      setSaving(false);
+      return;
+    }
     setSaving(false);
     setShowComplete(true);
   };
+
+  if (loading) {
+    return (
+      <div className="onboarding-page">
+        <div className="onboarding-container" style={{ textAlign: 'center', paddingTop: 80 }}>
+          <div className="spinner" />
+          <p style={{ marginTop: 16, color: 'var(--text-light)' }}>Đang tải sở thích...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="onboarding-page">
@@ -128,24 +142,44 @@ export default function InterestsPage() {
           <p className="subtitle">Chọn sở thích, mục tiêu và thời gian rảnh của bạn.</p>
         </div>
 
+        {error && <div className="edit-error">{error}</div>}
+
+        {needsMoreInterests && (
+          <div className="interest-warning">
+            <strong>Lưu ý:</strong> Bạn mới chọn {selectedInterests.size} sở thích. Việc chọn ít nhất 3 sở thích giúp
+            hệ thống gợi ý và kết nối bạn với những người phù hợp hơn.
+          </div>
+        )}
+
         {/* === SỞ THÍCH === */}
         <section className="onboarding-section">
           <h3 className="section-title">Sở thích của bạn</h3>
-          <p className="section-desc">Chọn ít nhất 3 sở thích (hiện tại: {selectedInterests.size})</p>
-          <div className="interests-grid">
-            {MOCK_INTERESTS.map((item) => (
-              <button
-                key={item.soThichId}
-                className={`interest-card ${selectedInterests.has(item.soThichId) ? 'selected' : ''}`}
-                style={{ '--card-accent': item.color } as React.CSSProperties}
-                onClick={() => toggleInterest(item.soThichId)}
-              >
-                <span className="interest-icon">{item.icon}</span>
-                <span className="interest-label">{item.tenSoThich}</span>
-                {selectedInterests.has(item.soThichId) && <span className="interest-check">✓</span>}
-              </button>
-            ))}
-          </div>
+          <p className="section-desc">Đã chọn: {selectedInterests.size}</p>
+          {categories.length === 0 ? (
+            <p style={{ color: 'var(--text-light)' }}>Chưa có sở thích nào.</p>
+          ) : (
+            categories.map((cat) => (
+              <div key={cat.danhMucSoThichId ?? 'khac'} style={{ marginBottom: 24 }}>
+                {cat.tenDanhMuc && (
+                  <h4 style={{ color: 'var(--primary-700)', marginBottom: 10, fontSize: 15 }}>
+                    {cat.tenDanhMuc}
+                  </h4>
+                )}
+                <div className="interests-grid">
+                  {cat.soThich.map((item) => (
+                    <button
+                      key={item.soThichId}
+                      className={`interest-card ${selectedInterests.has(item.soThichId) ? 'selected' : ''}`}
+                      onClick={() => toggleInterest(item.soThichId)}
+                    >
+                      <span className="interest-label">{item.tenSoThich}</span>
+                      {selectedInterests.has(item.soThichId) && <span className="interest-check">✓</span>}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))
+          )}
         </section>
 
         {/* === MỤC TIÊU === */}
@@ -158,7 +192,6 @@ export default function InterestsPage() {
                 className={`goal-card ${selectedGoals.includes(goal.value) ? 'selected' : ''}`}
                 onClick={() => toggleGoal(goal.value)}
               >
-                <span className="goal-icon">{goal.icon}</span>
                 <span className="goal-label">{goal.label}</span>
                 {selectedGoals.includes(goal.value) && <span className="goal-check">✓</span>}
               </button>
@@ -189,21 +222,41 @@ export default function InterestsPage() {
                 className={`goal-card ${selectedTimes.includes(opt.value) ? 'selected' : ''}`}
                 onClick={() => toggleTime(opt.value)}
               >
-                <span className="goal-icon">{opt.icon}</span>
                 <span className="goal-label">{opt.label}</span>
               </button>
             ))}
           </div>
         </section>
 
+        {/* === PHẠM VI MONG MUỐN === */}
+        <section className="onboarding-section">
+          <h3 className="section-title">Phạm vi mong muốn</h3>
+          <p className="section-desc">Bạn muốn kết nối với những người trong bán kính bao xa?</p>
+          <div className="radius-grid">
+            {RADIUS_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                className={`radius-chip ${radius === opt.value ? 'selected' : ''}`}
+                onClick={() => setRadius(opt.value)}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </section>
+
         <div className="onboarding-actions">
-          <span className="selected-count">Cần chọn ít nhất 3 sở thích</span>
+          <span className="selected-count">
+            {needsMoreInterests
+              ? `Cần chọn ít nhất 3 sở thích để gợi ý tốt hơn (hiện tại: ${selectedInterests.size})`
+              : `${selectedInterests.size} sở thích đã chọn`}
+          </span>
           <button
             className="primary-btn"
-            disabled={!canFinish || saving}
+            disabled={saving}
             onClick={handleFinish}
           >
-            {saving ? 'Đang hoàn tất...' : 'Hoàn tất'}
+            {saving ? 'Đang lưu...' : 'Hoàn tất'}
           </button>
         </div>
       </div>
@@ -214,7 +267,8 @@ export default function InterestsPage() {
             <div className="complete-icon">🎉</div>
             <h1>Hồ sơ của bạn đã hoàn tất!</h1>
             <p className="subtitle">
-              Chúc mừng bạn đã hoàn thành tất cả các bước. Hãy bắt đầu khám phá và kết nối với cộng đồng!
+              Sở thích, mục tiêu và phạm vi mong muốn đã được lưu. Dữ liệu của bạn sẽ được sử dụng
+              để gợi ý những người và hoạt động phù hợp nhất.
             </p>
             <div className="progress-bar-wrap">
               <div className="progress-bar">

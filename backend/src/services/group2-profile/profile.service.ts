@@ -175,6 +175,7 @@ export class ProfileService {
     data: {
       mucTieuThamGia?: string;
       thoiGianRanh?: string;
+      banKinhMongMuon?: number | null;
     },
   ): Promise<any> {
     let profile = await this.hoSoNguoiDungRepo.findByNguoiDungId(nguoiDungId);
@@ -185,6 +186,7 @@ export class ProfileService {
     const updated = await this.hoSoNguoiDungRepo.update(nguoiDungId, {
       mucTieuThamGia: data.mucTieuThamGia ? data.mucTieuThamGia : null,
       thoiGianRanh: data.thoiGianRanh ? data.thoiGianRanh : null,
+      banKinhMongMuon: data.banKinhMongMuon !== undefined ? data.banKinhMongMuon : null,
     });
 
     return updated;

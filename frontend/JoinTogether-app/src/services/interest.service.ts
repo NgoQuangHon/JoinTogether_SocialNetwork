@@ -26,7 +26,7 @@ export const addInterest = async (soThichId: number, mucDoQuanTam?: number): Pro
   return response.data;
 };
 
-export const updateGoals = async (data: { mucTieuThamGia?: string; thoiGianRanh?: string }): Promise<ApiResponse> => {
+export const updateGoals = async (data: { mucTieuThamGia?: string; thoiGianRanh?: string; banKinhMongMuon?: number | null }): Promise<ApiResponse> => {
   const response = await api.put<ApiResponse>('/profile/interests/goals', data);
   return response.data;
 };

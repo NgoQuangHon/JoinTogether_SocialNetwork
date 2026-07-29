@@ -68,7 +68,8 @@ CREATE TABLE ho_so_nguoi_dung (
     gioi_tinh         VARCHAR(20),
     muc_tieu_tham_gia TEXT,
     thoi_gian_ranh    VARCHAR(255),
-    anh_dai_dien      TEXT
+    anh_dai_dien      TEXT,
+    ban_kinh_mong_muon INT
 );
 
 CREATE TABLE danh_muc_so_thich (
@@ -426,3 +427,6 @@ CREATE TABLE IF NOT EXISTS theo_doi (
 -- Migration: thêm cột đếm số lần đăng nhập sai và khóa tài khoản
 ALTER TABLE tai_khoan ADD COLUMN IF NOT EXISTS so_lan_dang_nhap_sai INT DEFAULT 0;
 ALTER TABLE tai_khoan ADD COLUMN IF NOT EXISTS khoa_den_luc TIMESTAMPTZ;
+
+-- Migration: thêm cột phạm vi mong muốn
+ALTER TABLE ho_so_nguoi_dung ADD COLUMN IF NOT EXISTS ban_kinh_mong_muon INT;

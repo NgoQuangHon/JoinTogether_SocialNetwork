@@ -1,19 +1,23 @@
 import { pool } from "../../config/db";
 import { HoSoNguoiDung } from "../../models/group2-profile/hoSoNguoiDung.model";
 
+const RETURN_COLUMNS = `
+  ho_so_id as "hoSoId",
+  nguoi_dung_id as "nguoiDungId",
+  tieu_su as "tieuSu",
+  ngay_sinh as "ngaySinh",
+  khu_vuc as "khuVuc",
+  gioi_tinh as "gioiTinh",
+  muc_tieu_tham_gia as "mucTieuThamGia",
+  thoi_gian_ranh as "thoiGianRanh",
+  anh_dai_dien as "anhDaiDien",
+  ban_kinh_mong_muon as "banKinhMongMuon"
+`;
+
 export class HoSoNguoiDungRepository {
   async findByNguoiDungId(nguoiDungId: number): Promise<HoSoNguoiDung | null> {
     const query = `
-      SELECT
-        ho_so_id as "hoSoId",
-        nguoi_dung_id as "nguoiDungId",
-        tieu_su as "tieuSu",
-        ngay_sinh as "ngaySinh",
-        khu_vuc as "khuVuc",
-        gioi_tinh as "gioiTinh",
-        muc_tieu_tham_gia as "mucTieuThamGia",
-        thoi_gian_ranh as "thoiGianRanh",
-        anh_dai_dien as "anhDaiDien"
+      SELECT ${RETURN_COLUMNS}
       FROM ho_so_nguoi_dung
       WHERE nguoi_dung_id = $1
     `;
@@ -23,18 +27,9 @@ export class HoSoNguoiDungRepository {
 
   async create(data: Partial<HoSoNguoiDung>): Promise<HoSoNguoiDung> {
     const query = `
-      INSERT INTO ho_so_nguoi_dung (nguoi_dung_id, tieu_su, ngay_sinh, khu_vuc, gioi_tinh, muc_tieu_tham_gia, thoi_gian_ranh, anh_dai_dien)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-      RETURNING
-        ho_so_id as "hoSoId",
-        nguoi_dung_id as "nguoiDungId",
-        tieu_su as "tieuSu",
-        ngay_sinh as "ngaySinh",
-        khu_vuc as "khuVuc",
-        gioi_tinh as "gioiTinh",
-        muc_tieu_tham_gia as "mucTieuThamGia",
-        thoi_gian_ranh as "thoiGianRanh",
-        anh_dai_dien as "anhDaiDien"
+      INSERT INTO ho_so_nguoi_dung (nguoi_dung_id, tieu_su, ngay_sinh, khu_vuc, gioi_tinh, muc_tieu_tham_gia, thoi_gian_ranh, anh_dai_dien, ban_kinh_mong_muon)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      RETURNING ${RETURN_COLUMNS}
     `;
     const values = [
       data.nguoiDungId,
@@ -45,6 +40,7 @@ export class HoSoNguoiDungRepository {
       data.mucTieuThamGia === undefined || data.mucTieuThamGia === null ? null : data.mucTieuThamGia,
       data.thoiGianRanh === undefined || data.thoiGianRanh === null ? null : data.thoiGianRanh,
       data.anhDaiDien === undefined || data.anhDaiDien === null ? null : data.anhDaiDien,
+      data.banKinhMongMuon === undefined || data.banKinhMongMuon === null ? null : data.banKinhMongMuon,
     ];
     const result = await pool.query(query, values);
     return result.rows[0];
@@ -83,6 +79,10 @@ export class HoSoNguoiDungRepository {
       setClauses.push(`anh_dai_dien = $${paramIndex++}`);
       values.push(data.anhDaiDien);
     }
+    if (data.banKinhMongMuon !== undefined) {
+      setClauses.push(`ban_kinh_mong_muon = $${paramIndex++}`);
+      values.push(data.banKinhMongMuon);
+    }
 
     if (setClauses.length === 0) {
       return this.findByNguoiDungId(nguoiDungId);
@@ -93,16 +93,7 @@ export class HoSoNguoiDungRepository {
       UPDATE ho_so_nguoi_dung
       SET ${setClauses.join(', ')}
       WHERE nguoi_dung_id = $${paramIndex}
-      RETURNING
-        ho_so_id as "hoSoId",
-        nguoi_dung_id as "nguoiDungId",
-        tieu_su as "tieuSu",
-        ngay_sinh as "ngaySinh",
-        khu_vuc as "khuVuc",
-        gioi_tinh as "gioiTinh",
-        muc_tieu_tham_gia as "mucTieuThamGia",
-        thoi_gian_ranh as "thoiGianRanh",
-        anh_dai_dien as "anhDaiDien"
+      RETURNING ${RETURN_COLUMNS}
     `;
     const result = await pool.query(query, values);
     return result.rows.length > 0 ? result.rows[0] : null;
@@ -113,19 +104,9 @@ export class HoSoNguoiDungRepository {
       UPDATE ho_so_nguoi_dung
       SET anh_dai_dien = $1
       WHERE nguoi_dung_id = $2
-      RETURNING
-        ho_so_id as "hoSoId",
-        nguoi_dung_id as "nguoiDungId",
-        tieu_su as "tieuSu",
-        ngay_sinh as "ngaySinh",
-        khu_vuc as "khuVuc",
-        gioi_tinh as "gioiTinh",
-        muc_tieu_tham_gia as "mucTieuThamGia",
-        thoi_gian_ranh as "thoiGianRanh",
-        anh_dai_dien as "anhDaiDien"
+      RETURNING ${RETURN_COLUMNS}
     `;
     const result = await pool.query(query, [anhDaiDien, nguoiDungId]);
     return result.rows.length > 0 ? result.rows[0] : null;
   }
 }
-
