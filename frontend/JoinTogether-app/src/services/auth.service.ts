@@ -15,3 +15,8 @@ export const verifyEmailApi = async (taiKhoanId: number, maXacThuc: string): Pro
   const response = await api.post<ApiResponse<LoginResponseData>>('/auth/verify-email', { taiKhoanId, maXacThuc });
   return response.data;
 };
+
+export const resendCodeApi = async (taiKhoanId: number): Promise<ApiResponse> => {
+  const response = await api.post<ApiResponse>('/auth/resend-code', { taiKhoanId });
+  return response.data;
+};

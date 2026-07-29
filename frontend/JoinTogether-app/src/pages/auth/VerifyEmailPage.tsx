@@ -1,7 +1,7 @@
 import { useState, useRef, type KeyboardEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { verifyEmailApi } from '../../services/auth.service';
+import { verifyEmailApi, resendCodeApi } from '../../services/auth.service';
 import './VerifyEmail.css';
 
 export default function VerifyEmailPage() {
@@ -14,6 +14,8 @@ export default function VerifyEmailPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resendMsg, setResendMsg] = useState('');
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const container = (content: React.ReactNode) => (
@@ -131,6 +133,8 @@ export default function VerifyEmailPage() {
 
       {error && <div className="error-message">{error}</div>}
 
+      {resendMsg && <div className="success-message">{resendMsg}</div>}
+
       <div className="otp-inputs">
         {digits.map((d, i) => (
           <input
@@ -153,6 +157,28 @@ export default function VerifyEmailPage() {
         onClick={() => submitCode()}
       >
         {loading ? 'Đang xác thực...' : 'Xác thực'}
+      </button>
+
+      <button
+        className="outline-btn"
+        style={{ marginTop: 12 }}
+        disabled={resending}
+        onClick={async () => {
+          setResending(true);
+          setResendMsg('');
+          setError('');
+          try {
+            const res = await resendCodeApi(taiKhoanId);
+            setResendMsg(res.message || 'Đã gửi lại mã xác thực.');
+          } catch (err: unknown) {
+            const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Gửi lại mã thất bại.';
+            setError(msg);
+          } finally {
+            setResending(false);
+          }
+        }}
+      >
+        {resending ? 'Đang gửi...' : 'Gửi lại mã xác thực'}
       </button>
     </div>
   );

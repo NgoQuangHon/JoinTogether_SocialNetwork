@@ -15,6 +15,45 @@ const MIN_PASSWORD_LENGTH = 6;
 const OTP_EXPIRY_MINUTES = 10;
 
 export class AuthService {
+  async resendVerificationCode(taiKhoanId: number): Promise<any> {
+    const checkQuery = `
+      SELECT tai_khoan_id as "taiKhoanId", trang_thai, da_xac_thuc as "daXacThuc"
+      FROM tai_khoan WHERE tai_khoan_id = $1
+    `;
+    const checkResult = await pool.query(checkQuery, [taiKhoanId]);
+    const tk = checkResult.rows[0];
+    if (!tk) {
+      throw new AppError("Tài khoản không tồn tại.", 404);
+    }
+    if (tk.daXacThuc) {
+      throw new AppError("Tài khoản đã được xác thực.", 400);
+    }
+
+    const ndQuery = `
+      SELECT nd.email FROM nguoi_dung nd
+      JOIN tai_khoan tk ON nd.nguoi_dung_id = tk.nguoi_dung_id
+      WHERE tk.tai_khoan_id = $1
+    `;
+    const ndResult = await pool.query(ndQuery, [taiKhoanId]);
+    const email = ndResult.rows[0]?.email;
+    if (!email) {
+      throw new AppError("Không tìm thấy email của tài khoản.", 400);
+    }
+
+    const maXacThuc = crypto.randomInt(100000, 999999).toString();
+
+    await pool.query(
+      `INSERT INTO thong_tin_xac_thuc (tai_khoan_id, loai_xac_thuc, ma_xac_thuc, thoi_gian_het_han, da_su_dung)
+       VALUES ($1, 'EMAIL_VERIFICATION', $2, NOW() + INTERVAL '${OTP_EXPIRY_MINUTES} minutes', false)`,
+      [taiKhoanId, maXacThuc],
+    );
+
+    sendVerificationEmail(email, maXacThuc).catch((err) =>
+      console.error("Failed to resend verification email:", err),
+    );
+
+    return { message: "Mã xác thực mới đã được gửi đến email của bạn." };
+  }
   private nguoiDungRepo = new NguoiDungRepository();
   private taiKhoanRepo = new TaiKhoanRepository();
   private vaiTroRepo = new VaiTroRepository();
@@ -37,12 +76,23 @@ export class AuthService {
 
     const existingEmail = await this.nguoiDungRepo.findByEmail(email);
     if (existingEmail) {
-      throw new ConflictError("Email đã được sử dụng.");
+      throw new ConflictError(
+        "Email đã được sử dụng. Vui lòng đăng nhập hoặc khôi phục mật khẩu.",
+      );
+    }
+
+    if (soDienThoai) {
+      const existingPhone = await this.nguoiDungRepo.findByPhone(soDienThoai);
+      if (existingPhone) {
+        throw new ConflictError(
+          "Số điện thoại đã được sử dụng. Vui lòng đăng nhập hoặc khôi phục mật khẩu.",
+        );
+      }
     }
 
     const existingUsername = await this.taiKhoanRepo.findByUsername(tenDangNhap);
     if (existingUsername) {
-      throw new ConflictError("Tên đăng nhập đã được sử dụng.");
+      throw new ConflictError("Tên đăng nhập đã được sử dụng. Vui lòng chọn tên khác.");
     }
 
     const maXacThuc = crypto.randomInt(100000, 999999).toString();

@@ -31,4 +31,10 @@ export class AuthController {
       data: { token: result.token, nguoiDungId: result.nguoiDungId, roles: result.roles, role: result.role },
     });
   });
+
+  public resendCode = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    const { taiKhoanId } = req.body;
+    const result = await this.authService.resendVerificationCode(taiKhoanId);
+    res.status(200).json({ success: true, message: result.message });
+  });
 }

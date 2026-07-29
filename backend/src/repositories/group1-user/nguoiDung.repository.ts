@@ -38,6 +38,16 @@ export class NguoiDungRepository {
     return result.rows.length > 0 ? result.rows[0] : null;
   }
 
+  async findByPhone(soDienThoai: string): Promise<NguoiDung | null> {
+    const query = `
+            SELECT nguoi_dung_id as "nguoiDungId", ho_ten as "hoTen", email, so_dien_thoai as "soDienThoai", trang_thai as "trangThai", ngay_tao as "ngayTao"
+            FROM nguoi_dung
+            WHERE so_dien_thoai = $1
+        `;
+    const result = await pool.query(query, [soDienThoai]);
+    return result.rows.length > 0 ? result.rows[0] : null;
+  }
+
   // ==================== UC7.1: QUẢN LÝ TÀI KHOẢN ====================
 
   async findAll(limit: number = 50, offset: number = 0): Promise<any[]> {
