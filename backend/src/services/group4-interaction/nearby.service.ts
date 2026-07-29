@@ -114,7 +114,7 @@ export class NearbyService {
       LIMIT 1
     `, [nguoiDungId, viDo, kinhDo, excludeList]);
 
-    return result.rows.map(row => ({
+    return result.rows.map((row: any) => ({
       nguoiDungId: Number(row.nguoi_dung_id),
       hoTen: row.ho_ten,
       anhDaiDien: row.anh_dai_dien,
@@ -266,7 +266,7 @@ export class NearbyService {
     );
     const agreedUserIds = new Set(agreedRes.rows.map((r: any) => Number(r.nguoi_dung_id)));
 
-    const bothAccepted = memberIds.length >= 2 && memberIds.every((id) => agreedUserIds.has(id));
+    const bothAccepted = memberIds.length >= 2 && memberIds.every((id: number) => agreedUserIds.has(id));
 
     if (bothAccepted && memberIds.length >= 2) {
       const u1 = memberIds[0]!;

@@ -15,7 +15,15 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/helmet": "^0.0.48",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^2.2.0",
+    "@types/node": "^26.1.1",
+    "@types/nodemailer": "^6.4.17",
+    "@types/pg": "^8.20.0",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
@@ -25,23 +33,15 @@
     "multer": "^2.2.0",
     "nodemailer": "^6.10.1",
     "pg": "^8.22.0",
-    "socket.io": "^4.8.3"
+    "socket.io": "^4.8.3",
+    "typescript": "~5.7.2"
   },
   "devDependencies": {
-    "@types/bcrypt": "^6.0.0",
-    "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.6",
-    "@types/helmet": "^0.0.48",
     "@types/jest": "^30.0.0",
-    "@types/jsonwebtoken": "^9.0.10",
-    "@types/node": "^26.1.1",
-    "@types/nodemailer": "^6.4.17",
-    "@types/pg": "^8.20.0",
     "@types/supertest": "^7.2.1",
     "jest": "^30.4.2",
     "supertest": "^7.2.2",
     "ts-jest": "^29.4.12",
-    "tsx": "^4.23.1",
-    "typescript": "~5.7.2"
+    "tsx": "^4.23.1"
   }
 }
