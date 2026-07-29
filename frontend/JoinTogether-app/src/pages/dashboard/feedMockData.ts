@@ -42,3 +42,37 @@ export const MOCK_SUGGESTIONS = [
   { nguoiDungId: 9006, hoTen: 'Phương Thảo', soThich: ['Nấu ăn', 'Chạy bộ'], hoanThanhPhanTram: 82 },
   { nguoiDungId: 9007, hoTen: 'Đức Anh', soThich: ['Game', 'Công nghệ'], hoanThanhPhanTram: 60 },
 ];
+
+export const MOCK_POSTS = [
+  {
+    baiVietId: 8001,
+    nguoiDungId: 9001,
+    nguoiDung: "Minh Anh",
+    noiDung: "Hôm nay mình vừa hoàn thành buổi chạy bộ 5km quanh Hồ Tây. Cảm giác thật sảng khoái! Có ai muốn tham gia cùng mình vào cuối tuần này không?",
+    soLuotThich: 15,
+    soBinhLuan: 3,
+    soLuotChiaSe: 1,
+    thoiGianTao: "2026-07-29T08:00:00Z"
+  },
+  {
+    baiVietId: 8002,
+    nguoiDungId: 9003,
+    nguoiDung: "Linh San",
+    noiDung: "Cuối tuần vừa rồi tham gia vẽ tranh acrylic tại studio Vẽ Xanh vui cực kỳ. Mọi người thân thiện và chỉ dẫn rất tận tình. Đây là tác phẩm đầu tay của mình!",
+    hinhAnh: "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=800&auto=format&fit=crop&q=60",
+    soLuotThich: 28,
+    soBinhLuan: 5,
+    soLuotChiaSe: 2,
+    thoiGianTao: "2026-07-28T14:30:00Z"
+  },
+  {
+    baiVietId: 8003,
+    nguoiDungId: 9005,
+    nguoiDung: "Hoàng Nam",
+    noiDung: "Tìm đồng đội đá bóng giao lưu tối thứ 4 hàng tuần tại sân bóng Thượng Đình. Đội mình hiện đang thiếu 2-3 người nữa, trình độ trung bình vui vẻ là chính.",
+    soLuotThich: 8,
+    soBinhLuan: 2,
+    soLuotChiaSe: 0,
+    thoiGianTao: "2026-07-29T10:15:00Z"
+  }
+];

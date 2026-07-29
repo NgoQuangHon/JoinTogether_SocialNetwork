@@ -61,7 +61,16 @@ export class PhongTroChuyenRepository {
         pt.phong_id AS "phongId",
         pt.hoat_dong_id AS "hoatDongId",
         hd.ten_hoat_dong AS "tenHoatDong",
-        pt.ten_phong AS "tenPhong",
+        CASE 
+          WHEN pt.loai_phong = 'RIENG_TU' THEN (
+            SELECT nd.ho_ten 
+            FROM thanh_vien_phong tvp2 
+            JOIN nguoi_dung nd ON tvp2.nguoi_dung_id = nd.nguoi_dung_id 
+            WHERE tvp2.phong_id = pt.phong_id AND tvp2.nguoi_dung_id != $1 
+            LIMIT 1
+          )
+          ELSE pt.ten_phong 
+        END AS "tenPhong",
         pt.loai_phong AS "loaiPhong",
         pt.trang_thai AS "trangThai",
         pt.ngay_tao AS "ngayTao",

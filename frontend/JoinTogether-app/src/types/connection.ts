@@ -20,4 +20,6 @@ export interface ThongBao {
   noiDung?: string;
   loaiThongBao?: string;
   duongDan?: string;
+  guiLuc?: string;
+  thoiGianTao?: string;
 }

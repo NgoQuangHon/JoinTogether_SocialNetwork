@@ -14,25 +14,21 @@ import { getMyProfile } from '../../services/profile.service';
 import type { HoatDongResponse, SearchFilters, DanhMucHoatDong } from '../../types/activity';
 import type { HoSoNguoiDung } from '../../types/profile';
 import type { BaiVietResponse, BinhLuanResponse } from '../../services/post.service';
-import { danhMucList, MOCK_ACTIVITIES, MOCK_SUGGESTIONS } from './feedMockData';
+import { danhMucList, MOCK_ACTIVITIES, MOCK_SUGGESTIONS, MOCK_POSTS } from './feedMockData';
 
 const LIMIT = 5;
 
-function fillMock<T>(arr: T[], mock: T[], key: keyof T): T[] {
+function fillMock<T>(arr: T[], mock: T[], key: keyof T, limit = LIMIT): T[] {
   const result = [...arr];
   const ids = new Set(arr.map((item) => item[key]));
   for (const m of mock) {
-    if (result.length >= LIMIT) break;
+    if (result.length >= limit) break;
     if (!ids.has(m[key])) {
       result.push(m);
       ids.add(m[key]);
     }
   }
-  return shuffle(result).slice(0, LIMIT);
-}
-
-function shuffle<T>(arr: T[]): T[] {
-  return [...arr].sort(() => Math.random() - 0.5);
+  return result.slice(0, limit);
 }
 
 function Avatar({ mau, chu, kichThuoc = 44 }: { mau: string; chu: string; kichThuoc?: number }) {
@@ -91,25 +87,76 @@ function ProfileBanner({ percent, onNavigate }: { percent: number; onNavigate: (
 }
 
 function NotificationDropdown({ notifications, onDelete, onClose }: { notifications: ThongBao[]; onDelete: (id: number) => void; onClose: () => void }) {
+  const navigate = useNavigate();
+
+  const getNotifIcon = (type?: string) => {
+    switch (type) {
+      case 'KET_NOI':
+        return { icon: '🤝', bg: '#e8f5e9', color: '#2e7d32' };
+      case 'HOAT_DONG':
+        return { icon: '📅', bg: '#e3f2fd', color: '#1565c0' };
+      case 'BAI_VIET':
+        return { icon: '📝', bg: '#f3e5f5', color: '#7b1fa2' };
+      default:
+        return { icon: '🔔', bg: '#fff3e0', color: '#e65100' };
+    }
+  };
+
   return (
     <div className="notif-dropdown" onClick={(e) => e.stopPropagation()}>
       <div className="notif-dropdown-header">
-        <h4>Thông báo</h4>
+        <div className="notif-header-title">
+          <h4>Thông báo</h4>
+          {notifications.length > 0 && <span className="notif-badge-count">{notifications.length}</span>}
+        </div>
         <button className="notif-close-btn" onClick={onClose}>✕</button>
       </div>
       <div className="notif-list">
         {notifications.length === 0 ? (
-          <div className="notif-empty">Không có thông báo mới</div>
+          <div className="notif-empty">
+            <span style={{ fontSize: 32, display: 'block', marginBottom: 6 }}>🔔</span>
+            Không có thông báo mới
+          </div>
         ) : (
-          notifications.map((n) => (
-            <div key={n.thongBaoId} className="notif-item">
-              <div className="notif-item-content">
-                <p className="notif-title">{n.tieuDe || 'Thông báo'}</p>
-                <p className="notif-text">{n.noiDung}</p>
+          notifications.map((n) => {
+            const { icon, bg, color } = getNotifIcon(n.loaiThongBao);
+            return (
+              <div
+                key={n.thongBaoId}
+                className="notif-item"
+                onClick={() => {
+                  if (n.duongDan) {
+                    navigate(n.duongDan);
+                    onClose();
+                  }
+                }}
+                style={{ cursor: n.duongDan ? 'pointer' : 'default' }}
+              >
+                <div className="notif-avatar-icon" style={{ background: bg, color: color }}>
+                  {icon}
+                </div>
+                <div className="notif-item-content">
+                  <p className="notif-title">{n.tieuDe || 'Thông báo'}</p>
+                  <p className="notif-text">{n.noiDung}</p>
+                  {(n.guiLuc || n.thoiGianTao) && (
+                    <span className="notif-time">
+                      {new Date(n.guiLuc || n.thoiGianTao!).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  )}
+                </div>
+                <button
+                  className="notif-delete"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(n.thongBaoId);
+                  }}
+                  title="Xóa thông báo"
+                >
+                  ✕
+                </button>
               </div>
-              <button className="notif-delete" onClick={(e) => { e.stopPropagation(); onDelete(n.thongBaoId); }} title="Xóa">✕</button>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
     </div>
@@ -217,10 +264,13 @@ export default function DashboardPage() {
     ])
       .then(([myRes, actRes, sugRes, postRes, catRes, profileRes, notifRes]) => {
         if (myRes.success && myRes.data) setMyActivities(myRes.data);
-        if (actRes.success && actRes.data) setRecentActivities(fillMock(actRes.data, MOCK_ACTIVITIES as any, 'hoatDongId'));
+        if (actRes.success && actRes.data) {
+          const activeActs = actRes.data.filter((a: any) => a.trangThai !== 'da_ket_thuc' && a.trangThai !== 'da_huy');
+          setRecentActivities(fillMock(activeActs, MOCK_ACTIVITIES as any, 'hoatDongId'));
+        }
         if (sugRes.success && sugRes.data) setSuggestions(fillMock(sugRes.data, MOCK_SUGGESTIONS as any, 'nguoiDungId'));
         if (postRes.success && postRes.data) {
-          setPosts(postRes.data);
+          setPosts(fillMock(postRes.data, MOCK_POSTS as any, 'baiVietId', 10));
           setLikedPosts(new Set(postRes.data.filter((p) => p.daThich).map((p) => p.baiVietId)));
         }
         if (catRes.success && catRes.data) setApiDanhMucList(catRes.data);
@@ -359,7 +409,7 @@ export default function DashboardPage() {
         setPostImage('');
         setToast('Đã đăng bài viết thành công!');
         const postsRes = await getPostsApi();
-        if (postsRes.success && postsRes.data) setPosts(postsRes.data);
+        if (postsRes.success && postsRes.data) setPosts(fillMock(postsRes.data, MOCK_POSTS as any, 'baiVietId', 10));
       }
     } catch {}
     finally { setPosting(false); }

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getConnectionsApi, removeConnectionApi } from '../../services/connection.service';
+import { getOrCreatePrivateRoomApi } from '../../services/chat.service';
 import SidebarLayout from '../../components/SidebarLayout';
 import '../../styles/dashboard.css';
 
@@ -26,6 +27,17 @@ export default function ConnectionsPage() {
     } catch {}
   };
 
+  const handleStartChat = async (userId: number) => {
+    try {
+      const res = await getOrCreatePrivateRoomApi(userId);
+      if (res.success && res.data) {
+        navigate(`/chat?room=${res.data.phongId}`);
+      }
+    } catch {
+      alert('Không thể bắt đầu chat riêng với người dùng này.');
+    }
+  };
+
   return (
     <SidebarLayout title="Kết nối">
       {loading ? (
@@ -47,12 +59,20 @@ export default function ConnectionsPage() {
                 <p style={{ fontWeight: 600, fontSize: 14, margin: 0 }}>{c.hoTen || `Người dùng #${c.nguoiDungId}`}</p>
                 {c.email && <p style={{ fontSize: 12, color: '#90a4ae', margin: '2px 0 0' }}>{c.email}</p>}
               </div>
-              <button
-                style={{ border: 'none', background: '#fce4ec', color: '#c62828', fontSize: 12, padding: '6px 12px', borderRadius: 8, cursor: 'pointer', flexShrink: 0 }}
-                onClick={() => handleRemove(c.nguoiDungId)}
-              >
-                Hủy kết nối
-              </button>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  style={{ border: 'none', background: '#e8f5e9', color: '#2e7d32', fontSize: 12, padding: '6px 12px', borderRadius: 8, cursor: 'pointer', flexShrink: 0, fontWeight: 600 }}
+                  onClick={() => handleStartChat(c.nguoiDungId)}
+                >
+                  💬 Bắt đầu chat
+                </button>
+                <button
+                  style={{ border: 'none', background: '#fce4ec', color: '#c62828', fontSize: 12, padding: '6px 12px', borderRadius: 8, cursor: 'pointer', flexShrink: 0 }}
+                  onClick={() => handleRemove(c.nguoiDungId)}
+                >
+                  Hủy kết nối
+                </button>
+              </div>
             </div>
           ))}
         </>

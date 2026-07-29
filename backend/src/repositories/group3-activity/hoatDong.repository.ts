@@ -430,7 +430,7 @@ export class HoatDongRepository {
       LEFT JOIN nguoi_dung nd ON hd.nguoi_to_chuc_id = nd.nguoi_dung_id
       LEFT JOIN danh_muc_hoat_dong dm ON hd.danh_muc_hoat_dong_id = dm.danh_muc_hoat_dong_id
       LEFT JOIN dia_diem dd ON hd.dia_diem_id = dd.dia_diem_id
-      WHERE (hd.trang_thai IS NULL OR hd.trang_thai != 'da_huy')
+      WHERE (hd.trang_thai IS NULL OR (hd.trang_thai != 'da_huy' AND hd.trang_thai != 'da_ket_thuc'))
       ORDER BY (SELECT COUNT(*) FROM thanh_vien_hoat_dong tv WHERE tv.hoat_dong_id = hd.hoat_dong_id) DESC
       LIMIT 5
     `;

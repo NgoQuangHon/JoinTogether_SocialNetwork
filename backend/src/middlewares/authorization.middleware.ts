@@ -274,7 +274,7 @@ export function requireChatRoomMember(paramName = "phongId") {
 
       const result = await pool.query(
         `
-          SELECT pt.hoat_dong_id AS "hoatDongId"
+          SELECT pt.hoat_dong_id AS "hoatDongId", pt.loai_phong AS "loaiPhong"
           FROM phong_tro_chuyen pt
           WHERE pt.phong_id = $1
         `,
@@ -288,10 +288,28 @@ export function requireChatRoomMember(paramName = "phongId") {
         return;
       }
 
-      const hoatDongId = Number(result.rows[0].hoatDongId);
+      const { hoatDongId, loaiPhong } = result.rows[0];
+
+      if (loaiPhong === 'RIENG_TU') {
+        const memberCheck = await pool.query(
+          `SELECT 1 FROM thanh_vien_phong WHERE phong_id = $1 AND nguoi_dung_id = $2`,
+          [phongId, user.nguoiDungId],
+        );
+        if (memberCheck.rows.length > 0) {
+          next();
+          return;
+        }
+        forbidden(
+          res,
+          "Bạn không có quyền truy cập phòng trò chuyện riêng tư này.",
+        );
+        return;
+      }
+
+      const parsedHoatDongId = Number(hoatDongId);
       const allowed =
-        (await isActivityOwner(hoatDongId, user.nguoiDungId)) ||
-        (await isActivityMember(hoatDongId, user.nguoiDungId));
+        (await isActivityOwner(parsedHoatDongId, user.nguoiDungId)) ||
+        (await isActivityMember(parsedHoatDongId, user.nguoiDungId));
 
       if (allowed) {
         next();
