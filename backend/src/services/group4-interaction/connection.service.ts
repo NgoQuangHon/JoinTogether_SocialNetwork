@@ -1,7 +1,9 @@
 import { YeuCauKetNoiRepository } from "../../repositories/group4-interaction/yeuCauKetNoi.repository";
 import { QuanHeKetNoiRepository } from "../../repositories/group4-interaction/quanHeKetNoi.repository";
 import { TheoDoiRepository } from "../../repositories/group4-interaction/theoDoi.repository";
+import { ChanRepository } from "../../repositories/group4-interaction/chan.repository";
 import { NguoiDungRepository } from "../../repositories/group1-user/nguoiDung.repository";
+import { NotificationService } from "./notification.service";
 import { pool } from "../../config/db";
 import { AppError, ConflictError, ForbiddenError, NotFoundError } from "../../utils/AppError";
 
@@ -10,6 +12,8 @@ export class ConnectionService {
   private quanHeRepo = new QuanHeKetNoiRepository();
   private nguoiDungRepo = new NguoiDungRepository();
   private theoDoiRepo = new TheoDoiRepository();
+  private chanRepo = new ChanRepository();
+  private notificationService = new NotificationService();
 
   async sendRequest(nguoiGuiId: number, nguoiNhanId: number, loiNhan?: string): Promise<any> {
     if (nguoiGuiId === nguoiNhanId) {
@@ -34,12 +38,39 @@ export class ConnectionService {
       throw new ConflictError("Đã có yêu cầu kết nối đang chờ xử lý.");
     }
 
-    return await this.yeuCauRepo.create({
+    // Check if receiver blocked sender (4c)
+    const isBlocked = await this.chanRepo.isBlocked(nguoiNhanId, nguoiGuiId);
+    if (isBlocked) {
+      throw new ForbiddenError("Không thể gửi yêu cầu kết nối.");
+    }
+
+    // Check receiver's privacy setting (4c)
+    const profileResult = await pool.query(
+      `SELECT cho_phep_nhan_yeu_cau_ket_noi AS "choPhepNhan" FROM ho_so_nguoi_dung WHERE nguoi_dung_id = $1`,
+      [nguoiNhanId],
+    );
+    if (profileResult.rows.length > 0 && profileResult.rows[0].choPhepNhan === false) {
+      throw new ForbiddenError("Người dùng này không nhận yêu cầu kết nối.");
+    }
+
+    const request = await this.yeuCauRepo.create({
       nguoiGuiId,
       nguoiNhanId,
       loiNhan: loiNhan === undefined || loiNhan === null ? null : loiNhan,
       trangThai: 'PENDING',
     });
+
+    // Notify receiver (6)
+    const senderInfo = await this.nguoiDungRepo.findById(nguoiGuiId);
+    const senderName = senderInfo?.hoTen || `Người dùng #${nguoiGuiId}`;
+    await this.notificationService.sendNotification(
+      nguoiNhanId,
+      "Yêu cầu kết nối",
+      `${senderName} đã gửi cho bạn một yêu cầu kết nối.`,
+      "KET_NOI",
+    );
+
+    return request;
   }
 
   async respondToRequest(yeuCauId: number, nguoiDungId: number, accept: boolean): Promise<any> {
@@ -58,7 +89,19 @@ export class ConnectionService {
 
     if (!accept) {
       // Reject: chỉ 1 lệnh ghi, không cần transaction
-      return await this.yeuCauRepo.updateStatus(yeuCauId, 'REJECTED');
+      const updated = await this.yeuCauRepo.updateStatus(yeuCauId, 'REJECTED');
+
+      // Notify sender (7a)
+      const receiverInfo = await this.nguoiDungRepo.findById(request.nguoiNhanId);
+      const receiverName = receiverInfo?.hoTen || `Người dùng #${request.nguoiNhanId}`;
+      await this.notificationService.sendNotification(
+        request.nguoiGuiId,
+        "Yêu cầu kết nối bị từ chối",
+        `${receiverName} đã từ chối yêu cầu kết nối của bạn.`,
+        "KET_NOI",
+      );
+
+      return updated;
     }
 
     // Accept: tạo quan hệ kết nối + cập nhật trạng thái yêu cầu phải cùng
@@ -78,6 +121,26 @@ export class ConnectionService {
       const updated = await this.yeuCauRepo.updateStatus(yeuCauId, 'ACCEPTED', client);
 
       await client.query("COMMIT");
+
+      // Notify both parties (8)
+      const receiverInfo = await this.nguoiDungRepo.findById(request.nguoiNhanId);
+      const receiverName = receiverInfo?.hoTen || `Người dùng #${request.nguoiNhanId}`;
+      const senderInfo = await this.nguoiDungRepo.findById(request.nguoiGuiId);
+      const senderName = senderInfo?.hoTen || `Người dùng #${request.nguoiGuiId}`;
+
+      await this.notificationService.sendNotification(
+        request.nguoiGuiId,
+        "Yêu cầu kết nối được chấp nhận",
+        `${receiverName} đã chấp nhận yêu cầu kết nối của bạn.`,
+        "KET_NOI",
+      );
+      await this.notificationService.sendNotification(
+        request.nguoiNhanId,
+        "Kết nối mới",
+        `Bạn đã kết nối với ${senderName}.`,
+        "KET_NOI",
+      );
+
       return updated;
     } catch (error) {
       await client.query("ROLLBACK");
@@ -155,5 +218,56 @@ export class ConnectionService {
     if (!removed) {
       throw new NotFoundError("Không tìm thấy kết nối với người dùng này.");
     }
+  }
+
+  async blockUser(nguoiChanId: number, nguoiBiChanId: number): Promise<any> {
+    if (nguoiChanId === nguoiBiChanId) {
+      throw new AppError("Không thể chặn chính mình.", 400);
+    }
+    const target = await this.nguoiDungRepo.findById(nguoiBiChanId);
+    if (!target) {
+      throw new NotFoundError("Người dùng không tồn tại.");
+    }
+
+    // Tự động xóa kết nối nếu đang có
+    await this.quanHeRepo.delete(nguoiChanId, nguoiBiChanId).catch(() => {});
+
+    // Tự động từ chối các yêu cầu đang chờ
+    const existingReq = await this.yeuCauRepo.findExistingRequest(nguoiChanId, nguoiBiChanId);
+    if (existingReq) {
+      await this.yeuCauRepo.updateStatus(existingReq.yeuCauKetNoiId!, 'REJECTED').catch(() => {});
+    }
+
+    return await this.chanRepo.create(nguoiChanId, nguoiBiChanId);
+  }
+
+  async unblockUser(nguoiChanId: number, nguoiBiChanId: number): Promise<void> {
+    const removed = await this.chanRepo.delete(nguoiChanId, nguoiBiChanId);
+    if (!removed) {
+      throw new NotFoundError("Người dùng này không nằm trong danh sách chặn.");
+    }
+  }
+
+  async isBlocked(nguoiChanId: number, nguoiBiChanId: number): Promise<boolean> {
+    return await this.chanRepo.isBlocked(nguoiChanId, nguoiBiChanId);
+  }
+
+  async getConnectionStatus(nguoiDungId: number, targetUserId: number): Promise<{ status: string; yeuCauId?: number }> {
+    // Check if connected
+    const connection = await this.quanHeRepo.findExistingConnection(nguoiDungId, targetUserId);
+    if (connection) {
+      return { status: 'CONNECTED' };
+    }
+
+    // Check if pending request exists
+    const pendingReq = await this.yeuCauRepo.findExistingRequest(nguoiDungId, targetUserId);
+    if (pendingReq) {
+      if (pendingReq.nguoiGuiId === nguoiDungId) {
+        return { status: 'PENDING_SENT', yeuCauId: pendingReq.yeuCauKetNoiId! };
+      }
+      return { status: 'PENDING_RECEIVED', yeuCauId: pendingReq.yeuCauKetNoiId! };
+    }
+
+    return { status: 'NONE' };
   }
 }

@@ -35,8 +35,10 @@ export default function EditActivityModal({
     tenHoatDong: activity.tenHoatDong || '',
     danhMucHoatDongId: activity.danhMucHoatDongId || 0,
     moTa: activity.moTa || '',
+    hinhThuc: activity.hinhThuc || 'offline',
     thoiGianBatDau: toLocalDatetime(activity.thoiGianBatDau),
     thoiGianKetThuc: toLocalDatetime(activity.thoiGianKetThuc),
+    hanDangKy: toLocalDatetime(activity.hanDangKy),
     tenDiaDiem: activity.tenDiaDiem || '',
     diaChi: activity.diaChi || '',
     soLuongToiDa: activity.soLuongToiDa?.toString() || '',
@@ -67,6 +69,9 @@ export default function EditActivityModal({
       .catch(() => {});
   }, []);
 
+  const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+  const MAX_SIZE = 5 * 1024 * 1024;
+
   const compressImage = (file: File, maxDim = 1920, quality = 0.7): Promise<string> =>
     new Promise((resolve, reject) => {
       const img = new Image();
@@ -88,13 +93,31 @@ export default function EditActivityModal({
       img.src = URL.createObjectURL(file);
     });
 
+  const validateFile = (file: File): string | null => {
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      return 'Chỉ chấp nhận ảnh JPG, PNG, WebP hoặc GIF.';
+    }
+    if (file.size > MAX_SIZE) {
+      return 'Kích thước ảnh tối đa là 5MB.';
+    }
+    return null;
+  };
+
   const handleThumbnailChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) setThumbnail(await compressImage(file));
+    if (file) {
+      const err = validateFile(file);
+      if (err) { setError(err); return; }
+      setThumbnail(await compressImage(file));
+    }
   };
 
   const handleImagesChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
+    for (const f of files) {
+      const err = validateFile(f);
+      if (err) { setError(err); return; }
+    }
     const remaining = 5 - images.length;
     const toAdd = files.slice(0, remaining);
     const b64s = await Promise.all(toAdd.map((f) => compressImage(f)));
@@ -128,8 +151,10 @@ export default function EditActivityModal({
         danhMucHoatDongId: form.danhMucHoatDongId || undefined,
         moTa: form.moTa || undefined,
         thumbnail: thumbnail || undefined,
+        hinhThuc: form.hinhThuc || undefined,
         thoiGianBatDau: form.thoiGianBatDau ? new Date(form.thoiGianBatDau).toISOString() : undefined,
         thoiGianKetThuc: form.thoiGianKetThuc ? new Date(form.thoiGianKetThuc).toISOString() : undefined,
+        hanDangKy: form.hanDangKy ? new Date(form.hanDangKy).toISOString() : undefined,
         tenDiaDiem: form.tenDiaDiem || undefined,
         diaChi: form.diaChi || undefined,
         soLuongToiDa: form.soLuongToiDa ? Number(form.soLuongToiDa) : undefined,
@@ -219,12 +244,29 @@ export default function EditActivityModal({
         {buoc === 2 && (
           <div className="cam-step-content">
             <div className="cam-field">
+              <label>Hình thức <span className="required">*</span></label>
+              <div className="cam-radio-group">
+                <label className="cam-radio">
+                  <input type="radio" name="editHinhThuc" value="offline" checked={form.hinhThuc === 'offline'} onChange={(e) => set('hinhThuc', e.target.value)} />
+                  Offline
+                </label>
+                <label className="cam-radio">
+                  <input type="radio" name="editHinhThuc" value="online" checked={form.hinhThuc === 'online'} onChange={(e) => set('hinhThuc', e.target.value)} />
+                  Online
+                </label>
+              </div>
+            </div>
+            <div className="cam-field">
               <label>Thời gian bắt đầu <span className="required">*</span></label>
               <input type="datetime-local" value={form.thoiGianBatDau} onChange={(e) => set('thoiGianBatDau', e.target.value)} />
             </div>
             <div className="cam-field">
               <label>Thời gian kết thúc <span className="required">*</span></label>
               <input type="datetime-local" value={form.thoiGianKetThuc} onChange={(e) => set('thoiGianKetThuc', e.target.value)} />
+            </div>
+            <div className="cam-field">
+              <label>Hạn đăng ký</label>
+              <input type="datetime-local" value={form.hanDangKy} onChange={(e) => set('hanDangKy', e.target.value)} />
             </div>
             <div className="cam-field">
               <label>Địa điểm <span className="required">*</span></label>

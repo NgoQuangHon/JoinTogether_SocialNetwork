@@ -60,4 +60,28 @@ connectionRouter.delete(
   connectionController.removeConnection,
 );
 
+// Connection status with a specific user
+connectionRouter.get(
+  "/status/:id",
+  authenticateToken,
+  connectionController.getConnectionStatus,
+);
+
+// Block
+connectionRouter.post(
+  "/block/:id",
+  authenticateToken,
+  connectionController.blockUser,
+);
+connectionRouter.delete(
+  "/block/:id",
+  authenticateToken,
+  connectionController.unblockUser,
+);
+connectionRouter.get(
+  "/block/:id",
+  authenticateToken,
+  connectionController.checkBlocked,
+);
+
 export default connectionRouter;

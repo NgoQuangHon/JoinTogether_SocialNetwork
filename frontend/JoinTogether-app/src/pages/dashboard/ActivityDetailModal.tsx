@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { HoatDongResponse } from '../../types/activity';
 import { cancelActivityApi } from '../../services/activity.service';
 import EditActivityModal from './EditActivityModal';
+import CriteriaManagerModal from './CriteriaManagerModal';
 import './CreateActivity.css';
 import './ActivityDetail.css';
 
@@ -33,6 +34,7 @@ export default function ActivityDetailModal({
   currentUserId?: number | null;
 }) {
   const [showEdit, setShowEdit] = useState(false);
+  const [showCriteria, setShowCriteria] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const [cancelling, setCancelling] = useState(false);
@@ -105,6 +107,18 @@ export default function ActivityDetailModal({
             </p>
           )}
 
+          {activity.hinhThuc && (
+            <p className="cam-review-place" style={{ marginTop: 4 }}>
+              Hình thức: {activity.hinhThuc === 'online' ? 'Online' : 'Offline'}
+            </p>
+          )}
+
+          {activity.hanDangKy && (
+            <p className="cam-review-place" style={{ marginTop: 4 }}>
+              Hạn đăng ký: {new Date(activity.hanDangKy).toLocaleString('vi-VN')}
+            </p>
+          )}
+
           {activity.tenDiaDiem && (
             <p className="cam-review-place">
               {activity.tenDiaDiem}{activity.diaChi ? `, ${activity.diaChi}` : ''}
@@ -173,6 +187,11 @@ export default function ActivityDetailModal({
             <div className="cam-detail-section">
               <h5>Tham gia</h5>
               <p>{activity.soLuongThanhVien} người đã tham gia</p>
+              {activity.soLuongToiDa != null && (
+                <p style={{ fontSize: 13, color: '#607d8b', marginTop: 4 }}>
+                  {activity.soLuongToiDa - activity.soLuongThanhVien} chỗ trống (tối đa {activity.soLuongToiDa})
+                </p>
+              )}
             </div>
           )}
         </div>
@@ -185,6 +204,9 @@ export default function ActivityDetailModal({
             >
               Hủy hoạt động
             </button>
+            <button className="cam-btn-outline" onClick={() => setShowCriteria(true)}>
+              Tiêu chí
+            </button>
             <button className="cam-btn-primary" onClick={() => setShowEdit(true)}>
               Chỉnh sửa
             </button>
@@ -192,17 +214,25 @@ export default function ActivityDetailModal({
         )}
 
         {!isCancelled && !isOwner && (
-          <div className="cam-detail-actions">
-            <button className="cam-btn-outline">
-              Nhắc lịch
-            </button>
-            <button className="cam-btn-outline">
-              Quan tâm
-            </button>
-            <button className="cam-btn-primary">
-              Đăng ký tham gia
-            </button>
-          </div>
+          <>
+            {(() => {
+              const isFull = activity.soLuongToiDa != null && activity.soLuongThanhVien != null && activity.soLuongThanhVien >= activity.soLuongToiDa;
+              const isExpired = activity.hanDangKy != null && new Date(activity.hanDangKy) < new Date();
+              if (isFull) {
+                return <p style={{ color: '#f44336', fontSize: 13, fontWeight: 600, textAlign: 'center', width: '100%', padding: '8px 0' }}>Hoạt động đã đầy</p>;
+              }
+              if (isExpired) {
+                return <p style={{ color: '#ff9800', fontSize: 13, fontWeight: 600, textAlign: 'center', width: '100%', padding: '8px 0' }}>Đã hết hạn đăng ký</p>;
+              }
+              return (
+                <div className="cam-detail-actions">
+                  <button className="cam-btn-outline">Nhắc lịch</button>
+                  <button className="cam-btn-outline">Quan tâm</button>
+                  <button className="cam-btn-primary">Đăng ký tham gia</button>
+                </div>
+              );
+            })()}
+          </>
         )}
 
         {isCancelled && (
@@ -214,6 +244,13 @@ export default function ActivityDetailModal({
               </p>
             )}
           </div>
+        )}
+
+        {showCriteria && (
+          <CriteriaManagerModal
+            hoatDongId={activity.hoatDongId}
+            onClose={() => setShowCriteria(false)}
+          />
         )}
 
         {showCancelConfirm && (

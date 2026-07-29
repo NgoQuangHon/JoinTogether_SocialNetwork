@@ -145,6 +145,7 @@ CREATE TABLE hoat_dong (
     noi_quy_chung TEXT,
     luu_y_dac_biet TEXT,
     do_dung_can_mang TEXT,
+    han_dang_ky TIMESTAMPTZ,
     trang_thai VARCHAR(50) DEFAULT 'sap_dien_ra',
     ly_do_huy TEXT
 );
@@ -239,6 +240,15 @@ CREATE TABLE thong_bao (
     noi_dung TEXT,
     loai_thong_bao VARCHAR(50)
 );
+
+CREATE TABLE chan (
+    nguoi_chan_id BIGINT NOT NULL REFERENCES nguoi_dung(nguoi_dung_id) ON DELETE CASCADE,
+    nguoi_bi_chan_id BIGINT NOT NULL REFERENCES nguoi_dung(nguoi_dung_id) ON DELETE CASCADE,
+    thoi_gian TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (nguoi_chan_id, nguoi_bi_chan_id)
+);
+
+ALTER TABLE ho_so_nguoi_dung ADD COLUMN cho_phep_nhan_yeu_cau_ket_noi BOOLEAN DEFAULT TRUE;
 
 -- ============================================================
 -- 5. NHÓM ĐÁNH GIÁ & ĐIỂM UY TÍN

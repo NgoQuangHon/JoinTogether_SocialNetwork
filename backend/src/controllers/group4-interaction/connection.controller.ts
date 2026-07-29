@@ -105,4 +105,56 @@ export class ConnectionController {
         .json({ success: true, message: "Đã hủy kết nối thành công." });
     },
   );
+
+  public getConnectionStatus = asyncHandler(
+    async (req: Request, res: Response): Promise<void> => {
+      const nguoiDungId = req.user!.nguoiDungId;
+      const targetUserId = parseInt(req.params.id as string, 10);
+      if (isNaN(targetUserId)) {
+        res.status(400).json({ success: false, message: "ID người dùng không hợp lệ." });
+        return;
+      }
+      const result = await this.connectionService.getConnectionStatus(nguoiDungId, targetUserId);
+      res.status(200).json({ success: true, data: result });
+    },
+  );
+
+  public blockUser = asyncHandler(
+    async (req: Request, res: Response): Promise<void> => {
+      const nguoiChanId = req.user!.nguoiDungId;
+      const nguoiBiChanId = parseInt(req.params.id as string, 10);
+      if (isNaN(nguoiBiChanId)) {
+        res.status(400).json({ success: false, message: "ID người dùng không hợp lệ." });
+        return;
+      }
+      await this.connectionService.blockUser(nguoiChanId, nguoiBiChanId);
+      res.status(200).json({ success: true, message: "Đã chặn người dùng." });
+    },
+  );
+
+  public unblockUser = asyncHandler(
+    async (req: Request, res: Response): Promise<void> => {
+      const nguoiChanId = req.user!.nguoiDungId;
+      const nguoiBiChanId = parseInt(req.params.id as string, 10);
+      if (isNaN(nguoiBiChanId)) {
+        res.status(400).json({ success: false, message: "ID người dùng không hợp lệ." });
+        return;
+      }
+      await this.connectionService.unblockUser(nguoiChanId, nguoiBiChanId);
+      res.status(200).json({ success: true, message: "Đã bỏ chặn người dùng." });
+    },
+  );
+
+  public checkBlocked = asyncHandler(
+    async (req: Request, res: Response): Promise<void> => {
+      const nguoiChanId = req.user!.nguoiDungId;
+      const nguoiBiChanId = parseInt(req.params.id as string, 10);
+      if (isNaN(nguoiBiChanId)) {
+        res.status(400).json({ success: false, message: "ID người dùng không hợp lệ." });
+        return;
+      }
+      const blocked = await this.connectionService.isBlocked(nguoiChanId, nguoiBiChanId);
+      res.status(200).json({ success: true, data: { blocked } });
+    },
+  );
 }

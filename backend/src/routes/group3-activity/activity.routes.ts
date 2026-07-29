@@ -10,6 +10,7 @@ import {
   requireActivityOwner,
   requireAdmin,
   requireImageOwner,
+  requireCriteriaOwner,
 } from "../../middlewares/authorization.middleware";
 
 // "báo" — Router cha duy nhất quản lý toàn bộ sub-route của /api/activities
@@ -77,11 +78,13 @@ activityRouter.delete(
 activityRouter.put(
   "/criteria/:id",
   authenticateToken,
+  requireCriteriaOwner("id"),
   criteriaController.updateCriteria,
 );
 activityRouter.delete(
   "/criteria/:id",
   authenticateToken,
+  requireCriteriaOwner("id"),
   criteriaController.deleteCriteria,
 );
 

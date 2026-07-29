@@ -1,16 +1,18 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import '../../styles/dashboard.css';
 import CreateActivityModal from './CreateActivityModal';
 import ActivityDetailModal from './ActivityDetailModal';
 import NavItems from '../../components/NavItems';
-import { getMyActivitiesApi, getAllActivitiesApi, getFeaturedActivitiesApi } from '../../services/activity.service';
+import { getMyActivitiesApi, getAllActivitiesApi, getFeaturedActivitiesApi, searchActivitiesApi, getCategoriesApi } from '../../services/activity.service';
 import { getSuggestionsApi, followUserApi, unfollowUserApi } from '../../services/connection.service';
 import { getPostsApi, likePostApi, unlikePostApi, getCommentsApi, addCommentApi, sharePostApi } from '../../services/post.service';
-import type { HoatDongResponse } from '../../types/activity';
+import { getMyProfile } from '../../services/profile.service';
+import type { HoatDongResponse, SearchFilters, DanhMucHoatDong } from '../../types/activity';
+import type { HoSoNguoiDung } from '../../types/profile';
 import type { BaiVietResponse, BinhLuanResponse } from '../../services/post.service';
-import { danhMucList, MOCK_ACTIVITIES, MOCK_FEATURED, MOCK_SUGGESTIONS, type DanhMuc } from './feedMockData';
+import { danhMucList, MOCK_ACTIVITIES, MOCK_FEATURED, MOCK_SUGGESTIONS } from './feedMockData';
 
 const LIMIT = 5;
 
@@ -72,26 +74,41 @@ function AIBanner() {
   );
 }
 
-function CategoryChips({ chon, onChon }: { chon: string; onChon: (id: string) => void }) {
+function CategoryChips({ chon, onChon, options }: { chon: number; onChon: (id: number) => void; options: { danhMucHoatDongId: number; tenDanhMuc: string }[] }) {
   return (
     <div className="category-row">
-      {danhMucList.map((dm: DanhMuc) => (
+      {options.map((dm) => (
         <button
-          key={dm.id}
-          className={`category-chip ${chon === dm.id ? 'category-chip-active' : ''}`}
-          onClick={() => onChon(dm.id)}
+          key={dm.danhMucHoatDongId}
+          className={`category-chip ${chon === dm.danhMucHoatDongId ? 'category-chip-active' : ''}`}
+          onClick={() => onChon(dm.danhMucHoatDongId)}
         >
-          {dm.ten}
+          {dm.tenDanhMuc}
         </button>
       ))}
     </div>
   );
 }
 
-function ActivityCard({ hd }: { hd: HoatDongResponse }) {
-  const thumb = hd.hinhAnh?.find((h) => h.laAnhDaiDien)?.duongDan;
+function ProfileBanner({ percent, onNavigate }: { percent: number; onNavigate: () => void }) {
+  if (percent >= 100) return null;
   return (
-    <div className="activity-card">
+    <div className="profile-banner">
+      <div className="profile-banner-icon">!</div>
+      <div className="profile-banner-content">
+        <p className="profile-banner-title">Hồ sơ của bạn chưa hoàn thiện</p>
+        <p className="profile-banner-desc">Hoàn thiện hồ sơ để tăng cơ hội kết nối và tham gia hoạt động.</p>
+      </div>
+      <button className="profile-banner-cta" onClick={onNavigate}>Hoàn thiện ngay</button>
+    </div>
+  );
+}
+
+function ActivityCard({ hd, onClick }: { hd: HoatDongResponse; onClick?: () => void }) {
+  const thumb = hd.hinhAnh?.find((h) => h.laAnhDaiDien)?.duongDan;
+  const remaining = hd.soLuongToiDa != null ? hd.soLuongToiDa - (hd.soLuongThanhVien || 0) : null;
+  return (
+    <div className="activity-card" style={onClick ? { cursor: 'pointer' } : undefined} onClick={onClick}>
       <div className="activity-thumb" style={{ background: thumb ? `url(${thumb}) center/cover` : '#e8f5e9' }}>
         <span className="distance-badge">{hd.tenDanhMuc?.[0] || 'Khác'}</span>
       </div>
@@ -100,6 +117,7 @@ function ActivityCard({ hd }: { hd: HoatDongResponse }) {
       <p className="activity-time">{hd.thoiGianBatDau ? new Date(hd.thoiGianBatDau).toLocaleDateString('vi-VN') : ''}</p>
       <div className="activity-footer">
         <span className="participants-badge">{hd.soLuongThanhVien || 0} tham gia</span>
+        {remaining !== null && <span className="remaining-badge">{remaining} chỗ trống</span>}
       </div>
     </div>
   );
@@ -161,7 +179,7 @@ export default function DashboardPage() {
   const navigate = useNavigate();
 
   const [menuMo, setMenuMo] = useState(false);
-  const [danhMucChon, setDanhMucChon] = useState('tat-ca');
+  const [danhMucChon, setDanhMucChon] = useState(0);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [myActivities, setMyActivities] = useState<HoatDongResponse[]>([]);
   const [recentActivities, setRecentActivities] = useState<HoatDongResponse[]>([]);
@@ -179,6 +197,51 @@ export default function DashboardPage() {
   const [commentsVisible, setCommentsVisible] = useState<Record<number, boolean>>({});
   const [commentData, setCommentData] = useState<Record<number, BinhLuanResponse[]>>({});
 
+  const [searchKeyword, setSearchKeyword] = useState('');
+  const [searchResults, setSearchResults] = useState<HoatDongResponse[]>([]);
+  const [searchTotal, setSearchTotal] = useState(0);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [apiDanhMucList, setApiDanhMucList] = useState<DanhMucHoatDong[]>([]);
+  const [profilePct, setProfilePct] = useState(100);
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+
+  const displayDanhMuc = apiDanhMucList.length > 0
+    ? [{ danhMucHoatDongId: 0, tenDanhMuc: 'Tất cả' }, ...apiDanhMucList]
+    : danhMucList.map(dm => {
+        const slugToId: Record<string, number> = { 'the-thao': 1, 'hoc-tap': 6, 'giai-tri': 2, 'nghe-thuat': 10, 'tinh-nguyen': 7 };
+        return { danhMucHoatDongId: slugToId[dm.id] || 0, tenDanhMuc: dm.ten };
+      });
+
+  const doSearch = useCallback(async (keyword: string, categoryId: number) => {
+    const filters: SearchFilters = {};
+    if (keyword.trim()) filters.keyword = keyword.trim();
+    if (categoryId > 0) filters.danhMucHoatDongId = categoryId;
+    filters.limit = 20;
+    setSearchLoading(true);
+    setHasSearched(true);
+    try {
+      const res = await searchActivitiesApi(filters);
+      if (res.success && res.data) {
+        setSearchResults(res.data.rows);
+        setSearchTotal(res.data.total);
+      } else {
+        setSearchResults([]);
+        setSearchTotal(0);
+      }
+    } catch {
+      setSearchResults([]);
+      setSearchTotal(0);
+    } finally {
+      setSearchLoading(false);
+    }
+  }, []);
+
+  const triggerSearch = useCallback((keyword: string, categoryId: number) => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => doSearch(keyword, categoryId), 400);
+  }, [doSearch]);
+
   useEffect(() => {
     Promise.all([
       getMyActivitiesApi(),
@@ -186,8 +249,10 @@ export default function DashboardPage() {
       getFeaturedActivitiesApi(),
       getSuggestionsApi(),
       getPostsApi(),
+      getCategoriesApi(),
+      getMyProfile().catch(() => ({ success: false } as any)),
     ])
-      .then(([myRes, actRes, featRes, sugRes, postRes]) => {
+      .then(([myRes, actRes, featRes, sugRes, postRes, catRes, profileRes]) => {
         if (myRes.success && myRes.data) setMyActivities(myRes.data);
         if (actRes.success && actRes.data) setRecentActivities(fillMock(actRes.data, MOCK_ACTIVITIES as any, 'hoatDongId'));
         if (featRes.success && featRes.data) setFeaturedActivities(fillMock(featRes.data, MOCK_FEATURED as any, 'hoatDongId'));
@@ -196,17 +261,39 @@ export default function DashboardPage() {
           setPosts(postRes.data);
           setLikedPosts(new Set(postRes.data.filter((p) => p.daThich).map((p) => p.baiVietId)));
         }
+        if (catRes.success && catRes.data) setApiDanhMucList(catRes.data);
+        if (profileRes.success && profileRes.data) {
+          const p = profileRes.data as HoSoNguoiDung;
+          const allFields = [
+            p.user?.hoTen || '',
+            p.user?.email || '',
+            p.user?.soDienThoai || '',
+            p.tieuSu || '',
+            p.khuVuc || '',
+            p.ngaySinh || '',
+            p.gioiTinh || '',
+            p.mucTieuThamGia || '',
+            p.thoiGianRanh || '',
+            p.anhDaiDien || '',
+          ];
+          const filled = allFields.filter((v) => v.trim().length > 0).length;
+          setProfilePct(Math.round((filled / allFields.length) * 100));
+        }
       })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
 
-  const filteredActivities = danhMucChon === 'tat-ca'
-    ? recentActivities
-    : recentActivities.filter((hd) => {
-        const slug = (hd.tenDanhMuc || '').toLowerCase().replace(/đ/g, 'd').replace(/ /g, '-');
-        return slug === danhMucChon || slug.includes(danhMucChon);
-      });
+  useEffect(() => {
+    if (searchKeyword || danhMucChon > 0) {
+      triggerSearch(searchKeyword, danhMucChon);
+    } else {
+      setHasSearched(false);
+      setSearchResults([]);
+    }
+  }, [searchKeyword, danhMucChon, triggerSearch]);
+
+  const showSearchResults = hasSearched || danhMucChon > 0 || searchKeyword.trim() !== '';
 
   const handleLogout = () => {
     logout();
@@ -328,10 +415,12 @@ export default function DashboardPage() {
           <div className="app-body">
             <div className="search-bar">
               <span className="search-icon">T</span>
-              <input type="text" placeholder="Tìm kiếm hoạt động, bạn bè..." />
+              <input type="text" placeholder="Tìm kiếm hoạt động, bạn bè..." value={searchKeyword} onChange={(e) => setSearchKeyword(e.target.value)} />
             </div>
 
             <AIBanner />
+
+            <ProfileBanner percent={profilePct} onNavigate={() => navigate('/edit-profile')} />
 
             <div className="post-create-box">
               <div className="post-create-row">
@@ -364,18 +453,34 @@ export default function DashboardPage() {
             <button className="create-activity-btn" onClick={() => setShowCreateModal(true)}>
               + Tạo hoạt động
             </button>
-            <CategoryChips chon={danhMucChon} onChon={setDanhMucChon} />
+            <CategoryChips chon={danhMucChon} onChon={setDanhMucChon} options={displayDanhMuc} />
 
             <section className="section-block">
               <div className="section-heading">
-                <h3>Hoạt động gần bạn</h3>
-                <a href="#" className="section-link">XEM THÊM</a>
+                <h3>{showSearchResults ? 'Kết quả tìm kiếm' : 'Hoạt động gần bạn'}</h3>
               </div>
-              <div className="hscroll">
-                {filteredActivities.map((hd) => (
-                  <ActivityCard key={hd.hoatDongId} hd={hd} />
-                ))}
-              </div>
+              {searchLoading ? (
+                <p className="cam-hint">Đang tìm kiếm...</p>
+              ) : showSearchResults ? (
+                searchResults.length === 0 ? (
+                  <div className="empty-search">
+                    <p>Không tìm thấy hoạt động phù hợp.</p>
+                    <p className="empty-search-suggest">Hãy thử với từ khóa hoặc danh mục khác.</p>
+                  </div>
+                ) : (
+                  <div className="hscroll">
+                    {searchResults.map((hd) => (
+                      <ActivityCard key={hd.hoatDongId} hd={hd} onClick={() => setSelectedFeatured(hd)} />
+                    ))}
+                  </div>
+                )
+              ) : (
+                <div className="hscroll">
+                  {recentActivities.map((hd) => (
+                    <ActivityCard key={hd.hoatDongId} hd={hd} />
+                  ))}
+                </div>
+              )}
             </section>
 
             <section className="section-block">
@@ -477,7 +582,7 @@ export default function DashboardPage() {
             <h1>Trang chủ</h1>
           <div className="search-bar topbar-search">
             <span className="search-icon">T</span>
-            <input type="text" placeholder="Tìm kiếm hoạt động, bạn bè..." />
+            <input type="text" placeholder="Tìm kiếm hoạt động, bạn bè..." value={searchKeyword} onChange={(e) => setSearchKeyword(e.target.value)} />
           </div>
           <div className="topbar-user">
             <span className="user-badge">ID: {nguoiDungId}</span>
@@ -490,6 +595,8 @@ export default function DashboardPage() {
 
         <div className="content-body">
           <AIBanner />
+
+          <ProfileBanner percent={profilePct} onNavigate={() => navigate('/edit-profile')} />
 
           <div className="post-create-box">
             <div className="post-create-row">
@@ -522,18 +629,34 @@ export default function DashboardPage() {
           <button className="create-activity-btn" onClick={() => setShowCreateModal(true)}>
             + Tạo hoạt động
           </button>
-          <CategoryChips chon={danhMucChon} onChon={setDanhMucChon} />
+          <CategoryChips chon={danhMucChon} onChon={setDanhMucChon} options={displayDanhMuc} />
 
             <section className="section-block">
             <div className="section-heading">
-              <h3>Hoạt động gần bạn</h3>
-              <a href="#" className="section-link">XEM THÊM</a>
+              <h3>{showSearchResults ? 'Kết quả tìm kiếm' : 'Hoạt động gần bạn'}</h3>
             </div>
-            <div className="grid-activities">
-              {filteredActivities.map((hd) => (
-                <ActivityCard key={hd.hoatDongId} hd={hd} />
-              ))}
-            </div>
+            {searchLoading ? (
+              <p className="cam-hint">Đang tìm kiếm...</p>
+            ) : showSearchResults ? (
+              searchResults.length === 0 ? (
+                <div className="empty-search">
+                  <p>Không tìm thấy hoạt động phù hợp.</p>
+                  <p className="empty-search-suggest">Hãy thử với từ khóa hoặc danh mục khác.</p>
+                </div>
+              ) : (
+                <div className="grid-activities">
+                  {searchResults.map((hd) => (
+                    <ActivityCard key={hd.hoatDongId} hd={hd} onClick={() => setSelectedFeatured(hd)} />
+                  ))}
+                </div>
+              )
+            ) : (
+              <div className="grid-activities">
+                {recentActivities.map((hd) => (
+                  <ActivityCard key={hd.hoatDongId} hd={hd} />
+                ))}
+              </div>
+            )}
           </section>
 
           <section className="section-block">

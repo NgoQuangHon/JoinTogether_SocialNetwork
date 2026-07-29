@@ -1,3 +1,26 @@
+export interface SearchFilters {
+  keyword?: string;
+  danhMucHoatDongId?: number;
+  diaDiemId?: number;
+  tuNgay?: string;
+  denNgay?: string;
+  limit?: number;
+  offset?: number;
+}
+
+export interface SearchResult {
+  rows: HoatDongResponse[];
+  total: number;
+}
+
+export interface TieuChiThamGia {
+  tieuChiId: number;
+  hoatDongId: number;
+  tenTieuChi: string;
+  giaTriYeuCau?: string | null;
+  batBuoc: boolean;
+}
+
 export interface CreateActivityRequest {
   tenHoatDong: string;
   danhMucHoatDongId: number;
@@ -20,6 +43,7 @@ export interface CreateActivityRequest {
   noiQuyChung?: string;
   luuYDatBiet?: string;
   doDungCanMang?: string;
+  hanDangKy?: string;
 }
 
 export interface DanhMucHoatDong {
@@ -37,6 +61,7 @@ export interface HoatDongResponse {
   diaDiemId?: number;
   tenDiaDiem?: string;
   diaChi?: string;
+  hinhThuc?: string;
   tenHoatDong: string;
   moTa?: string;
   thoiGianBatDau?: string;
@@ -50,6 +75,7 @@ export interface HoatDongResponse {
   noiQuyChung?: string;
   luuYDatBiet?: string;
   doDungCanMang?: string;
+  hanDangKy?: string;
   hinhAnh?: { duongDan: string; laAnhDaiDien: boolean }[];
   soLuongThanhVien?: number;
   trangThai?: string;

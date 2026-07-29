@@ -6,11 +6,13 @@ import './CreateActivity.css';
 
 interface FormData {
   tenHoatDong: string;
-  danhMucHoatDongIds: number[];
+  danhMucHoatDongId: number;
   moTa: string;
   thumbnail: string;
+  hinhThuc: string;
   thoiGianBatDau: string;
   thoiGianKetThuc: string;
+  hanDangKy: string;
   tenDiaDiem: string;
   diaChi: string;
   soLuongToiDa: number | '';
@@ -39,11 +41,13 @@ const KINH_NGHIEM_OPTIONS = [
 
 const initialForm: FormData = {
   tenHoatDong: '',
-  danhMucHoatDongIds: [],
+  danhMucHoatDongId: 0,
   moTa: '',
   thumbnail: '',
+  hinhThuc: 'offline',
   thoiGianBatDau: '',
   thoiGianKetThuc: '',
+  hanDangKy: '',
   tenDiaDiem: '',
   diaChi: '',
   soLuongToiDa: '',
@@ -67,8 +71,6 @@ export default function CreateActivityModal({ onClose }: { onClose: () => void }
   const [error, setError] = useState('');
   const [success, setSuccess] = useState<HoatDongResponse | null>(null);
   const [tagInput, setTagInput] = useState('');
-  const [categoryOpen, setCategoryOpen] = useState(false);
-  const categoryRef = useRef<HTMLDivElement>(null);
   const thumbInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
 
@@ -78,26 +80,7 @@ export default function CreateActivityModal({ onClose }: { onClose: () => void }
       .catch(() => {});
   }, []);
 
-  useEffect(() => {
-    const handleClick = (e: MouseEvent) => {
-      if (categoryRef.current && !categoryRef.current.contains(e.target as Node)) {
-        setCategoryOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, []);
-
   const set = (key: keyof FormData, value: any) => setForm((prev) => ({ ...prev, [key]: value }));
-
-  const toggleCategory = (id: number) => {
-    const current = form.danhMucHoatDongIds;
-    if (current.includes(id)) {
-      set('danhMucHoatDongIds', current.filter((c) => c !== id));
-    } else {
-      set('danhMucHoatDongIds', [...current, id]);
-    }
-  };
 
   const compressImage = (file: File, maxDim = 1920, quality = 0.7): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -121,9 +104,25 @@ export default function CreateActivityModal({ onClose }: { onClose: () => void }
     });
   };
 
+  const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+  const MAX_SIZE = 5 * 1024 * 1024;
+
+  const validateFile = (file: File): string | null => {
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      return 'Chỉ chấp nhận ảnh JPG, PNG, WebP hoặc GIF.';
+    }
+    if (file.size > MAX_SIZE) {
+      return 'Kích thước ảnh tối đa là 5MB.';
+    }
+    return null;
+  };
+
   const handleThumbnailChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      const err = validateFile(file);
+      if (err) { setError(err); return; }
+      setError('');
       const b64 = await compressImage(file);
       set('thumbnail', b64);
     }
@@ -131,6 +130,11 @@ export default function CreateActivityModal({ onClose }: { onClose: () => void }
 
   const handleImagesChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
+    for (const f of files) {
+      const err = validateFile(f);
+      if (err) { setError(err); return; }
+    }
+    setError('');
     const remaining = 5 - form.hinhAnh.length;
     const toAdd = files.slice(0, remaining);
     const b64s = await Promise.all(toAdd.map((f) => compressImage(f)));
@@ -159,11 +163,13 @@ export default function CreateActivityModal({ onClose }: { onClose: () => void }
     try {
       const payload = {
         tenHoatDong: form.tenHoatDong,
-        danhMucHoatDongId: form.danhMucHoatDongIds[0] || undefined,
+        danhMucHoatDongId: form.danhMucHoatDongId || undefined,
         moTa: form.moTa,
         thumbnail: form.thumbnail || undefined,
+        hinhThuc: form.hinhThuc || undefined,
         thoiGianBatDau: new Date(form.thoiGianBatDau).toISOString(),
         thoiGianKetThuc: new Date(form.thoiGianKetThuc).toISOString(),
+        hanDangKy: form.hanDangKy ? new Date(form.hanDangKy).toISOString() : undefined,
         tenDiaDiem: form.tenDiaDiem || undefined,
         diaChi: form.diaChi || undefined,
         soLuongToiDa: form.soLuongToiDa || undefined,
@@ -191,16 +197,13 @@ export default function CreateActivityModal({ onClose }: { onClose: () => void }
     }
   };
 
-  const canStep1 = form.tenHoatDong.trim().length > 0 && form.danhMucHoatDongIds.length > 0 && form.moTa.trim().length > 0;
+  const canStep1 = form.tenHoatDong.trim().length > 0 && form.danhMucHoatDongId > 0 && form.moTa.trim().length > 0;
   const canStep2 = form.thoiGianBatDau && form.thoiGianKetThuc && form.tenDiaDiem.trim().length > 0;
   const canStep3 = form.soLuongToiDa !== '' && Number(form.soLuongToiDa) > 0;
 
   const gioiTinhLabel = (v: string) => GIOI_TINH_OPTIONS.find((o) => o.value === v)?.label || 'Tất cả';
   const kinhNghiemLabel = (v: string) => KINH_NGHIEM_OPTIONS.find((o) => o.value === v)?.label || 'Mọi cấp độ';
-
-  const selectedCategories = form.danhMucHoatDongIds
-    .map((id) => danhMucList.find((d) => d.danhMucHoatDongId === id))
-    .filter(Boolean) as DanhMucHoatDong[];
+  const selectedCategory = danhMucList.find((d) => d.danhMucHoatDongId === form.danhMucHoatDongId);
 
   const renderStepIndicator = () => (
     <div className="cam-step-indicator">
@@ -254,35 +257,12 @@ export default function CreateActivityModal({ onClose }: { onClose: () => void }
             </div>
             <div className="cam-field">
               <label>Danh mục <span className="req">*</span></label>
-              <div className="cam-category-wrap" ref={categoryRef}>
-                <div className="cam-category-trigger" onClick={() => setCategoryOpen(!categoryOpen)}>
-                  <span>{selectedCategories.length > 0 ? `Đã chọn ${selectedCategories.length} danh mục` : 'Chọn danh mục'}</span>
-                  <span className={`cam-category-arrow ${categoryOpen ? 'open' : ''}`}>▾</span>
-                </div>
-                {categoryOpen && (
-                  <div className="cam-category-dropdown">
-                    {danhMucList.map((dm) => {
-                      const isSelected = form.danhMucHoatDongIds.includes(dm.danhMucHoatDongId);
-                      return (
-                        <div key={dm.danhMucHoatDongId} className={`cam-category-item ${isSelected ? 'selected' : ''}`} onClick={() => toggleCategory(dm.danhMucHoatDongId)}>
-                          <span>{dm.tenDanhMuc}</span>
-                          {isSelected && <span className="cam-category-check">✓</span>}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-              {selectedCategories.length > 0 && (
-                <div className="cam-tags" style={{ marginTop: 8 }}>
-                  {selectedCategories.map((dm) => (
-                    <span key={dm.danhMucHoatDongId} className="cam-tag cam-category-tag">
-                      {dm.tenDanhMuc}
-                      <button className="cam-tag-remove" onClick={() => toggleCategory(dm.danhMucHoatDongId)}>✕</button>
-                    </span>
-                  ))}
-                </div>
-              )}
+              <select value={form.danhMucHoatDongId} onChange={(e) => set('danhMucHoatDongId', Number(e.target.value))}>
+                <option value={0}>-- Chọn danh mục --</option>
+                {danhMucList.map((dm) => (
+                  <option key={dm.danhMucHoatDongId} value={dm.danhMucHoatDongId}>{dm.tenDanhMuc}</option>
+                ))}
+              </select>
             </div>
             <div className="cam-field">
               <label>Ảnh đại diện</label>
@@ -312,6 +292,19 @@ export default function CreateActivityModal({ onClose }: { onClose: () => void }
         {buoc === 2 && (
           <div className="cam-step-content">
             <h3>Bước 2: Thời gian & Địa điểm</h3>
+            <div className="cam-field">
+              <label>Hình thức <span className="req">*</span></label>
+              <div className="cam-radio-group">
+                <label className="cam-radio">
+                  <input type="radio" name="hinhThuc" value="offline" checked={form.hinhThuc === 'offline'} onChange={(e) => set('hinhThuc', e.target.value)} />
+                  Offline
+                </label>
+                <label className="cam-radio">
+                  <input type="radio" name="hinhThuc" value="online" checked={form.hinhThuc === 'online'} onChange={(e) => set('hinhThuc', e.target.value)} />
+                  Online
+                </label>
+              </div>
+            </div>
             <div className="cam-row">
               <div className="cam-field">
                 <label>Ngày tổ chức <span className="req">*</span></label>
@@ -321,6 +314,10 @@ export default function CreateActivityModal({ onClose }: { onClose: () => void }
                 <label>Kết thúc <span className="req">*</span></label>
                 <input type="datetime-local" value={form.thoiGianKetThuc ? form.thoiGianKetThuc.slice(0, 16) : ''} onChange={(e) => set('thoiGianKetThuc', e.target.value)} />
               </div>
+            </div>
+            <div className="cam-field">
+              <label>Hạn đăng ký</label>
+              <input type="datetime-local" value={form.hanDangKy ? form.hanDangKy.slice(0, 16) : ''} onChange={(e) => set('hanDangKy', e.target.value)} />
             </div>
             <div className="cam-field">
               <label>Địa điểm <span className="req">*</span></label>
@@ -340,6 +337,7 @@ export default function CreateActivityModal({ onClose }: { onClose: () => void }
                     height="200"
                     style={{ border: 0, borderRadius: 8 }}
                     loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
                     src={`https://www.google.com/maps?q=${encodeURIComponent(form.diaChi)}&output=embed`}
                   />
                 </div>
@@ -463,15 +461,15 @@ export default function CreateActivityModal({ onClose }: { onClose: () => void }
               )}
               <div className="cam-review-section">
                 <h4>{form.tenHoatDong}</h4>
-                {selectedCategories.length > 0 && (
+                {selectedCategory && (
                   <div className="cam-review-tags" style={{ marginBottom: 8 }}>
-                    {selectedCategories.map((dm) => (
-                      <span key={dm.danhMucHoatDongId} className="cam-tag">{dm.tenDanhMuc}</span>
-                    ))}
+                    <span className="cam-tag">{selectedCategory.tenDanhMuc}</span>
                   </div>
                 )}
                 <p className="cam-review-time">🕐 {new Date(form.thoiGianBatDau).toLocaleString('vi-VN')} — {new Date(form.thoiGianKetThuc).toLocaleString('vi-VN')}</p>
                 <p className="cam-review-place">📍 {form.tenDiaDiem}{form.diaChi ? `, ${form.diaChi}` : ''}</p>
+                {form.hanDangKy && <p className="cam-review-hdk">📅 Hạn đăng ký: {new Date(form.hanDangKy).toLocaleString('vi-VN')}</p>}
+                <p className="cam-review-hthuc">🔘 Hình thức: {form.hinhThuc === 'online' ? 'Online' : 'Offline'}</p>
               </div>
               <div className="cam-review-section">
                 <h5>Mô tả</h5>

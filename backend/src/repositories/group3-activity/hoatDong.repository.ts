@@ -4,8 +4,8 @@ import { HoatDong } from "../../models/group3-activity/hoatDong.model";
 export class HoatDongRepository {
     async create(data: Partial<HoatDong>): Promise<HoatDong> {
     const query = `
-      INSERT INTO hoat_dong (nguoi_to_chuc_id, danh_muc_hoat_dong_id, dia_diem_id, ten_hoat_dong, mo_ta, thoi_gian_bat_dau, thoi_gian_ket_thuc, so_luong_toi_da, do_tuoi_tu, do_tuoi_den, gioi_tinh_phu_hop, muc_do_kinh_nghiem, yeu_cau_khac, noi_quy_chung, luu_y_dac_biet, do_dung_can_mang, trang_thai)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+      INSERT INTO hoat_dong (nguoi_to_chuc_id, danh_muc_hoat_dong_id, dia_diem_id, ten_hoat_dong, mo_ta, thoi_gian_bat_dau, thoi_gian_ket_thuc, so_luong_toi_da, do_tuoi_tu, do_tuoi_den, gioi_tinh_phu_hop, muc_do_kinh_nghiem, yeu_cau_khac, noi_quy_chung, luu_y_dac_biet, do_dung_can_mang, han_dang_ky, trang_thai)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
       RETURNING
         hoat_dong_id AS "hoatDongId",
         nguoi_to_chuc_id AS "nguoiToChucId",
@@ -24,6 +24,7 @@ export class HoatDongRepository {
         noi_quy_chung AS "noiQuyChung",
         luu_y_dac_biet AS "luuYDatBiet",
         do_dung_can_mang AS "doDungCanMang",
+        han_dang_ky AS "hanDangKy",
         trang_thai AS "trangThai"
     `;
     const values = [
@@ -43,6 +44,7 @@ export class HoatDongRepository {
       data.noiQuyChung === undefined || data.noiQuyChung === null ? null : data.noiQuyChung,
       data.luuYDatBiet === undefined || data.luuYDatBiet === null ? null : data.luuYDatBiet,
       data.doDungCanMang === undefined || data.doDungCanMang === null ? null : data.doDungCanMang,
+      data.hanDangKy === undefined || data.hanDangKy === null ? null : data.hanDangKy,
       data.trangThai === undefined || data.trangThai === null ? 'sap_dien_ra' : data.trangThai,
     ];
     const result = await pool.query(query, values);
@@ -74,6 +76,7 @@ export class HoatDongRepository {
         hd.noi_quy_chung AS "noiQuyChung",
         hd.luu_y_dac_biet AS "luuYDatBiet",
         hd.do_dung_can_mang AS "doDungCanMang",
+        hd.han_dang_ky AS "hanDangKy",
         hd.trang_thai AS "trangThai",
         hd.ly_do_huy AS "lyDoHuy",
         (SELECT COUNT(*) FROM thanh_vien_hoat_dong tv WHERE tv.hoat_dong_id = hd.hoat_dong_id) AS "soLuongThanhVien"
@@ -114,6 +117,7 @@ export class HoatDongRepository {
         hd.noi_quy_chung AS "noiQuyChung",
         hd.luu_y_dac_biet AS "luuYDatBiet",
         hd.do_dung_can_mang AS "doDungCanMang",
+        hd.han_dang_ky AS "hanDangKy",
         hd.trang_thai AS "trangThai",
         hd.ly_do_huy AS "lyDoHuy"
       FROM hoat_dong hd
@@ -195,6 +199,10 @@ export class HoatDongRepository {
       setClauses.push(`do_dung_can_mang = $${paramIndex++}`);
       values.push(data.doDungCanMang);
     }
+    if (data.hanDangKy !== undefined) {
+      setClauses.push(`han_dang_ky = $${paramIndex++}`);
+      values.push(data.hanDangKy);
+    }
     if (data.trangThai !== undefined) {
       setClauses.push(`trang_thai = $${paramIndex++}`);
       values.push(data.trangThai);
@@ -225,6 +233,7 @@ export class HoatDongRepository {
         noi_quy_chung AS "noiQuyChung",
         luu_y_dac_biet AS "luuYDatBiet",
         do_dung_can_mang AS "doDungCanMang",
+        han_dang_ky AS "hanDangKy",
         trang_thai AS "trangThai",
         ly_do_huy AS "lyDoHuy"
     `;
@@ -256,6 +265,7 @@ export class HoatDongRepository {
         hd.noi_quy_chung AS "noiQuyChung",
         hd.luu_y_dac_biet AS "luuYDatBiet",
         hd.do_dung_can_mang AS "doDungCanMang",
+        hd.han_dang_ky AS "hanDangKy",
         hd.trang_thai AS "trangThai",
         hd.ly_do_huy AS "lyDoHuy",
         (SELECT COUNT(*) FROM thanh_vien_hoat_dong tv WHERE tv.hoat_dong_id = hd.hoat_dong_id) AS "soLuongThanhVien"
@@ -299,6 +309,7 @@ export class HoatDongRepository {
         hd.thoi_gian_bat_dau AS "thoiGianBatDau",
         hd.thoi_gian_ket_thuc AS "thoiGianKetThuc",
         hd.so_luong_toi_da AS "soLuongToiDa",
+        hd.han_dang_ky AS "hanDangKy",
         hd.trang_thai AS "trangThai",
         hd.ly_do_huy AS "lyDoHuy",
         (SELECT COUNT(*) FROM thanh_vien_hoat_dong tv WHERE tv.hoat_dong_id = hd.hoat_dong_id) AS "soLuongThanhVien"
@@ -388,6 +399,7 @@ export class HoatDongRepository {
         hd.noi_quy_chung AS "noiQuyChung",
         hd.luu_y_dac_biet AS "luuYDatBiet",
         hd.do_dung_can_mang AS "doDungCanMang",
+        hd.han_dang_ky AS "hanDangKy",
         hd.trang_thai AS "trangThai",
         (SELECT COUNT(*) FROM thanh_vien_hoat_dong tv WHERE tv.hoat_dong_id = hd.hoat_dong_id) AS "soLuongThanhVien"
       FROM hoat_dong hd

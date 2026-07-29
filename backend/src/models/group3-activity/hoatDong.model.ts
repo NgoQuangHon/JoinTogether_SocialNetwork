@@ -18,6 +18,7 @@ export interface HoatDong {
     noiQuyChung?: string | null;
     luuYDatBiet?: string | null;
     doDungCanMang?: string | null;
+    hanDangKy?: Date | string | null;
     trangThai?: string | null;
     lyDoHuy?: string | null;
 }
@@ -40,6 +41,7 @@ export class HoatDongModel {
     private _noiQuyChung?: string | null;
     private _luuYDatBiet?: string | null;
     private _doDungCanMang?: string | null;
+    private _hanDangKy?: Date | string | null;
     private _trangThai?: string | null;
     private _lyDoHuy?: string | null;
 
@@ -61,6 +63,7 @@ export class HoatDongModel {
         this._noiQuyChung = data.noiQuyChung === undefined || data.noiQuyChung === null ? null : data.noiQuyChung;
         this._luuYDatBiet = data.luuYDatBiet === undefined || data.luuYDatBiet === null ? null : data.luuYDatBiet;
         this._doDungCanMang = data.doDungCanMang === undefined || data.doDungCanMang === null ? null : data.doDungCanMang;
+        this._hanDangKy = data.hanDangKy === undefined || data.hanDangKy === null ? null : data.hanDangKy;
         this._trangThai = data.trangThai === undefined || data.trangThai === null ? null : data.trangThai;
         this._lyDoHuy = data.lyDoHuy === undefined || data.lyDoHuy === null ? null : data.lyDoHuy;
     }
@@ -135,6 +138,7 @@ export class HoatDongModel {
             noiQuyChung: data.noiQuyChung === undefined || data.noiQuyChung === null ? null : data.noiQuyChung,
             luuYDatBiet: data.luuYDatBiet === undefined || data.luuYDatBiet === null ? null : data.luuYDatBiet,
             doDungCanMang: data.doDungCanMang === undefined || data.doDungCanMang === null ? null : data.doDungCanMang,
+            hanDangKy: data.hanDangKy === undefined || data.hanDangKy === null ? null : data.hanDangKy,
             trangThai: data.trangThai === undefined || data.trangThai === null ? null : data.trangThai,
             lyDoHuy: data.lyDoHuy === undefined || data.lyDoHuy === null ? null : data.lyDoHuy,
         };

@@ -8,7 +8,7 @@ import { HoatDongModel } from "../../models/group3-activity/hoatDong.model";
 import { DanhMucHoatDongModel } from "../../models/group3-activity/danhMucHoatDong.model";
 import { DiaDiemModel } from "../../models/group3-activity/diaDiem.model";
 import { HinhAnhHoatDongModel } from "../../models/group3-activity/hinhAnhHoatDong.model";
-import { NotFoundError } from "../../utils/AppError";
+import { NotFoundError, BadRequestError, ForbiddenError } from "../../utils/AppError";
 
 export class ActivityService {
   private hoatDongRepo = new HoatDongRepository();
@@ -53,6 +53,71 @@ export class ActivityService {
     try {
       await client.query("BEGIN");
 
+      // 0. Validate required fields
+      if (!data.tenHoatDong || !data.tenHoatDong.trim()) {
+        throw new BadRequestError("Tên hoạt động không được để trống.");
+      }
+      if (!data.danhMucHoatDongId) {
+        throw new BadRequestError("Danh mục hoạt động không được để trống.");
+      }
+      if (!data.moTa || !data.moTa.trim()) {
+        throw new BadRequestError("Mô tả hoạt động không được để trống.");
+      }
+      if (!data.thoiGianBatDau) {
+        throw new BadRequestError("Thời gian bắt đầu không được để trống.");
+      }
+      if (!data.thoiGianKetThuc) {
+        throw new BadRequestError("Thời gian kết thúc không được để trống.");
+      }
+
+      // Validate times
+      const batDau = new Date(data.thoiGianBatDau);
+      const ketThuc = new Date(data.thoiGianKetThuc);
+      if (isNaN(batDau.getTime())) {
+        throw new BadRequestError("Thời gian bắt đầu không hợp lệ.");
+      }
+      if (isNaN(ketThuc.getTime())) {
+        throw new BadRequestError("Thời gian kết thúc không hợp lệ.");
+      }
+      if (batDau <= new Date()) {
+        throw new BadRequestError("Thời gian bắt đầu phải ở tương lai.");
+      }
+      if (ketThuc <= batDau) {
+        throw new BadRequestError("Thời gian kết thúc phải sau thời gian bắt đầu.");
+      }
+
+      if (data.hanDangKy) {
+        const hanDangKy = new Date(data.hanDangKy);
+        if (isNaN(hanDangKy.getTime())) {
+          throw new BadRequestError("Hạn đăng ký không hợp lệ.");
+        }
+        if (hanDangKy >= batDau) {
+          throw new BadRequestError("Hạn đăng ký phải trước thời gian bắt đầu.");
+        }
+      }
+
+      // Validate max participants
+      const soLuongToiDa = Number(data.soLuongToiDa);
+      if (!data.soLuongToiDa || isNaN(soLuongToiDa) || soLuongToiDa <= 0) {
+        throw new BadRequestError("Số lượng tối đa phải lớn hơn 0.");
+      }
+
+      // Check profile completeness
+      const profileCheck = await pool.query(`
+        SELECT hs.ho_so_id
+        FROM nguoi_dung nd
+        LEFT JOIN ho_so_nguoi_dung hs ON hs.nguoi_dung_id = nd.nguoi_dung_id
+        WHERE nd.nguoi_dung_id = $1
+          AND nd.ho_ten IS NOT NULL AND nd.ho_ten != ''
+          AND hs.ho_so_id IS NOT NULL
+          AND hs.ngay_sinh IS NOT NULL
+          AND (hs.gioi_tinh IS NOT NULL AND hs.gioi_tinh != '')
+          AND (hs.khu_vuc IS NOT NULL AND hs.khu_vuc != '')
+      `, [nguoiToChucId]);
+      if (profileCheck.rows.length === 0) {
+        throw new ForbiddenError("Bạn cần hoàn thiện hồ sơ (họ tên, ngày sinh, giới tính, khu vực) trước khi tạo hoạt động.");
+      }
+
       // 1. Create location if provided
       let diaDiemId = null;
       if (data.tenDiaDiem || data.diaChi) {
@@ -71,6 +136,7 @@ export class ActivityService {
         ...payload,
         thoiGianBatDau: payload.thoiGianBatDau ? new Date(payload.thoiGianBatDau) : null,
         thoiGianKetThuc: payload.thoiGianKetThuc ? new Date(payload.thoiGianKetThuc) : null,
+        hanDangKy: payload.hanDangKy ? new Date(payload.hanDangKy) : null,
       });
 
       const hoatDongId = activity.hoatDongId!;
@@ -165,6 +231,26 @@ export class ActivityService {
     const existing = await this.hoatDongRepo.findById(id);
     if (!existing) {
       throw new NotFoundError("Hoạt động không tồn tại.");
+    }
+
+    if (data.thoiGianBatDau) {
+      const batDau = new Date(data.thoiGianBatDau);
+      if (isNaN(batDau.getTime())) {
+        throw new BadRequestError("Thời gian bắt đầu không hợp lệ.");
+      }
+      if (batDau <= new Date()) {
+        throw new BadRequestError("Thời gian bắt đầu phải ở tương lai.");
+      }
+    }
+    if (data.thoiGianKetThuc) {
+      const ketThuc = new Date(data.thoiGianKetThuc);
+      if (isNaN(ketThuc.getTime())) {
+        throw new BadRequestError("Thời gian kết thúc không hợp lệ.");
+      }
+      const batDau = data.thoiGianBatDau ? new Date(data.thoiGianBatDau) : new Date(existing.thoiGianBatDau);
+      if (ketThuc <= batDau) {
+        throw new BadRequestError("Thời gian kết thúc phải sau thời gian bắt đầu.");
+      }
     }
 
     const { tenHoatDong, moTa, danhMucHoatDongId, diaDiemId, thoiGianBatDau, thoiGianKetThuc } = data;
