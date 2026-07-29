@@ -51,8 +51,12 @@ app.use("/api/admin", adminRouter);
 app.use("/api/admin", rolePermissionRouter);
 app.use("/api/upload", uploadRouter);
 
+app.get("/", (req, res) => {
+  res.status(200).send({ status: "online", message: "JoinTogether Backend API is running 24/7" });
+});
+
 app.get("/health", (req, res) => {
-  res.send({ status: "good response" });
+  res.status(200).send({ status: "good response" });
 });
 
 // Đặt SAU tất cả router: bắt mọi request không khớp route nào (404)
