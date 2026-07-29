@@ -1,5 +1,10 @@
 import { Pool, PoolClient } from 'pg';
 import dotenv from 'dotenv';
+import dns from 'dns';
+
+try {
+  dns.setDefaultResultOrder('ipv4first');
+} catch {}
 
 dotenv.config({ quiet: process.env.NODE_ENV === 'test' });
 
