@@ -364,10 +364,10 @@ export class AuthService {
     }
 
     const otpQuery = `
-      SELECT thong_tin_xac_thuc_id 
+      SELECT xac_thuc_id
       FROM thong_tin_xac_thuc 
       WHERE tai_khoan_id = $1 AND loai_xac_thuc = 'PASSWORD_RESET' AND ma_xac_thuc = $2 AND da_su_dung = false AND thoi_gian_het_han > NOW()
-      ORDER BY tao_luc DESC LIMIT 1
+      ORDER BY thoi_gian_het_han DESC LIMIT 1
     `;
     const otpRes = await pool.query(otpQuery, [row.tai_khoan_id, maXacThuc]);
     const otpRecord = otpRes.rows[0];
@@ -377,7 +377,7 @@ export class AuthService {
 
     const matKhauMaHoa = await bcrypt.hash(matKhauMoi, 10);
     await pool.query(`UPDATE tai_khoan SET mat_khau_ma_hoa = $1 WHERE tai_khoan_id = $2`, [matKhauMaHoa, row.tai_khoan_id]);
-    await pool.query(`UPDATE thong_tin_xac_thuc SET da_su_dung = true WHERE thong_tin_xac_thuc_id = $1`, [otpRecord.thong_tin_xac_thuc_id]);
+    await pool.query(`UPDATE thong_tin_xac_thuc SET da_su_dung = true WHERE xac_thuc_id = $1`, [otpRecord.xac_thuc_id]);
 
     return { message: "Khôi phục mật khẩu thành công. Vui lòng đăng nhập bằng mật khẩu mới." };
   }
