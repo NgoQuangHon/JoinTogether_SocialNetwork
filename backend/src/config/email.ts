@@ -43,9 +43,45 @@ export async function sendVerificationEmail(
     </div>
   `;
 
+  const mailjetApiKey = process.env.MAILJET_API_KEY?.trim();
+  const mailjetSecretKey = process.env.MAILJET_SECRET_KEY?.trim();
+
+  // 1. Ưu tiên Mailjet API (6,000 mail/tháng miễn phí, không chặn IP, không giới hạn email người nhận)
+  if (mailjetApiKey && mailjetSecretKey) {
+    try {
+      const authHeader = 'Basic ' + Buffer.from(`${mailjetApiKey}:${mailjetSecretKey}`).toString('base64');
+      const response = await fetch('https://api.mailjet.com/v3.1/send', {
+        method: 'POST',
+        headers: {
+          'Authorization': authHeader,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          Messages: [
+            {
+              From: { Email: process.env.SMTP_USER || 'phucviplc12@gmail.com', Name: 'JoinTogether Network' },
+              To: [{ Email: email }],
+              Subject: 'Xác thực tài khoản JoinTogether',
+              HTMLPart: htmlContent,
+            },
+          ],
+        }),
+      });
+      const resJson: any = await response.json();
+      if (response.ok) {
+        console.log(`✉️ [MAILJET API SUCCESS] Đã gửi email tới ${email}`);
+        return;
+      } else {
+        console.error(`❌ [MAILJET API REJECTED]:`, JSON.stringify(resJson));
+      }
+    } catch (err: any) {
+      console.error(`❌ [MAILJET API ERROR]:`, err.message || err);
+    }
+  }
+
   const brevoApiKey = process.env.BREVO_API_KEY?.trim();
 
-  // 1. Ưu tiên 1: Gửi qua Brevo API (Cho phép gửi tới MỌI EMAIL người nhận - Miễn phí 300 mail/ngày)
+  // 2. Thử Brevo API
   if (brevoApiKey) {
     try {
       const response = await fetch('https://api.brevo.com/v3/smtp/email', {

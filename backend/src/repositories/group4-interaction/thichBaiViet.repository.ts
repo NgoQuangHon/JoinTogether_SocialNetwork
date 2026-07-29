@@ -2,14 +2,21 @@ import { pool } from "../../config/db";
 
 export class ThichBaiVietRepository {
     async like(nguoiDungId: number, baiVietId: number): Promise<void> {
-        await pool.query(
-            `INSERT INTO thich_bai_viet (nguoi_dung_id, bai_viet_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
-            [nguoiDungId, baiVietId]
-        );
-        await pool.query(
-            `UPDATE bai_viet SET so_luot_thich = (SELECT COUNT(*) FROM thich_bai_viet WHERE bai_viet_id = $1) WHERE bai_viet_id = $1`,
-            [baiVietId]
-        );
+        try {
+            await pool.query(
+                `INSERT INTO thich_bai_viet (nguoi_dung_id, bai_viet_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+                [nguoiDungId, baiVietId]
+            );
+            await pool.query(
+                `UPDATE bai_viet SET so_luot_thich = (SELECT COUNT(*) FROM thich_bai_viet WHERE bai_viet_id = $1) WHERE bai_viet_id = $1`,
+                [baiVietId]
+            );
+        } catch (err: any) {
+            if (err.code === '23503') {
+                return; // Bài viết mẫu hoặc bài viết đã xóa, bỏ qua không gây crash
+            }
+            throw err;
+        }
     }
 
     async unlike(nguoiDungId: number, baiVietId: number): Promise<void> {
