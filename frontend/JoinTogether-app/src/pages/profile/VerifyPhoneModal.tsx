@@ -54,9 +54,11 @@ export default function VerifyPhoneModal({ currentPhone = '', onClose, onSuccess
       setConfirmationResult(result);
       setStep(2);
     } catch (fbErr: any) {
-      console.warn('Firebase SMS warning:', fbErr.message || fbErr);
+      console.error('Firebase SMS Error:', fbErr);
+      const fbMsg = fbErr.code || fbErr.message || 'Lỗi gửi SMS qua Firebase';
+      setError(`Lỗi Firebase: ${fbMsg}`);
       
-      // 2. Fallback sang API Backend
+      // Fallback sang API Backend nếu Firebase không gửi được
       try {
         const res = await fetch(`${API_BASE_URL.replace(/\/$/, '')}/api/auth/send-phone-otp`, {
           method: 'POST',
