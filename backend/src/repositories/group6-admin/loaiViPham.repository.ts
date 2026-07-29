@@ -2,6 +2,27 @@ import { pool } from "../../config/db";
 import { LoaiViPham } from "../../models/group6-admin/loaiViPham.model";
 
 export class LoaiViPhamRepository {
+  constructor() {
+    this.seedDefaultTypes();
+  }
+
+  private async seedDefaultTypes() {
+    try {
+      const check = await pool.query(`SELECT COUNT(*) FROM loai_vi_pham`);
+      if (parseInt(check.rows[0].count, 10) === 0) {
+        await pool.query(`
+          INSERT INTO loai_vi_pham (ten_loai, mo_ta, muc_do) VALUES
+          ('Spam / Quảng cáo trái phép', 'Đăng tin rao vặt, spam link độc hại, nhắn rác', 'Nhẹ'),
+          ('Ngôn từ xúc phạm / Tục tĩu', 'Sử dụng ngôn từ thiếu văn hóa, xúc phạm cá nhân hoặc tổ chức', 'Trung bình'),
+          ('Hành vi lừa đảo / Giả mạo', 'Mạo danh cá nhân khác, lừa đảo chiếm đoạt tài sản hoặc thông tin', 'Nghiêm trọng'),
+          ('Quấy rối / Đe dọa', 'Theo đuổi quấy rối, nhắn tin đe dọa hoặc làm phiền thành viên khác', 'Nghiêm trọng'),
+          ('Đăng thông tin sai sự thật', 'Xuyên tạc, phao tin đồn thất thiệt gây ảnh hưởng tới hoạt động', 'Trung bình'),
+          ('Hủy tham gia không lý do / Bùng kèo', 'Đăng ký tham gia nhưng bùng kèo không thông báo trước', 'Nhẹ')
+        `);
+      }
+    } catch {}
+  }
+
   async findAll(): Promise<LoaiViPham[]> {
     const query = `
       SELECT
@@ -106,4 +127,3 @@ export class LoaiViPhamRepository {
     return result.rows;
   }
 }
-

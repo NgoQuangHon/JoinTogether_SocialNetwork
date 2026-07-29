@@ -9,6 +9,7 @@ import {
   getReviewsForUserApi,
   getAllTieuChiApi,
   createReviewApi,
+  replyToReviewApi,
 } from '../../services/review.service';
 import type {
   DiemUyTin,
@@ -37,6 +38,11 @@ export default function ReviewPage() {
   const [criteria, setCriteria] = useState<TieuChiDanhGia[]>([]);
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
+
+  // Reply state
+  const [replyingId, setReplyingId] = useState<number | null>(null);
+  const [replyText, setReplyText] = useState<string>('');
+  const [submittingReply, setSubmittingReply] = useState(false);
 
   // Form state
   const [hoatDongId, setHoatDongId] = useState('');
@@ -152,6 +158,26 @@ export default function ReviewPage() {
     }
   };
 
+  const handleSendReply = async (danhGiaId: number) => {
+    if (!replyText.trim() || submittingReply) return;
+    setSubmittingReply(true);
+    setMsg(null);
+    try {
+      const res = await replyToReviewApi(danhGiaId, replyText.trim());
+      if (res.success) {
+        setMsg({ type: 'ok', text: 'Đã gửi phản hồi đánh giá thành công!' });
+        setReplyingId(null);
+        setReplyText('');
+        loadReviews();
+      }
+    } catch (err: any) {
+      const errorMsg = err?.response?.data?.message || 'Gửi phản hồi thất bại.';
+      setMsg({ type: 'err', text: errorMsg });
+    } finally {
+      setSubmittingReply(false);
+    }
+  };
+
   const pct = Math.min(100, Math.max(0, ((rep?.diemHienTai ?? 100) / 100) * 100));
 
   return (
@@ -188,37 +214,85 @@ export default function ReviewPage() {
 
         {tab === 'reputation' && (
           <>
-            <div className="rep-card" style={{ ['--pct' as string]: pct }}>
-              <div className="rep-score-ring">
-                <span className="rep-score-value">{rep?.diemHienTai ?? '—'}</span>
-                <span className="rep-score-max">/100</span>
+            {(rep as any)?.isPrivate ? (
+              <div style={{ padding: 24, background: '#fff3e0', color: '#e65100', borderRadius: 16, border: '1px solid #ffe0b2', textAlign: 'center', fontWeight: 600 }}>
+                🔒 {(rep as any)?.message || 'Hồ sơ này bị giới hạn quyền xem theo thiết lập quyền riêng tư của người dùng.'}
               </div>
-              <div className="rep-info">
-                <span className="rep-badge rank-dong">
-                  Cấp độ Uy tín
+            ) : (rep as any)?.status === 'DANG_KIEM_DUYET' ? (
+              <div style={{ padding: 24, background: '#fff8e1', color: '#f57f17', borderRadius: 16, border: '1px solid #ffecb3', textAlign: 'center' }}>
+                <h3 style={{ margin: '0 0 8px 0', fontSize: 16 }}>⏳ Trạng thái: Đang xem xét khiếu nại</h3>
+                <p style={{ margin: 0, fontSize: 14 }}>{(rep as any)?.message}</p>
+              </div>
+            ) : (rep as any)?.status === 'CHUA_DU_DU_LIEU' ? (
+              <div style={{ padding: 24, background: '#e3f2fd', color: '#1565c0', borderRadius: 16, border: '1px solid #bbdefb', textAlign: 'center' }}>
+                <h3 style={{ margin: '0 0 8px 0', fontSize: 16 }}>📊 Trạng thái: Chưa đủ dữ liệu</h3>
+                <p style={{ margin: 0, fontSize: 14 }}>{(rep as any)?.message}</p>
+                <span style={{ fontSize: 12, marginTop: 8, display: 'block', color: '#5c6bc0' }}>
+                  Hiện tại mới có {(rep as any)?.reviewCount || 0} lượt đánh giá.
                 </span>
-                <div className="rep-stats">
-                  <div>
-                    <strong>{rep?.soLuotDanhGia ?? 0}</strong>
-                    <span>Tổng lượt đánh giá</span>
+              </div>
+            ) : (
+              <>
+                {(rep as any)?.canhBaoCongKhai && (
+                  <div style={{ padding: '12px 16px', background: '#ffebee', color: '#c62828', borderRadius: 12, border: '1px solid #ffcdd2', fontWeight: 600, fontSize: 13, marginBottom: 16 }}>
+                    ⚠️ {(rep as any).canhBaoCongKhai}
                   </div>
-                  <div>
-                    <strong>{rep?.soLanCanhBao ?? 0}</strong>
-                    <span>Số lần cảnh báo</span>
+                )}
+
+                <div className="rep-card" style={{ ['--pct' as string]: pct }}>
+                  <div className="rep-score-ring">
+                    <span className="rep-score-value">{rep?.diemHienTai ?? '—'}</span>
+                    <span className="rep-score-max">/100</span>
+                  </div>
+                  <div className="rep-info">
+                    <span className="rep-badge rank-dong" style={{ background: 'var(--primary-100)', color: 'var(--primary-800)', fontWeight: 700 }}>
+                      {(rep as any)?.rankLabel || 'Uy tín tốt'}
+                    </span>
+                    <div className="rep-stats">
+                      <div>
+                        <strong>{(rep as any)?.reviewCount ?? rep?.soLuotDanhGia ?? 0}</strong>
+                        <span>Tổng lượt đánh giá</span>
+                      </div>
+                      <div>
+                        <strong>{(rep as any)?.avgScore ? `${(rep as any).avgScore}★` : '—'}</strong>
+                        <span>Điểm trung bình</span>
+                      </div>
+                      <div>
+                        <strong>{rep?.soLanCanhBao ?? 0}</strong>
+                        <span>Số lần cảnh báo</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
 
-            <div className="rep-guide">
-              <h4>Quy tắc điểm uy tín</h4>
-              <ul>
-                <li>Điểm khởi đầu mặc định là <strong>100 điểm</strong>.</li>
-                <li>Tham gia hoạt động tích cực & nhận đánh giá tốt: <strong>+điểm</strong>.</li>
-                <li>Hủy tham gia muộn hoặc bị báo cáo vi phạm: <strong>-điểm</strong>.</li>
-                <li>Cấp độ: Đồng (0-100), Bạc (101-200), Vàng (201-300), Kim Cương (&gt;300).</li>
-              </ul>
-            </div>
+                {/* Tiêu chí tổng hợp */}
+                {(rep as any)?.criteriaBreakdown && (rep as any).criteriaBreakdown.length > 0 && (
+                  <div style={{ background: '#ffffff', padding: 20, borderRadius: 16, border: '1px solid var(--border)', marginTop: 16 }}>
+                    <h4 style={{ margin: '0 0 14px 0', fontSize: 15, color: 'var(--primary-800)' }}>
+                      📈 Đánh giá tổng hợp theo tiêu chí
+                    </h4>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
+                      {(rep as any).criteriaBreakdown.map((item: any, idx: number) => (
+                        <div key={idx} style={{ background: '#f7f9f8', padding: '10px 14px', borderRadius: 10, border: '1px solid #e4ece6' }}>
+                          <span style={{ fontSize: 12, color: '#546e7a', display: 'block', marginBottom: 4 }}>{item.tenTieuChi}</span>
+                          <strong style={{ fontSize: 16, color: '#2e7d32' }}>{item.diemTrungBinh} / 5★</strong>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="rep-guide" style={{ marginTop: 16 }}>
+                  <h4>Quy tắc điểm uy tín</h4>
+                  <ul>
+                    <li>Điểm khởi đầu mặc định là <strong>100 điểm</strong>.</li>
+                    <li>Tham gia hoạt động tích cực & nhận đánh giá tốt: <strong>+đểm</strong>.</li>
+                    <li>Hủy tham gia muộn hoặc bị báo cáo vi phạm: <strong>-điểm</strong>.</li>
+                    <li>Xếp hạng: Rất uy tín (&gt;=90), Uy tín tốt (70-89), Trung bình (50-69), Cần cải thiện (&lt;50).</li>
+                  </ul>
+                </div>
+              </>
+            )}
           </>
         )}
 
@@ -252,6 +326,11 @@ export default function ReviewPage() {
 
         {tab === 'received' && (
           <div className="reviews-section">
+            {msg && (
+              <div className={`msg-banner ${msg.type === 'ok' ? 'msg-ok' : 'msg-err'}`} style={{ marginBottom: 16 }}>
+                {msg.text}
+              </div>
+            )}
             {loading ? (
               <p className="loading-txt">Đang tải đánh giá...</p>
             ) : reviews.length === 0 ? (
@@ -259,31 +338,98 @@ export default function ReviewPage() {
             ) : (
               <div className="reviews-list">
                 {reviews.map((r) => {
-                  const authorName = typeof r.nguoiDanhGia === 'object' ? r.nguoiDanhGia?.hoTen : `Người dùng #${r.nguoiDanhGiaId}`;
+                  const authorName = typeof r.nguoiDanhGia === 'object' ? (r.nguoiDanhGia as any)?.hoTen : `Người dùng #${r.nguoiDanhGiaId}`;
+                  const phanHoiText = (r as any).phanHoi;
+                  const thoiGianPhanHoi = (r as any).thoiGianPhanHoi;
+                  const isReplyingThis = replyingId === r.danhGiaId;
+
                   return (
-                    <div key={r.danhGiaId} className="review-item">
-                      <div className="review-item-header">
-                        <div className="review-author">
+                    <div key={r.danhGiaId} className="review-item" style={{ background: '#fff', borderRadius: 16, padding: 18, border: '1px solid #e4ece6', marginBottom: 14 }}>
+                      <div className="review-item-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div className="review-author" style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                           <Avatar
-                            mau="#66c2b2"
+                            mau="#6fbf73"
                             chu={authorName ? authorName.charAt(0).toUpperCase() : 'U'}
                           />
                           <div>
-                            <strong>{authorName}</strong>
+                            <strong style={{ fontSize: 14, color: '#263238' }}>{authorName}</strong>
+                            <span style={{ fontSize: 12, color: '#78909c', display: 'block' }}>
+                              {(r as any).tenHoatDong ? `Hoạt động: ${(r as any).tenHoatDong}` : ''}
+                            </span>
                           </div>
                         </div>
                         {r.diemTong && (
-                          <span className="review-avg">★ {Number(r.diemTong).toFixed(1)}</span>
+                          <span className="review-avg" style={{ fontSize: 14, fontWeight: 700, color: '#f57c00', background: '#fff3e0', padding: '4px 10px', borderRadius: 12 }}>
+                            ★ {Number(r.diemTong).toFixed(1)}
+                          </span>
                         )}
                       </div>
-                      {r.nhanXet && <p className="review-text">{r.nhanXet}</p>}
+
+                      {r.nhanXet && <p className="review-text" style={{ marginTop: 10, fontSize: 14, color: '#37474f', lineHeight: 1.5 }}>{r.nhanXet}</p>}
+
                       {r.chiTiet && r.chiTiet.length > 0 && (
-                        <div className="review-details">
+                        <div className="review-details" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
                           {r.chiTiet.map((ct) => (
-                            <span key={ct.tieuChiDanhGiaId} className="detail-tag">
+                            <span key={ct.tieuChiDanhGiaId} className="detail-tag" style={{ background: '#f7f9f8', padding: '4px 10px', borderRadius: 8, fontSize: 12, border: '1px solid #e4ece6', color: '#546e7a' }}>
                               {ct.tenTieuChi || `Tiêu chí ${ct.tieuChiDanhGiaId}`}: {ct.diem}★
                             </span>
                           ))}
+                        </div>
+                      )}
+
+                      {/* Phản hồi từ trước (Luồng 5c notice - Mỗi đánh giá 1 phản hồi) */}
+                      {phanHoiText ? (
+                        <div style={{ marginTop: 14, padding: '12px 14px', background: '#f1f8e9', borderRadius: 12, border: '1px solid #c8e6c9' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                            <strong style={{ fontSize: 12, color: '#2e7d32' }}>💬 Phản hồi của bạn (Chính thức)</strong>
+                            <span style={{ fontSize: 11, color: '#78909c' }}>
+                              {thoiGianPhanHoi ? new Date(thoiGianPhanHoi).toLocaleDateString('vi-VN') : ''}
+                            </span>
+                          </div>
+                          <p style={{ margin: 0, fontSize: 13, color: '#33691e' }}>{phanHoiText}</p>
+                        </div>
+                      ) : isReplyingThis ? (
+                        <div style={{ marginTop: 14, padding: 14, background: '#f7f9f8', borderRadius: 12, border: '1px solid #cfd8dc' }}>
+                          <label style={{ fontSize: 12, fontWeight: 600, color: '#37474f', display: 'block', marginBottom: 6 }}>
+                            Nhập nội dung phản hồi đánh giá này:
+                          </label>
+                          <textarea
+                            rows={3}
+                            value={replyText}
+                            onChange={(e) => setReplyText(e.target.value)}
+                            placeholder="Viết lời cảm ơn hoặc làm rõ thông tin..."
+                            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1px solid #cfd8dc', fontSize: 13, outline: 'none' }}
+                          />
+                          <div style={{ marginTop: 10, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                            <button
+                              type="button"
+                              className="cam-btn-outline"
+                              onClick={() => { setReplyingId(null); setReplyText(''); }}
+                              style={{ padding: '6px 14px', fontSize: 12 }}
+                            >
+                              Hủy
+                            </button>
+                            <button
+                              type="button"
+                              className="save-btn"
+                              onClick={() => handleSendReply(r.danhGiaId)}
+                              disabled={submittingReply || !replyText.trim()}
+                              style={{ padding: '6px 16px', fontSize: 12, borderRadius: 16 }}
+                            >
+                              {submittingReply ? 'Đang gửi...' : 'Gửi phản hồi'}
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div style={{ marginTop: 12, textAlign: 'right' }}>
+                          <button
+                            type="button"
+                            className="cam-btn-outline"
+                            onClick={() => { setReplyingId(r.danhGiaId); setReplyText(''); setMsg(null); }}
+                            style={{ padding: '6px 14px', fontSize: 12, borderRadius: 16 }}
+                          >
+                            💬 Phản hồi đánh giá này
+                          </button>
                         </div>
                       )}
                     </div>

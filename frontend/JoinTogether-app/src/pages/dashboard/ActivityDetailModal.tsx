@@ -3,6 +3,11 @@ import type { HoatDongResponse } from '../../types/activity';
 import { cancelActivityApi } from '../../services/activity.service';
 import EditActivityModal from './EditActivityModal';
 import CriteriaManagerModal from './CriteriaManagerModal';
+import ActivityChatModal from '../../components/chat/ActivityChatModal';
+import CheckInModal from './CheckInModal';
+import AttendanceManagerModal from './AttendanceManagerModal';
+import SubmitReviewModal from './SubmitReviewModal';
+import ReportModal from '../../components/report/ReportModal';
 import './CreateActivity.css';
 import './ActivityDetail.css';
 
@@ -35,6 +40,11 @@ export default function ActivityDetailModal({
 }) {
   const [showEdit, setShowEdit] = useState(false);
   const [showCriteria, setShowCriteria] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+  const [showCheckIn, setShowCheckIn] = useState(false);
+  const [showAttendance, setShowAttendance] = useState(false);
+  const [showReview, setShowReview] = useState(false);
+  const [showReport, setShowReport] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const [cancelling, setCancelling] = useState(false);
@@ -198,11 +208,20 @@ export default function ActivityDetailModal({
 
         {!isCancelled && isOwner && (
           <div className="cam-detail-actions">
+            <button className="cam-btn-outline" onClick={() => setShowReview(true)}>
+              ⭐ Đánh giá
+            </button>
+            <button className="cam-btn-outline" onClick={() => setShowAttendance(true)}>
+              📋 Điểm danh
+            </button>
+            <button className="cam-btn-outline" onClick={() => setShowChat(true)}>
+              💬 Trò chuyện
+            </button>
             <button
               className="cam-btn-outline cam-btn-danger"
               onClick={() => setShowCancelConfirm(true)}
             >
-              Hủy hoạt động
+              Hủy
             </button>
             <button className="cam-btn-outline" onClick={() => setShowCriteria(true)}>
               Tiêu chí
@@ -218,17 +237,27 @@ export default function ActivityDetailModal({
             {(() => {
               const isFull = activity.soLuongToiDa != null && activity.soLuongThanhVien != null && activity.soLuongThanhVien >= activity.soLuongToiDa;
               const isExpired = activity.hanDangKy != null && new Date(activity.hanDangKy) < new Date();
-              if (isFull) {
-                return <p style={{ color: '#f44336', fontSize: 13, fontWeight: 600, textAlign: 'center', width: '100%', padding: '8px 0' }}>Hoạt động đã đầy</p>;
-              }
-              if (isExpired) {
-                return <p style={{ color: '#ff9800', fontSize: 13, fontWeight: 600, textAlign: 'center', width: '100%', padding: '8px 0' }}>Đã hết hạn đăng ký</p>;
-              }
               return (
                 <div className="cam-detail-actions">
-                  <button className="cam-btn-outline">Nhắc lịch</button>
-                  <button className="cam-btn-outline">Quan tâm</button>
-                  <button className="cam-btn-primary">Đăng ký tham gia</button>
+                  <button className="cam-btn-outline" onClick={() => setShowReport(true)} style={{ color: '#d32f2f', borderColor: '#ffcdd2' }}>
+                    🚩 Báo cáo
+                  </button>
+                  <button className="cam-btn-outline" onClick={() => setShowReview(true)}>
+                    ⭐ Đánh giá
+                  </button>
+                  <button className="cam-btn-outline" onClick={() => setShowCheckIn(true)}>
+                    📲 Check-in
+                  </button>
+                  <button className="cam-btn-outline" onClick={() => setShowChat(true)}>
+                    💬 Trò chuyện
+                  </button>
+                  {isFull ? (
+                    <span style={{ color: '#f44336', fontSize: 13, fontWeight: 600 }}>Đã đầy</span>
+                  ) : isExpired ? (
+                    <span style={{ color: '#ff9800', fontSize: 13, fontWeight: 600 }}>Hết hạn</span>
+                  ) : (
+                    <button className="cam-btn-primary">Đăng ký tham gia</button>
+                  )}
                 </div>
               );
             })()}
@@ -244,6 +273,49 @@ export default function ActivityDetailModal({
               </p>
             )}
           </div>
+        )}
+
+        {showReport && (
+          <ReportModal
+            nguoiBiBaoCaoId={activity.nguoiToChucId}
+            tenNguoiBiBaoCao={typeof activity.nguoiToChuc === 'object' ? (activity.nguoiToChuc as any)?.hoTen : typeof activity.nguoiToChuc === 'string' ? activity.nguoiToChuc : `Người tổ chức #${activity.nguoiToChucId}`}
+            onClose={() => setShowReport(false)}
+          />
+        )}
+
+        {showReview && (
+          <SubmitReviewModal
+            hoatDongId={activity.hoatDongId}
+            tenHoatDong={activity.tenHoatDong}
+            currentUserId={currentUserId || null}
+            organizerId={activity.nguoiToChucId}
+            onClose={() => setShowReview(false)}
+          />
+        )}
+
+        {showCheckIn && (
+          <CheckInModal
+            hoatDongId={activity.hoatDongId}
+            tenHoatDong={activity.tenHoatDong}
+            onClose={() => setShowCheckIn(false)}
+          />
+        )}
+
+        {showAttendance && (
+          <AttendanceManagerModal
+            hoatDongId={activity.hoatDongId}
+            tenHoatDong={activity.tenHoatDong}
+            onClose={() => setShowAttendance(false)}
+          />
+        )}
+
+        {showChat && (
+          <ActivityChatModal
+            hoatDongId={activity.hoatDongId}
+            tenHoatDong={activity.tenHoatDong}
+            currentUserId={currentUserId || null}
+            onClose={() => setShowChat(false)}
+          />
         )}
 
         {showCriteria && (

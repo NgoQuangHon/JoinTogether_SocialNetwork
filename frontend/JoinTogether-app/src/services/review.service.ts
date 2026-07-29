@@ -56,3 +56,11 @@ export const getReputationHistoryApi = async (
   );
   return res.data;
 };
+
+export const replyToReviewApi = async (
+  danhGiaId: number,
+  phanHoi: string,
+): Promise<ApiResponse<DanhGia>> => {
+  const res = await api.post<ApiResponse<DanhGia>>(`/reviews/${danhGiaId}/reply`, { phanHoi });
+  return res.data;
+};

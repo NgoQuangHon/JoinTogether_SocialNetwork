@@ -220,5 +220,143 @@ export class MemberService {
   async getAttendanceList(hoatDongId: number): Promise<any[]> {
     return await this.xacNhanRepo.findByHoatDongId(hoatDongId);
   }
+
+  // ==================== CHECK-IN VÀ XÁC NHẬN THAM GIA NÂNG CAO ====================
+
+  async userCheckIn(nguoiDungId: number, hoatDongId: number, maCheckIn?: string): Promise<any> {
+    const activity = await this.hoatDongRepo.findById(hoatDongId);
+    if (!activity) {
+      throw new NotFoundError("Hoạt động không tồn tại.");
+    }
+
+    const members = await this.thanhVienRepo.findByHoatDongId(hoatDongId);
+    const member = members.find((m: any) => m.nguoiDungId === nguoiDungId);
+    if (!member) {
+      throw new ForbiddenError("Bạn không phải là thành viên chính thức của hoạt động này.");
+    }
+
+    // Luồng 3b: Mã check-in không hợp lệ
+    const validCode = `CHECKIN-${hoatDongId}`;
+    if (maCheckIn && maCheckIn.trim().toUpperCase() !== validCode && maCheckIn.trim() !== String(hoatDongId)) {
+      throw new BadRequestError("Mã check-in không hợp lệ. Vui lòng kiểm tra lại mã xác nhận.");
+    }
+
+    const now = new Date();
+    const startTime = activity.thoiGianBatDau ? new Date(activity.thoiGianBatDau) : new Date();
+    const endTime = activity.thoiGianKetThuc ? new Date(activity.thoiGianKetThuc) : new Date(startTime.getTime() + 86400000);
+    const allowedStartWindow = new Date(startTime.getTime() - 30 * 60 * 1000);
+
+    // Luồng 3a: Kiểm tra khung thời gian cho phép
+    let status = 'DA_DIEM_DANH';
+    let message = 'Check-in thành công! Bạn đã hoàn tất xác nhận tham gia.';
+    if (now < allowedStartWindow || now > endTime) {
+      status = 'CHO_XAC_MINH';
+      message = 'Bạn đã check-in ngoài khung thời gian quy định. Yêu cầu đã được chuyển sang trạng thái "Chờ xác minh".';
+    }
+
+    const thanhVienId = member.thanhVienId!;
+    const existing = await this.xacNhanRepo.findByThanhVienId(thanhVienId);
+    let record;
+    if (existing) {
+      record = await this.xacNhanRepo.update(existing.xacNhanId!, {
+        trangThaiThamDu: status,
+        thoiGianCheckIn: now,
+      });
+    } else {
+      record = await this.xacNhanRepo.create({
+        thanhVienId,
+        trangThaiThamDu: status,
+        thoiGianCheckIn: now,
+      });
+    }
+
+    if (activity.nguoiToChucId) {
+      await this.thongBaoRepo.create({
+        nguoiNhanId: activity.nguoiToChucId,
+        tieuDe: "Thông báo check-in mới",
+        noiDung: `Thành viên #${nguoiDungId} vừa thực hiện check-in cho hoạt động "${activity.tenHoatDong}". Trạng thái: ${status}.`,
+        loaiThongBao: "CHECKIN",
+      });
+    }
+
+    return { record, message, status };
+  }
+
+  // Luồng 2a: Người dùng hủy tham gia hoạt động trước khi diễn ra
+  async cancelParticipation(nguoiDungId: number, hoatDongId: number, lyDo?: string): Promise<any> {
+    const activity = await this.hoatDongRepo.findById(hoatDongId);
+    if (!activity) {
+      throw new NotFoundError("Hoạt động không tồn tại.");
+    }
+
+    const members = await this.thanhVienRepo.findByHoatDongId(hoatDongId);
+    const member = members.find((m: any) => m.nguoiDungId === nguoiDungId);
+    if (!member) {
+      throw new ForbiddenError("Bạn không phải là thành viên của hoạt động này.");
+    }
+
+    await this.thanhVienRepo.deleteByUserAndActivity(nguoiDungId, hoatDongId);
+
+    if (activity.nguoiToChucId) {
+      await this.thongBaoRepo.create({
+        nguoiNhanId: activity.nguoiToChucId,
+        tieuDe: "Thành viên hủy tham gia",
+        noiDung: `Thành viên #${nguoiDungId} đã hủy tham gia hoạt động "${activity.tenHoatDong}". Lý do: ${lyDo || 'Không có'}.`,
+        loaiThongBao: "HUY_THAM_GIA",
+      });
+    }
+
+    return { message: "Đã hủy tham gia hoạt động thành công." };
+  }
+
+  // Luồng 1: Nhắc lịch trước hoạt động
+  async sendReminder(hoatDongId: number, nguoiToChucId: number): Promise<any> {
+    const activity = await this.hoatDongRepo.findById(hoatDongId);
+    if (!activity || activity.nguoiToChucId !== nguoiToChucId) {
+      throw new ForbiddenError("Bạn không có quyền gửi thông báo nhắc lịch cho hoạt động này.");
+    }
+
+    const members = await this.thanhVienRepo.findByHoatDongId(hoatDongId);
+    let count = 0;
+    for (const m of members) {
+      if (m.nguoiDungId && m.nguoiDungId !== nguoiToChucId) {
+        await this.thongBaoRepo.create({
+          nguoiNhanId: m.nguoiDungId,
+          tieuDe: `⏰ Nhắc lịch: ${activity.tenHoatDong}`,
+          noiDung: `Hoạt động "${activity.tenHoatDong}" sẽ diễn ra sớm. Vui lòng chuẩn bị sẵn sàng và thực hiện check-in đúng giờ!`,
+          loaiThongBao: "NHAC_LICH",
+        });
+        count++;
+      }
+    }
+    return { message: `Đã gửi thông báo nhắc lịch tới ${count} thành viên.` };
+  }
+
+  // Luồng 6 & 6a: Cập nhật điểm danh thực tế (Đã điểm danh / Vắng mặt)
+  async updateAttendanceStatus(thanhVienId: number, nguoiToChucId: number, status: 'DA_DIEM_DANH' | 'VANG_MAT' | 'CHO_XAC_MINH'): Promise<any> {
+    const member = await this.thanhVienRepo.findById(thanhVienId);
+    if (!member) {
+      throw new NotFoundError("Thành viên không tồn tại.");
+    }
+
+    const activity = await this.hoatDongRepo.findById(member.hoatDongId!);
+    if (!activity || activity.nguoiToChucId !== nguoiToChucId) {
+      throw new ForbiddenError("Chỉ người tổ chức mới có quyền cập nhật trạng thái điểm danh.");
+    }
+
+    const existing = await this.xacNhanRepo.findByThanhVienId(thanhVienId);
+    if (existing) {
+      return await this.xacNhanRepo.update(existing.xacNhanId!, {
+        trangThaiThamDu: status,
+        thoiGianCheckIn: status === 'DA_DIEM_DANH' ? new Date() : (existing.thoiGianCheckIn ?? null),
+      });
+    }
+
+    return await this.xacNhanRepo.create({
+      thanhVienId,
+      trangThaiThamDu: status,
+      thoiGianCheckIn: status === 'DA_DIEM_DANH' ? new Date() : null,
+    });
+  }
 }
 

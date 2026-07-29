@@ -78,3 +78,35 @@ export const searchActivitiesApi = async (filters: SearchFilters): Promise<ApiRe
   const response = await api.get<ApiResponse<SearchResult>>('/activities/search', { params });
   return response.data;
 };
+
+// ==================== CHECK-IN & ATTENDANCE ====================
+
+export const getMembersApi = async (hoatDongId: number): Promise<ApiResponse<any[]>> => {
+  const response = await api.get<ApiResponse<any[]>>(`/activities/${hoatDongId}/members`);
+  return response.data;
+};
+
+export const userCheckInApi = async (hoatDongId: number, maCheckIn?: string): Promise<ApiResponse<any>> => {
+  const response = await api.post<ApiResponse<any>>(`/activities/${hoatDongId}/checkin`, { maCheckIn });
+  return response.data;
+};
+
+export const cancelParticipationApi = async (hoatDongId: number, lyDo?: string): Promise<ApiResponse<void>> => {
+  const response = await api.post<ApiResponse<void>>(`/activities/${hoatDongId}/cancel-participation`, { lyDo });
+  return response.data;
+};
+
+export const sendReminderApi = async (hoatDongId: number): Promise<ApiResponse<void>> => {
+  const response = await api.post<ApiResponse<void>>(`/activities/${hoatDongId}/reminder`);
+  return response.data;
+};
+
+export const getAttendanceListApi = async (hoatDongId: number): Promise<ApiResponse<any[]>> => {
+  const response = await api.get<ApiResponse<any[]>>(`/activities/${hoatDongId}/attendance`);
+  return response.data;
+};
+
+export const updateAttendanceStatusApi = async (hoatDongId: number, thanhVienId: number, trangThaiThamDu: string): Promise<ApiResponse<any>> => {
+  const response = await api.put<ApiResponse<any>>(`/activities/${hoatDongId}/members/${thanhVienId}/attendance-status`, { trangThaiThamDu });
+  return response.data;
+};

@@ -23,6 +23,7 @@ import ReportConfirm from './pages/report/reportconfirm/ReportConfirm';
 import ReportLoading from './pages/report/reportloading/ReportLoading';
 import ReportSuccess from './pages/report/reportsuccess/ReportSuccess';
 import ReportResult from './pages/report/reportresult/ReportResult';
+import ChatPage from './pages/chat/ChatPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 
@@ -122,6 +123,14 @@ export default function App() {
                 element={
                     <ProtectedRoute>
                         <ReportDetail />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/chat"
+                element={
+                    <ProtectedRoute>
+                        <ChatPage />
                     </ProtectedRoute>
                 }
             />

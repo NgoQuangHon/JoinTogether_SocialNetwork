@@ -2,6 +2,19 @@ import { pool } from "../../config/db";
 import { BaoCaoViPham } from "../../models/group6-admin/baoCaoViPham.model";
 
 export class BaoCaoViPhamRepository {
+  constructor() {
+    this.ensureColumns();
+  }
+
+  private async ensureColumns() {
+    try {
+      await pool.query(`
+        ALTER TABLE bao_cao_vi_pham ADD COLUMN IF NOT EXISTS thoi_gian_tao TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP;
+        ALTER TABLE bao_cao_vi_pham ADD COLUMN IF NOT EXISTS trang_thai VARCHAR(50) DEFAULT 'CHO_XU_LY';
+      `);
+    } catch {}
+  }
+
   async create(data: Partial<BaoCaoViPham>): Promise<BaoCaoViPham> {
     const query = `
       INSERT INTO bao_cao_vi_pham (nguoi_bao_cao_id, nguoi_bi_bao_cao_id, loai_vi_pham_id, noi_dung)
@@ -11,7 +24,9 @@ export class BaoCaoViPhamRepository {
         nguoi_bao_cao_id AS "nguoiBaoCaoId",
         nguoi_bi_bao_cao_id AS "nguoiBiBaoCaoId",
         loai_vi_pham_id AS "loaiViPhamId",
-        noi_dung AS "noiDung"
+        noi_dung AS "noiDung",
+        thoi_gian_tao AS "thoiGianTao",
+        trang_thai AS "trangThai"
     `;
     const result = await pool.query(query, [
       data.nguoiBaoCaoId,
@@ -25,19 +40,21 @@ export class BaoCaoViPhamRepository {
   async findById(id: number): Promise<any | null> {
     const query = `
       SELECT
-        bao_cao_id AS "baoCaoId",
-        nguoi_bao_cao_id AS "nguoiBaoCaoId",
+        bcvp.bao_cao_id AS "baoCaoId",
+        bcvp.nguoi_bao_cao_id AS "nguoiBaoCaoId",
         nc.ho_ten AS "nguoiBaoCao",
-        nguoi_bi_bao_cao_id AS "nguoiBiBaoCaoId",
+        bcvp.nguoi_bi_bao_cao_id AS "nguoiBiBaoCaoId",
         nb.ho_ten AS "nguoiBiBaoCao",
-        loai_vi_pham_id AS "loaiViPhamId",
+        bcvp.loai_vi_pham_id AS "loaiViPhamId",
         lvp.ten_loai AS "tenLoaiViPham",
-        noi_dung AS "noiDung"
+        bcvp.noi_dung AS "noiDung",
+        bcvp.thoi_gian_tao AS "thoiGianTao",
+        bcvp.trang_thai AS "trangThai"
       FROM bao_cao_vi_pham bcvp
       LEFT JOIN nguoi_dung nc ON bcvp.nguoi_bao_cao_id = nc.nguoi_dung_id
       LEFT JOIN nguoi_dung nb ON bcvp.nguoi_bi_bao_cao_id = nb.nguoi_dung_id
       LEFT JOIN loai_vi_pham lvp ON bcvp.loai_vi_pham_id = lvp.loai_vi_pham_id
-      WHERE bao_cao_id = $1
+      WHERE bcvp.bao_cao_id = $1
     `;
     const result = await pool.query(query, [id]);
     return result.rows.length > 0 ? result.rows[0] : null;
@@ -54,6 +71,8 @@ export class BaoCaoViPhamRepository {
         bcvp.loai_vi_pham_id AS "loaiViPhamId",
         lvp.ten_loai AS "tenLoaiViPham",
         bcvp.noi_dung AS "noiDung",
+        bcvp.thoi_gian_tao AS "thoiGianTao",
+        bcvp.trang_thai AS "trangThai",
         qd.quyet_dinh_id AS "quyetDinhId",
         qd.ket_qua AS "ketQua"
       FROM bao_cao_vi_pham bcvp
@@ -82,7 +101,9 @@ export class BaoCaoViPhamRepository {
         nguoi_bao_cao_id AS "nguoiBaoCaoId",
         nguoi_bi_bao_cao_id AS "nguoiBiBaoCaoId",
         loai_vi_pham_id AS "loaiViPhamId",
-        noi_dung AS "noiDung"
+        noi_dung AS "noiDung",
+        thoi_gian_tao AS "thoiGianTao",
+        trang_thai AS "trangThai"
       FROM bao_cao_vi_pham
       WHERE nguoi_bao_cao_id = $1
       ORDER BY bao_cao_id DESC
@@ -91,4 +112,3 @@ export class BaoCaoViPhamRepository {
     return result.rows;
   }
 }
-

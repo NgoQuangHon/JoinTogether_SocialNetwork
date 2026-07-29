@@ -33,11 +33,11 @@ export default function NavItems({ onClose, onNavigate }: { onClose?: () => void
       <a href="/ai-match" className={`nav-item ${isActive('/ai-match') ? 'active' : ''}`} onClick={go('/ai-match')}>
         <span>AI Ghép đôi</span>
       </a>
+      <a href="/chat" className={`nav-item ${isActive('/chat') ? 'active' : ''}`} onClick={go('/chat')}>
+        <span>Tin nhắn nhóm</span>
+      </a>
       <a href="/reviews" className={`nav-item ${isActive('/reviews') ? 'active' : ''}`} onClick={go('/reviews')}>
         <span>Đánh giá uy tín</span>
-      </a>
-      <a href="/interests" className={`nav-item ${isActive('/interests') ? 'active' : ''}`} onClick={go('/interests')}>
-        <span>Sở thích của tôi</span>
       </a>
       <a href="/report" className={`nav-item ${isActive('/report') ? 'active' : ''}`} onClick={go('/report')}>
         <span>Báo cáo vi phạm</span>

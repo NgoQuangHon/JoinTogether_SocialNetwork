@@ -198,4 +198,67 @@ export class MemberController {
       res.status(200).json({ success: true, data: result });
     },
   );
+
+  public userCheckIn = asyncHandler(
+    async (req: Request, res: Response): Promise<void> => {
+      const nguoiDungId = req.user!.nguoiDungId;
+      const hoatDongId = parseInt(req.params.id as string, 10);
+      const { maCheckIn } = req.body;
+
+      if (isNaN(hoatDongId)) {
+        res.status(400).json({ success: false, message: "ID hoạt động không hợp lệ." });
+        return;
+      }
+
+      const result = await this.memberService.userCheckIn(nguoiDungId, hoatDongId, maCheckIn);
+      res.status(200).json({ success: true, message: result.message, data: result.record, status: result.status });
+    },
+  );
+
+  public cancelParticipation = asyncHandler(
+    async (req: Request, res: Response): Promise<void> => {
+      const nguoiDungId = req.user!.nguoiDungId;
+      const hoatDongId = parseInt(req.params.id as string, 10);
+      const { lyDo } = req.body;
+
+      if (isNaN(hoatDongId)) {
+        res.status(400).json({ success: false, message: "ID hoạt động không hợp lệ." });
+        return;
+      }
+
+      const result = await this.memberService.cancelParticipation(nguoiDungId, hoatDongId, lyDo);
+      res.status(200).json({ success: true, message: result.message });
+    },
+  );
+
+  public sendReminder = asyncHandler(
+    async (req: Request, res: Response): Promise<void> => {
+      const nguoiToChucId = req.user!.nguoiDungId;
+      const hoatDongId = parseInt(req.params.id as string, 10);
+
+      if (isNaN(hoatDongId)) {
+        res.status(400).json({ success: false, message: "ID hoạt động không hợp lệ." });
+        return;
+      }
+
+      const result = await this.memberService.sendReminder(hoatDongId, nguoiToChucId);
+      res.status(200).json({ success: true, message: result.message });
+    },
+  );
+
+  public updateAttendanceStatus = asyncHandler(
+    async (req: Request, res: Response): Promise<void> => {
+      const nguoiToChucId = req.user!.nguoiDungId;
+      const thanhVienId = parseInt(req.params.thanhVienId as string, 10);
+      const { trangThaiThamDu } = req.body;
+
+      if (isNaN(thanhVienId)) {
+        res.status(400).json({ success: false, message: "ID thành viên không hợp lệ." });
+        return;
+      }
+
+      const result = await this.memberService.updateAttendanceStatus(thanhVienId, nguoiToChucId, trangThaiThamDu);
+      res.status(200).json({ success: true, message: "Cập nhật trạng thái điểm danh thành công.", data: result });
+    },
+  );
 }

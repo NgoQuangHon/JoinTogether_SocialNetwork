@@ -49,26 +49,26 @@ export class CriteriaService {
   }
 
   async addCriteria(hoatDongId: number, data: any): Promise<any> {
-    const activity = await this.checkActivityModifiable(hoatDongId);
+    await this.checkActivityModifiable(hoatDongId);
 
-    const model = new TieuChiThamGiaModel({ ...data, hoatDongId });
-
-    if (model.batBuoc && (!model.giaTriYeuCau || !model.giaTriYeuCau.trim())) {
-      throw new BadRequestError("Tiêu chí bắt buộc phải có giá trị yêu cầu.");
+    const tenTieuChi = data.tenTieuChi ? data.tenTieuChi.trim() : '';
+    if (!tenTieuChi) {
+      throw new BadRequestError("Tên tiêu chí không được để trống.");
     }
 
-    await this.checkDuplicate(hoatDongId, model.tenTieuChi);
-
-    const hasRequests = await this.checkActiveRequests(hoatDongId);
-    if (hasRequests) {
-      console.warn(`[CRITERIA] Activity ${hoatDongId} has pending requests — criteria added while requests exist`);
+    const batBuoc = Boolean(data.batBuoc);
+    let giaTriYeuCau = data.giaTriYeuCau ? data.giaTriYeuCau.trim() : null;
+    if (batBuoc && !giaTriYeuCau) {
+      giaTriYeuCau = "Bắt buộc";
     }
+
+    await this.checkDuplicate(hoatDongId, tenTieuChi);
 
     return await this.tieuChiRepo.create({
-      hoatDongId: model.hoatDongId,
-      tenTieuChi: model.tenTieuChi,
-      giaTriYeuCau: model.giaTriYeuCau === undefined || model.giaTriYeuCau === null ? null : model.giaTriYeuCau,
-      batBuoc: model.batBuoc === undefined || model.batBuoc === null ? false : model.batBuoc,
+      hoatDongId,
+      tenTieuChi,
+      giaTriYeuCau,
+      batBuoc,
     });
   }
 
@@ -80,22 +80,27 @@ export class CriteriaService {
 
     await this.checkActivityModifiable(existing.hoatDongId);
 
-    const tenTieuChi = data.tenTieuChi !== undefined ? data.tenTieuChi : existing.tenTieuChi;
-    const batBuoc = data.batBuoc !== undefined ? data.batBuoc : existing.batBuoc;
-    const giaTriYeuCau = data.giaTriYeuCau !== undefined ? data.giaTriYeuCau : existing.giaTriYeuCau;
+    const tenTieuChi = data.tenTieuChi !== undefined ? data.tenTieuChi.trim() : existing.tenTieuChi;
+    if (!tenTieuChi) {
+      throw new BadRequestError("Tên tiêu chí không được để trống.");
+    }
 
-    if (batBuoc && (!giaTriYeuCau || !giaTriYeuCau.trim())) {
-      throw new BadRequestError("Tiêu chí bắt buộc phải có giá trị yêu cầu.");
+    const batBuocVal: boolean = data.batBuoc !== undefined ? Boolean(data.batBuoc) : (existing.batBuoc ?? true);
+    let giaTriYeuCauVal: string | null = data.giaTriYeuCau !== undefined
+      ? (data.giaTriYeuCau ? String(data.giaTriYeuCau).trim() : null)
+      : (existing.giaTriYeuCau ?? null);
+
+    if (batBuocVal && !giaTriYeuCauVal) {
+      giaTriYeuCauVal = "Bắt buộc";
     }
 
     await this.checkDuplicate(existing.hoatDongId, tenTieuChi, id);
 
-    const hasRequests = await this.checkActiveRequests(existing.hoatDongId);
-    if (hasRequests) {
-      console.warn(`[CRITERIA] Activity ${existing.hoatDongId} has pending requests — criteria #${id} updated while requests exist`);
-    }
-
-    return await this.tieuChiRepo.update(id, data);
+    return await this.tieuChiRepo.update(id, {
+      tenTieuChi,
+      giaTriYeuCau: giaTriYeuCauVal,
+      batBuoc: batBuocVal,
+    });
   }
 
   async deleteCriteria(id: number): Promise<void> {
@@ -105,12 +110,6 @@ export class CriteriaService {
     }
 
     await this.checkActivityModifiable(existing.hoatDongId);
-
-    const hasRequests = await this.checkActiveRequests(existing.hoatDongId);
-    if (hasRequests) {
-      console.warn(`[CRITERIA] Activity ${existing.hoatDongId} has pending requests — criteria #${id} deleted while requests exist`);
-    }
-
     await this.tieuChiRepo.delete(id);
   }
 }

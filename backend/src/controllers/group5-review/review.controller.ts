@@ -103,6 +103,7 @@ export class ReviewController {
   public getReputation = asyncHandler(
     async (req: Request, res: Response): Promise<void> => {
       const nguoiDungId = parseInt(req.params.nguoiDungId as string, 10);
+      const requesterId = req.user?.nguoiDungId;
 
       if (isNaN(nguoiDungId)) {
         res
@@ -111,7 +112,7 @@ export class ReviewController {
         return;
       }
 
-      const result = await this.reviewService.getReputation(nguoiDungId);
+      const result = await this.reviewService.getReputation(nguoiDungId, requesterId);
       res.status(200).json({ success: true, data: result });
     },
   );
@@ -129,6 +130,22 @@ export class ReviewController {
 
       const result = await this.reviewService.getReputationHistory(nguoiDungId);
       res.status(200).json({ success: true, data: result });
+    },
+  );
+
+  public replyToReview = asyncHandler(
+    async (req: Request, res: Response): Promise<void> => {
+      const currentUserId = req.user!.nguoiDungId;
+      const danhGiaId = parseInt(req.params.danhGiaId as string, 10);
+      const { phanHoi } = req.body;
+
+      if (isNaN(danhGiaId)) {
+        res.status(400).json({ success: false, message: "ID đánh giá không hợp lệ." });
+        return;
+      }
+
+      const result = await this.reviewService.replyToReview(danhGiaId, currentUserId, phanHoi);
+      res.status(200).json({ success: true, message: "Đã gửi phản hồi đánh giá.", data: result });
     },
   );
 }

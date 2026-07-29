@@ -80,4 +80,34 @@ memberRouter.get(
   memberController.getAttendanceList,
 );
 
+// POST /api/activities/:id/checkin — Người dùng tự check-in
+memberRouter.post(
+  "/:id/checkin",
+  authenticateToken,
+  memberController.userCheckIn,
+);
+
+// POST /api/activities/:id/cancel-participation — Hủy tham gia trước hoạt động
+memberRouter.post(
+  "/:id/cancel-participation",
+  authenticateToken,
+  memberController.cancelParticipation,
+);
+
+// POST /api/activities/:id/reminder — Gửi thông báo nhắc lịch cho thành viên
+memberRouter.post(
+  "/:id/reminder",
+  authenticateToken,
+  requireActivityOwner("id"),
+  memberController.sendReminder,
+);
+
+// PUT /api/activities/:id/members/:thanhVienId/attendance-status — Cập nhật trạng thái điểm danh thực tế
+memberRouter.put(
+  "/:id/members/:thanhVienId/attendance-status",
+  authenticateToken,
+  requireActivityOwner("id"),
+  memberController.updateAttendanceStatus,
+);
+
 export default memberRouter;

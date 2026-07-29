@@ -64,4 +64,11 @@ reviewRouter.get(
   reviewController.getReputationHistory,
 );
 
+// POST /api/reviews/:danhGiaId/reply — Phản hồi đánh giá
+reviewRouter.post(
+  "/:danhGiaId/reply",
+  authenticateToken,
+  reviewController.replyToReview,
+);
+
 export default reviewRouter;
