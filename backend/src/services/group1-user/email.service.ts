@@ -3,26 +3,31 @@ import nodemailer from 'nodemailer';
 class EmailService {
   private transporter: nodemailer.Transporter | null = null;
 
-  constructor() {
+  private getTransporter(): nodemailer.Transporter | null {
     const host = process.env.SMTP_HOST || 'smtp.gmail.com';
     const port = Number(process.env.SMTP_PORT) || 587;
     const user = process.env.SMTP_USER;
     const pass = process.env.SMTP_PASS;
 
     if (user && pass) {
-      this.transporter = nodemailer.createTransport({
+      return nodemailer.createTransport({
         host,
         port,
         secure: port === 465,
         auth: { user, pass },
+        tls: {
+          rejectUnauthorized: false
+        }
       });
     }
+    return null;
   }
 
   async sendMail(to: string, subject: string, html: string): Promise<boolean> {
     try {
-      if (this.transporter) {
-        await this.transporter.sendMail({
+      const transporter = this.getTransporter();
+      if (transporter) {
+        await transporter.sendMail({
           from: `"JoinTogether Network" <${process.env.SMTP_USER}>`,
           to,
           subject,
@@ -31,7 +36,7 @@ class EmailService {
         console.log(`✉️ Email đã được gửi đến: ${to}`);
         return true;
       } else {
-        console.log(`[SMTP DEV MODE] Email gửi đến ${to} | Tiêu đề: ${subject}`);
+        console.warn(`⚠️ [SMTP DEV MODE] Chưa cài SMTP_USER/SMTP_PASS trên Render. Email gửi đến ${to} | Tiêu đề: ${subject}`);
         return true;
       }
     } catch (err: any) {
