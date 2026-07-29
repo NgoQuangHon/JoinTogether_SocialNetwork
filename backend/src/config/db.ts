@@ -43,6 +43,21 @@ export async function connectDB() {
           ALTER TABLE ho_so_nguoi_dung ADD COLUMN IF NOT EXISTS an_ngay_sinh BOOLEAN DEFAULT FALSE;
           ALTER TABLE ho_so_nguoi_dung ADD COLUMN IF NOT EXISTS an_so_dien_thoai BOOLEAN DEFAULT FALSE;
           ALTER TABLE ho_so_nguoi_dung ADD COLUMN IF NOT EXISTS an_dia_chi BOOLEAN DEFAULT FALSE;
+
+          -- Nearby Match: vị trí GPS trong hồ sơ
+          ALTER TABLE ho_so_nguoi_dung ADD COLUMN IF NOT EXISTS vi_do DECIMAL(10,8);
+          ALTER TABLE ho_so_nguoi_dung ADD COLUMN IF NOT EXISTS kinh_do DECIMAL(11,8);
+
+          -- Bảng lưu phiên quét tạm thời (tự xóa sau 10 phút)
+          CREATE TABLE IF NOT EXISTS phien_quet_ban (
+            phien_id      BIGSERIAL PRIMARY KEY,
+            nguoi_dung_id BIGINT UNIQUE REFERENCES nguoi_dung(nguoi_dung_id) ON DELETE CASCADE,
+            vi_do         DECIMAL(10,8) NOT NULL,
+            kinh_do       DECIMAL(11,8) NOT NULL,
+            socket_id     VARCHAR(255),
+            bat_dau_luc   TIMESTAMPTZ DEFAULT NOW(),
+            het_han_luc   TIMESTAMPTZ DEFAULT NOW() + INTERVAL '10 minutes'
+          );
         `);
 
         client.release();

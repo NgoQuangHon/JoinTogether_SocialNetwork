@@ -58,6 +58,9 @@ export default function NavItems({ onClose, onNavigate }: { onClose?: () => void
       <a href="/ai-match" className={`nav-item ${isActive('/ai-match') ? 'active' : ''}`} onClick={go('/ai-match')}>
         <span>AI Ghép đôi</span>
       </a>
+      <a href="/nearby" className={`nav-item ${isActive('/nearby') ? 'active' : ''}`} onClick={go('/nearby')}>
+        <span>📍 Tìm bạn lân cận</span>
+      </a>
       <a href="/chat" className={`nav-item ${isActive('/chat') ? 'active' : ''}`} onClick={go('/chat')}>
         <span>Tin nhắn nhóm</span>
       </a>
