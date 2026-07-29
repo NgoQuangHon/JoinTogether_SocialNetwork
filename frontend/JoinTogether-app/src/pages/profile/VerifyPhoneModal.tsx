@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { API_BASE_URL } from '../../config/constants';
+import { auth, RecaptchaVerifier, signInWithPhoneNumber } from '../../config/firebase';
 import '../../styles/dashboard.css';
 
 interface VerifyPhoneModalProps {
@@ -14,9 +15,19 @@ export default function VerifyPhoneModal({ currentPhone = '', onClose, onSuccess
   const [otpCode, setOtpCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [demoMessage, setDemoMessage] = useState('');
+  const [confirmationResult, setConfirmationResult] = useState<any>(null);
 
   const token = localStorage.getItem('token');
+
+  const formatPhoneNumber = (phoneNumber: string) => {
+    let cleaned = phoneNumber.trim().replace(/\D/g, '');
+    if (cleaned.startsWith('0')) {
+      cleaned = '+84' + cleaned.slice(1);
+    } else if (!cleaned.startsWith('+')) {
+      cleaned = '+' + cleaned;
+    }
+    return cleaned;
+  };
 
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,26 +38,43 @@ export default function VerifyPhoneModal({ currentPhone = '', onClose, onSuccess
     setError('');
     setLoading(true);
 
+    const formattedPhone = formatPhoneNumber(phone);
+
     try {
-      const res = await fetch(`${API_BASE_URL.replace(/\/$/, '')}/api/auth/send-phone-otp`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ soDienThoai: phone.trim() }),
-      });
-      const data = await res.json();
-      if (!data.success) {
-        setError(data.message || 'Không thể gửi mã OTP.');
-      } else {
-        setStep(2);
-        if (data.otpDemo) {
-          setDemoMessage(`[MÔ PHỎNG SMS] Mã OTP của bạn là: ${data.otpDemo} (Hoặc nhập 686868 để test nhanh)`);
-        }
+      // 1. Thử gửi mã SMS thật qua Firebase Phone Auth
+      let recaptchaVerifier = (window as any).recaptchaVerifier;
+      if (!recaptchaVerifier) {
+        recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+          size: 'invisible',
+        });
+        (window as any).recaptchaVerifier = recaptchaVerifier;
       }
-    } catch {
-      setError('Lỗi kết nối máy chủ.');
+
+      const result = await signInWithPhoneNumber(auth, formattedPhone, recaptchaVerifier);
+      setConfirmationResult(result);
+      setStep(2);
+    } catch (fbErr: any) {
+      console.warn('Firebase SMS warning:', fbErr.message || fbErr);
+      
+      // 2. Fallback sang API Backend
+      try {
+        const res = await fetch(`${API_BASE_URL.replace(/\/$/, '')}/api/auth/send-phone-otp`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ soDienThoai: phone.trim() }),
+        });
+        const data = await res.json();
+        if (!data.success) {
+          setError(data.message || 'Không thể gửi mã OTP.');
+        } else {
+          setStep(2);
+        }
+      } catch {
+        setError('Lỗi kết nối máy chủ.');
+      }
     } finally {
       setLoading(false);
     }
@@ -62,6 +90,14 @@ export default function VerifyPhoneModal({ currentPhone = '', onClose, onSuccess
     setLoading(true);
 
     try {
+      if (confirmationResult) {
+        try {
+          await confirmationResult.confirm(otpCode.trim());
+        } catch {
+          // Bỏ qua nếu confirm firebase fail để tiếp tục verify backend
+        }
+      }
+
       const res = await fetch(`${API_BASE_URL.replace(/\/$/, '')}/api/auth/verify-phone-otp`, {
         method: 'POST',
         headers: {
@@ -86,6 +122,9 @@ export default function VerifyPhoneModal({ currentPhone = '', onClose, onSuccess
 
   return (
     <div className="drawer-overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
+      {/* Container ngầm cho Firebase Invisible Recaptcha */}
+      <div id="recaptcha-container"></div>
+
       <div className="profile-card" style={{ width: 440, maxWidth: '90vw', padding: 28, background: '#fff', borderRadius: 20, boxShadow: '0 16px 40px rgba(0,0,0,0.18)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <h3 style={{ margin: 0, fontSize: 18, color: '#1b4332', display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -97,12 +136,6 @@ export default function VerifyPhoneModal({ currentPhone = '', onClose, onSuccess
         {error && (
           <div style={{ background: '#ffebee', color: '#c62828', padding: '10px 14px', borderRadius: 10, fontSize: 13, marginBottom: 16 }}>
             ⚠️ {error}
-          </div>
-        )}
-
-        {demoMessage && step === 2 && (
-          <div style={{ background: '#e8f5e9', color: '#2e7d32', padding: '10px 14px', borderRadius: 10, fontSize: 13, marginBottom: 16, fontWeight: 600 }}>
-            {demoMessage}
           </div>
         )}
 
@@ -148,7 +181,7 @@ export default function VerifyPhoneModal({ currentPhone = '', onClose, onSuccess
               </label>
               <input
                 type="text"
-                placeholder="Nhập 6 số (hoặc 686868)"
+                placeholder="Nhập 6 số mã OTP"
                 value={otpCode}
                 onChange={(e) => setOtpCode(e.target.value)}
                 maxLength={6}
