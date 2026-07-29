@@ -43,7 +43,37 @@ export async function sendVerificationEmail(
     </div>
   `;
 
-  // 1. Ưu tiên gửi qua Resend HTTP API (Port 443 - Hoàn toàn không bị Render chặn)
+  const brevoApiKey = process.env.BREVO_API_KEY?.trim();
+
+  // 1. Ưu tiên 1: Gửi qua Brevo API (Cho phép gửi tới MỌI EMAIL người nhận - Miễn phí 300 mail/ngày)
+  if (brevoApiKey) {
+    try {
+      const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: {
+          'api-key': brevoApiKey,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sender: { name: 'JoinTogether Network', email: process.env.SMTP_USER || 'noreply@jointogether.com' },
+          to: [{ email }],
+          subject: 'Xác thực tài khoản JoinTogether',
+          htmlContent: htmlContent,
+        }),
+      });
+      const resJson: any = await response.json();
+      if (response.ok) {
+        console.log(`✉️ [BREVO API SUCCESS] Đã gửi email tới ${email} (MessageID: ${resJson.messageId})`);
+        return;
+      } else {
+        console.error(`❌ [BREVO API REJECTED]:`, JSON.stringify(resJson));
+      }
+    } catch (err: any) {
+      console.error(`❌ [BREVO API ERROR]:`, err.message || err);
+    }
+  }
+
+  // 2. Ưu tiên 2: Gửi qua Resend HTTP API (Giới hạn tài khoản đăng ký)
   if (resendApiKey) {
     try {
       const response = await fetch('https://api.resend.com/emails', {
