@@ -131,9 +131,11 @@ export default function InterestsPage() {
           <div className="step-indicator">
             <div className="step-dot done">✓</div>
             <div className="step-line done" />
-            <div className="step-dot active">2</div>
+            <div className="step-dot done">✓</div>
+            <div className="step-line done" />
+            <div className="step-dot active">3</div>
           </div>
-          <h1>Hoàn thiện hồ sơ</h1>
+          <h1>Bước 3: Sở thích & Thiết lập</h1>
           <p className="subtitle">Chọn sở thích, mục tiêu và thời gian rảnh của bạn.</p>
         </div>
 
@@ -279,7 +281,12 @@ export default function InterestsPage() {
               </div>
               <div className="summary-item done">
                 <span className="summary-num">2</span>
-                <span>Sở thích & Mục tiêu</span>
+                <span>Thông tin cá nhân</span>
+                <span className="summary-check">✓</span>
+              </div>
+              <div className="summary-item done">
+                <span className="summary-num">3</span>
+                <span>Sở thích & Thiết lập</span>
                 <span className="summary-check">✓</span>
               </div>
             </div>
