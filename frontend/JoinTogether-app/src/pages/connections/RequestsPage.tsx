@@ -85,6 +85,27 @@ export default function RequestsPage() {
 
   return (
     <SidebarLayout title="Yêu cầu kết nối">
+      {/* Navigation Sub-Tabs cho phép chuyển đổi nhanh giữa Bạn bè, Yêu cầu kết nối, Tìm bạn lân cận */}
+      <div className="connection-nav-tabs" style={{ display: 'flex', gap: 8, marginBottom: 20, borderBottom: '1px solid #e0e0e0', paddingBottom: 10, overflowX: 'auto' }}>
+        <button
+          onClick={() => navigate('/connections')}
+          style={{ padding: '8px 16px', borderRadius: 20, border: '1px solid #e0e0e0', background: '#fff', color: '#555', fontWeight: 600, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}
+        >
+          👥 Bạn bè
+        </button>
+        <button
+          onClick={() => navigate('/requests')}
+          style={{ padding: '8px 16px', borderRadius: 20, border: 'none', background: '#2e7d32', color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}
+        >
+          📩 Yêu cầu kết nối ({received.length})
+        </button>
+        <button
+          onClick={() => navigate('/nearby')}
+          style={{ padding: '8px 16px', borderRadius: 20, border: '1px solid #e0e0e0', background: '#fff', color: '#555', fontWeight: 600, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}
+        >
+          📍 Tìm bạn lân cận
+        </button>
+      </div>
       <div
         style={{
           marginBottom: 16,

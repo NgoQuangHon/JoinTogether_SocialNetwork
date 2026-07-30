@@ -10,7 +10,7 @@ interface MainLayoutProps {
   pageTitle?: string;
 }
 
-export default function MainLayout({ children, pageTitle = 'JoinTogether' }: MainLayoutProps) {
+export default function MainLayout({ children, pageTitle: _pageTitle = 'JoinTogether' }: MainLayoutProps) {
   const { logout, nguoiDungId } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -74,19 +74,7 @@ export default function MainLayout({ children, pageTitle = 'JoinTogether' }: Mai
         </div>
       </aside>
 
-      {/* ================= MOBILE / TABLET TOP HEADER (< 1024px) ================= */}
-      <header className="mobile-header">
-        <button className="hamburger-btn" onClick={() => setDrawerOpen(true)} aria-label="Open menu">
-          ☰
-        </button>
-        <div className="mobile-brand" onClick={() => navigate('/dashboard')}>
-          <div className="brand-icon" style={{ width: 32, height: 32, fontSize: 14 }}>JT</div>
-          <span className="mobile-title">{pageTitle}</span>
-        </div>
-        <button className="icon-btn icon-btn-bell" onClick={() => navigate('/dashboard')}>
-          🔔<span className="bell-dot"></span>
-        </button>
-      </header>
+
 
       {/* ================= MOBILE DRAWER MENU OVERLAY ================= */}
       {drawerOpen && (

@@ -120,41 +120,33 @@
 
 /* ------------ BREAKPOINT FOR MOBILE & TABLET (< 1024px) ------------ */
 @media (max-width: 1023px) {
-  .desktop-sidebar {
-    display: none;
+  /* 1. ẨN TẤT CẢ SIDEBAR CỐ ĐỊNH TRÊN ĐIỆN THOẠI DE CHỐNG LỆCH TRANG */
+  .desktop-sidebar,
+  .sidebar,
+  .profile-page .sidebar,
+  .feed-sidebar {
+    display: none !important;
   }
 
-  .main-content-body {
-    margin-left: 0;
-    max-width: 100%;
-    padding: 16px 16px 80px;
+  /* 2. CĂN GIỮA VÀ ĐỘNG KHUNG CHỨA TOÀN BỘ CÁC TRANG TRÊN DI ĐỘNG */
+  .main-content-body,
+  .main-content,
+  .page-shell-container,
+  .dashboard-container,
+  .edit-profile-page,
+  .profile-container {
+    margin-left: 0 !important;
+    max-width: 100vw !important;
+    width: 100% !important;
+    padding: 14px 14px 80px !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden;
   }
 
-  .mobile-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    z-index: 90;
-    background: var(--surface, #fff);
-    border-bottom: 1px solid var(--border, #e4ece6);
-    padding: 10px 16px;
-    height: 56px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
-  }
-
-  .mobile-brand {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-  }
-
+  .mobile-header,
+  .mobile-brand,
   .mobile-title {
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--primary-800, #3d7d43);
+    display: none !important;
   }
 
   .hamburger-btn {
@@ -2587,4 +2579,141 @@
   margin-top: 6px;
   width: fit-content;
   box-shadow: 0 2px 6px rgba(216, 67, 21, 0.08);
+}
+
+/* =====================================================
+   HOÀN THIỆN TOÀN BỘ BỐ CỤC DI ĐỘNG (MOBILE RESPONSIVE)
+===================================================== */
+@media (max-width: 1023px) {
+  /* 1. Ẩn tất cả các Sidebar cố định của máy tính, Hamburger, Drawer & Banner AI trên điện thoại */
+  .desktop-sidebar,
+  .sidebar,
+  .profile-page .sidebar,
+  .feed-sidebar,
+  .hamburger-btn,
+  .drawer-overlay,
+  .drawer-panel,
+  .ai-banner,
+  .match-banner-card.ai-card,
+  .ai-card {
+    display: none !important;
+  }
+
+  /* 2. Reset hoàn toàn lề và kích thước khung chứa các trang */
+  .main-layout-container,
+  .main-content,
+  .main-content-body,
+  .content-body,
+  .page-shell-container,
+  .feed-layout,
+  .feed-main,
+  .dashboard-container,
+  .edit-profile-page,
+  .profile-container,
+  .my-activities-container,
+  .requests-container,
+  .connections-container,
+  .nearby-container {
+    margin: 0 !important;
+    margin-left: 0 !important;
+    padding: 12px 14px 80px 14px !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+  }
+
+  /* 3. Tối ưu Topbar & Header trang */
+  .topbar,
+  .page-top-bar {
+    padding: 10px 12px !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    position: static !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .topbar h1,
+  .page-main-title {
+    font-size: 18px !important;
+    text-align: center !important;
+    white-space: normal !important;
+  }
+
+  .topbar-search,
+  .page-search-input {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  .topbar-user {
+    justify-content: center !important;
+  }
+
+  /* 4. Tối ưu dạng lưới cho các bài viết, thẻ hoạt động & Form chọn */
+  .activities-grid,
+  .match-banners-container,
+  .interests-grid,
+  .goals-grid,
+  .day-grid,
+  .info-grid,
+  .statistic-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+    width: 100% !important;
+  }
+
+  /* 5. Tối ưu các thẻ bài viết (Feed Post Cards) */
+  .post-card,
+  .activity-card,
+  .composer-card,
+  .widget-card,
+  .match-banner-card,
+  .profile-card,
+  .edit-profile-card,
+  .user-card {
+    width: 100% !important;
+    padding: 14px 14px !important;
+    border-radius: 14px !important;
+    box-sizing: border-box !important;
+  }
+
+  .post-card img,
+  .activity-card img {
+    max-width: 100% !important;
+    height: auto !important;
+    border-radius: 10px !important;
+  }
+
+  /* 6. Tối ưu nút bấm chuẩn Touch trên điện thoại */
+  button,
+  .primary-btn,
+  .save-btn,
+  .auth-submit-btn,
+  .cam-btn-primary,
+  .cam-btn-outline {
+    min-height: 44px;
+    font-size: 14px !important;
+  }
+
+  /* 7. Tối ưu Modal Popup & Form chỉnh sửa */
+  .cam-modal,
+  .modal-content,
+  .auth-card {
+    width: 94vw !important;
+    max-width: 94vw !important;
+    padding: 16px 14px !important;
+    margin: 10px auto !important;
+    border-radius: 16px !important;
+    max-height: 85vh !important;
+    overflow-y: auto !important;
+    box-sizing: border-box !important;
+  }
+
+  .cam-row {
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
 }
