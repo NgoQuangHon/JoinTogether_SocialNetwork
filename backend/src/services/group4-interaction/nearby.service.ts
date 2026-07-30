@@ -30,8 +30,36 @@ export class NearbyService {
   // In-memory friend proposal agreements (key = roomId, value = Set of userIds who clicked agree)
   private friendProposals = new Map<number, Set<number>>();
 
+  // In-memory 5s cooldown map (key = nguoiDungId, value = timestamp expiry)
+  private cooldownUsers = new Map<number, number>();
+
+  setCooldown(userId: number, seconds: number = 5): void {
+    this.cooldownUsers.set(Number(userId), Date.now() + seconds * 1000);
+  }
+
+  isUserInCooldown(userId: number): boolean {
+    const expiry = this.cooldownUsers.get(Number(userId));
+    if (!expiry) return false;
+    if (expiry <= Date.now()) {
+      this.cooldownUsers.delete(Number(userId));
+      return false;
+    }
+    return true;
+  }
+
+  getCooldownRemainingSeconds(userId: number): number {
+    const expiry = this.cooldownUsers.get(Number(userId));
+    if (!expiry) return 0;
+    const remainingMs = expiry - Date.now();
+    return remainingMs > 0 ? Math.ceil(remainingMs / 1000) : 0;
+  }
+
   // Bắt đầu phiên quét - lưu vị trí người dùng
   async startScan(nguoiDungId: number, viDo: number, kinhDo: number, socketId: string): Promise<void> {
+    if (this.isUserInCooldown(nguoiDungId)) {
+      throw new Error(`Tài khoản đang trong thời gian chờ 5s sau khi hủy ghép.`);
+    }
+
     await pool.query(`
       INSERT INTO phien_quet_ban (nguoi_dung_id, vi_do, kinh_do, socket_id, het_han_luc)
       VALUES ($1, $2, $3, $4, NOW() + INTERVAL '10 minutes')
@@ -57,9 +85,17 @@ export class NearbyService {
     );
   }
 
-  // Tìm người phù hợp: trong 10km + có chung sở thích + không phải bạn bè rồi + không đang match
+  // Tìm người phù hợp: trong 10km + có chung sở thích + không phải bạn bè rồi + không đang match + không nằm trong cooldown 5s
   async findMatches(nguoiDungId: number, viDo: number, kinhDo: number, excludeIds: number[] = []): Promise<NearbyUser[]> {
-    const excludeList = [nguoiDungId, ...excludeIds];
+    const cooldownIds: number[] = [];
+    for (const [uid, expiry] of this.cooldownUsers.entries()) {
+      if (expiry > Date.now()) {
+        cooldownIds.push(uid);
+      } else {
+        this.cooldownUsers.delete(uid);
+      }
+    }
+    const excludeList = Array.from(new Set([Number(nguoiDungId), ...excludeIds.map(Number), ...cooldownIds]));
 
     const result = await pool.query(`
       WITH my_interests AS (

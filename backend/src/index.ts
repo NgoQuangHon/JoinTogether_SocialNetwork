@@ -75,6 +75,15 @@ async function start() {
       const { nguoiDungId, viDo, kinhDo } = data;
       if (!nguoiDungId || !viDo || !kinhDo) return;
 
+      const remaining = nearbyService.getCooldownRemainingSeconds(nguoiDungId);
+      if (remaining > 0) {
+        socket.emit("nearby_cooldown", {
+          message: `Vui lòng chờ ${remaining}s trước khi tìm kiếm lại.`,
+          cooldownSeconds: remaining,
+        });
+        return;
+      }
+
       try {
         await nearbyService.startScan(nguoiDungId, viDo, kinhDo, socket.id);
         socket.emit("nearby_scan_active", { message: "Đang tìm kiếm bạn phù hợp trong khu vực..." });
@@ -207,12 +216,36 @@ async function start() {
     });
 
     // Client từ chối kết nối ở màn hình 30s
-    socket.on("nearby_match_decline", (data: { matchId: string; nguoiDungId: number }) => {
+    socket.on("nearby_match_decline", async (data: { matchId: string; nguoiDungId: number }) => {
       const session = nearbyService.getMatchSession(data.matchId);
       if (!session) return;
+
+      const declinerId = Number(data.nguoiDungId);
+      const declinerSocketId = socket.id;
+      const otherSocketId = socket.id === session.socketAId ? session.socketBId : session.socketAId;
+      const otherUserId = declinerId === Number(session.userAId) ? session.userBId : session.userAId;
+
+      // 1. Dừng quét & Khóa 5s cho người từ chối (A)
+      await nearbyService.stopScan(declinerId);
+      nearbyService.setCooldown(declinerId, 5);
+
+      // 2. Xóa phiên match
       nearbyService.clearMatchSession(data.matchId);
-      io.to(session.socketAId).emit("nearby_match_cancelled", { reason: "declined" });
-      io.to(session.socketBId).emit("nearby_match_cancelled", { reason: "declined" });
+
+      // 3. Gửi thông báo đến người từ chối A (Dừng quét + Cooldown 5s)
+      io.to(declinerSocketId).emit("nearby_match_declined_by_self", {
+        cooldownSeconds: 5,
+        message: "Bạn đã từ chối ghép nối. Hệ thống đã dừng tìm kiếm và khóa 5 giây."
+      });
+
+      // 4. Gửi thông báo tức thì đến người bị từ chối B (Báo đối phương hủy + B tiếp tục quét ngay)
+      if (otherSocketId) {
+        io.to(otherSocketId).emit("nearby_other_declined", {
+          message: "⚠️ Người ghép nối đã hủy/từ chối ghép! Hệ thống đang tiếp tục tìm người khác cho bạn...",
+          declinerId,
+          otherUserId
+        });
+      }
     });
 
     // ================= CHAT FRIEND PROPOSAL EVENTS =================

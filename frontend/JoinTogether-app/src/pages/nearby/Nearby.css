@@ -419,3 +419,28 @@
   color: #e65100;
   margin-top: 12px;
 }
+
+/* TOAST NOTIFICATION */
+.nearby-toast-banner {
+  animation: slideDownToast 0.3s ease-out forwards;
+  background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+  border: 1.5px solid #ffb74d;
+  color: #d84315;
+  box-shadow: 0 4px 16px rgba(216, 67, 21, 0.15);
+  border-radius: 14px;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 700;
+  max-width: 440px;
+  margin: 0 auto 16px auto;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+@keyframes slideDownToast {
+  from { opacity: 0; transform: translateY(-12px); }
+  to { opacity: 1; transform: translateY(0); }
+}

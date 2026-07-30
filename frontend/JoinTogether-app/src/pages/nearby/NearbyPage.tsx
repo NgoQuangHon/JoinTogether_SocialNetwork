@@ -39,12 +39,28 @@ export default function NearbyPage() {
   const [countdown, setCountdown] = useState(TIMER_SECONDS);
   const [soThich, setSoThich] = useState<string[]>([]);
   const [locationError, setLocationError] = useState('');
+  const [noticeMsg, setNoticeMsg] = useState('');
+  const [cooldownSeconds, setCooldownSeconds] = useState(0);
   const [accepted, setAccepted] = useState(false);
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
 
   const socketRef = useRef<Socket | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const posRef = useRef<{ lat: number; lng: number } | null>(null);
+  const nguoiDungIdRef = useRef(nguoiDungId);
+
+  useEffect(() => {
+    nguoiDungIdRef.current = nguoiDungId;
+  }, [nguoiDungId]);
+
+  // Đếm ngược Cooldown 5s cho người từ chối
+  useEffect(() => {
+    if (cooldownSeconds <= 0) return;
+    const timer = setInterval(() => {
+      setCooldownSeconds((prev) => Math.max(0, prev - 1));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [cooldownSeconds]);
 
   // Lấy sở thích người dùng
   useEffect(() => {
@@ -68,6 +84,13 @@ export default function NearbyPage() {
         () => {},
         { enableHighAccuracy: true, timeout: 10000 }
       );
+    }
+  }, []);
+
+  const stopCountdown = useCallback(() => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
     }
   }, []);
 
@@ -100,20 +123,59 @@ export default function NearbyPage() {
       setScanState('waiting_other');
     });
 
-    socket.on('nearby_match_cancelled', () => {
+    // NGƯỜI CHỦ ĐỘNG TỪ CHỐI (A) -> Dừng tìm kiếm & Khóa 5s
+    socket.on('nearby_match_declined_by_self', (data: { cooldownSeconds?: number }) => {
+      stopCountdown();
+      setMatchData(null);
+      setAccepted(false);
+      setScanState('idle');
+      setCooldownSeconds(data.cooldownSeconds || 5);
+    });
+
+    // BÊN CÒN LẠI BỊ TỪ CHỐI (B) -> Báo đối phương hủy & B tiếp tục tìm người khác ngay lập tức
+    socket.on('nearby_other_declined', (data: { message?: string }) => {
       stopCountdown();
       setMatchData(null);
       setAccepted(false);
       setScanState('scanning');
-      setTimeout(() => retrySearch(), 3000);
+      setNoticeMsg(data.message || '⚠️ Người ghép nối đã hủy/từ chối ghép! Hệ thống đang tiếp tục tìm người khác cho bạn...');
+      setTimeout(() => setNoticeMsg(''), 7000);
+
+      // Kích hoạt ngay lệnh tìm kiếm lại cho bên B
+      if (posRef.current && socketRef.current && nguoiDungIdRef.current) {
+        socketRef.current.emit('nearby_scan_start', {
+          nguoiDungId: Number(nguoiDungIdRef.current),
+          viDo: posRef.current.lat,
+          kinhDo: posRef.current.lng,
+        });
+      }
+    });
+
+    socket.on('nearby_cooldown', (data: { cooldownSeconds?: number; message?: string }) => {
+      stopCountdown();
+      setMatchData(null);
+      setScanState('idle');
+      setCooldownSeconds(data.cooldownSeconds || 5);
+      setLocationError(data.message || 'Vui lòng chờ 5s trước khi tìm lại.');
+    });
+
+    socket.on('nearby_match_cancelled', () => {
+      stopCountdown();
+      setMatchData(null);
+      setAccepted(false);
+      setScanState('idle');
     });
 
     socket.on('nearby_scan_stopped', () => {
+      stopCountdown();
+      setMatchData(null);
       setScanState('idle');
     });
 
     socket.on('nearby_error', (data: { message: string }) => {
       console.error('Nearby error:', data.message);
+      stopCountdown();
+      setMatchData(null);
       setScanState('idle');
     });
 
@@ -121,14 +183,7 @@ export default function NearbyPage() {
       socket.disconnect();
       stopCountdown();
     };
-  }, [navigate]);
-
-  const stopCountdown = useCallback(() => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
-  }, []);
+  }, [navigate, stopCountdown]);
 
   const startCountdown = useCallback(() => {
     stopCountdown();
@@ -145,13 +200,13 @@ export default function NearbyPage() {
   }, [stopCountdown]);
 
   const retrySearch = useCallback(() => {
-    if (!posRef.current || !nguoiDungId) return;
+    if (!posRef.current || !nguoiDungId || scanState === 'idle' || cooldownSeconds > 0) return;
     socketRef.current?.emit('nearby_scan_start', {
       nguoiDungId: Number(nguoiDungId),
       viDo: posRef.current.lat,
       kinhDo: posRef.current.lng,
     });
-  }, [nguoiDungId]);
+  }, [nguoiDungId, scanState, cooldownSeconds]);
 
   // Tự động quét tìm định kỳ mỗi 4s khi đang bật radar scanning
   useEffect(() => {
@@ -292,10 +347,12 @@ export default function NearbyPage() {
             )}
             <button
               className={`radar-center-btn ${scanState === 'scanning' ? 'scanning' : ''}`}
-              onClick={scanState === 'idle' ? handleStartScan : handleStopScan}
+              disabled={cooldownSeconds > 0}
+              onClick={cooldownSeconds > 0 ? undefined : (scanState === 'idle' ? handleStartScan : handleStopScan)}
+              style={cooldownSeconds > 0 ? { opacity: 0.6, cursor: 'not-allowed' } : {}}
             >
-              <span className="btn-icon">{scanState === 'scanning' ? '⏹' : '🔍'}</span>
-              <span className="btn-label">{scanState === 'scanning' ? 'Dừng' : 'Tìm bạn'}</span>
+              <span className="btn-icon">{cooldownSeconds > 0 ? '⏳' : scanState === 'scanning' ? '⏹' : '🔍'}</span>
+              <span className="btn-label">{cooldownSeconds > 0 ? `Chờ (${cooldownSeconds}s)` : scanState === 'scanning' ? 'Dừng' : 'Tìm bạn'}</span>
             </button>
           </div>
 
@@ -304,6 +361,13 @@ export default function NearbyPage() {
             <div className="scan-status-chip">
               <div className="dot" />
               Đang quét trong bán kính {RADIUS_KM}km...
+            </div>
+          )}
+
+          {/* Notice Banner */}
+          {noticeMsg && (
+            <div className="nearby-toast-banner">
+              {noticeMsg}
             </div>
           )}
 
