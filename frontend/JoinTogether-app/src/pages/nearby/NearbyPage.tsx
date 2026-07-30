@@ -216,17 +216,18 @@ export default function NearbyPage() {
     });
   };
 
-  // Từ chối
+  // Từ chối (Bỏ qua) - Dừng ghép bạn hoàn toàn
   const handleDecline = () => {
     if (!matchData) return;
     socketRef.current?.emit('nearby_match_decline', {
       matchId: matchData.matchId,
       nguoiDungId: Number(nguoiDungId),
     });
+    socketRef.current?.emit('nearby_scan_stop', { nguoiDungId: Number(nguoiDungId) });
     stopCountdown();
     setMatchData(null);
-    setScanState('scanning');
-    setTimeout(() => retrySearch(), 2000);
+    setAccepted(false);
+    setScanState('idle');
   };
 
   // Countdown ring calculation
