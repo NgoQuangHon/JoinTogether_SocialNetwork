@@ -4,7 +4,7 @@ import { DanhMucHoatDongRepository } from "../../repositories/group3-activity/da
 import { DiaDiemRepository } from "../../repositories/group3-activity/diaDiem.repository";
 import { HinhAnhHoatDongRepository } from "../../repositories/group3-activity/hinhAnhHoatDong.repository";
 import { TieuChiThamGiaRepository } from "../../repositories/group3-activity/tieuChiThamGia.repository";
-import { HoatDongModel } from "../../models/group3-activity/hoatDong.model";
+import { HoatDongModel, HoatDong } from "../../models/group3-activity/hoatDong.model";
 import { DanhMucHoatDongModel } from "../../models/group3-activity/danhMucHoatDong.model";
 import { DiaDiemModel } from "../../models/group3-activity/diaDiem.model";
 import { HinhAnhHoatDongModel } from "../../models/group3-activity/hinhAnhHoatDong.model";
@@ -247,9 +247,6 @@ export class ActivityService {
       if (isNaN(batDau.getTime())) {
         throw new BadRequestError("Thời gian bắt đầu không hợp lệ.");
       }
-      if (batDau <= new Date()) {
-        throw new BadRequestError("Thời gian bắt đầu phải ở tương lai.");
-      }
     }
     if (data.thoiGianKetThuc) {
       const ketThuc = new Date(data.thoiGianKetThuc);
@@ -262,15 +259,48 @@ export class ActivityService {
       }
     }
 
-    const { tenHoatDong, moTa, danhMucHoatDongId, diaDiemId, thoiGianBatDau, thoiGianKetThuc } = data;
-    const updated = await this.hoatDongRepo.update(id, {
-      tenHoatDong,
-      moTa,
-      danhMucHoatDongId,
-      diaDiemId,
-      thoiGianBatDau: thoiGianBatDau ? new Date(thoiGianBatDau) : existing.thoiGianBatDau,
-      thoiGianKetThuc: thoiGianKetThuc ? new Date(thoiGianKetThuc) : existing.thoiGianKetThuc,
-    });
+    let diaDiemId = data.diaDiemId || existing.diaDiemId;
+    if (data.tenDiaDiem || data.diaChi || data.hinhThuc) {
+      if (diaDiemId) {
+        await this.diaDiemRepo.update(diaDiemId, {
+          tenDiaDiem: data.tenDiaDiem,
+          diaChi: data.diaChi,
+          hinhThuc: data.hinhThuc,
+        });
+      } else {
+        const newLocation = await this.diaDiemRepo.create({
+          tenDiaDiem: data.tenDiaDiem || null,
+          diaChi: data.diaChi || null,
+          hinhThuc: data.hinhThuc || "offline",
+        });
+        diaDiemId = newLocation.diaDiemId;
+      }
+    }
+
+    const updatePayload: Partial<HoatDong> = {};
+    if (data.tenHoatDong !== undefined) updatePayload.tenHoatDong = data.tenHoatDong;
+    if (data.moTa !== undefined) updatePayload.moTa = data.moTa;
+    if (data.danhMucHoatDongId !== undefined) updatePayload.danhMucHoatDongId = Number(data.danhMucHoatDongId);
+    if (diaDiemId !== undefined) updatePayload.diaDiemId = diaDiemId;
+    if (data.thoiGianBatDau) updatePayload.thoiGianBatDau = new Date(data.thoiGianBatDau);
+    if (data.thoiGianKetThuc) updatePayload.thoiGianKetThuc = new Date(data.thoiGianKetThuc);
+    if (data.soLuongToiDa !== undefined && data.soLuongToiDa !== null && data.soLuongToiDa !== '') updatePayload.soLuongToiDa = Number(data.soLuongToiDa);
+    if (data.doTuoiTu !== undefined && data.doTuoiTu !== null && data.doTuoiTu !== '') updatePayload.doTuoiTu = Number(data.doTuoiTu);
+    if (data.doTuoiDen !== undefined && data.doTuoiDen !== null && data.doTuoiDen !== '') updatePayload.doTuoiDen = Number(data.doTuoiDen);
+    if (data.gioiTinhPhuHop !== undefined) updatePayload.gioiTinhPhuHop = data.gioiTinhPhuHop;
+    if (data.mucDoKinhNghiem !== undefined) updatePayload.mucDoKinhNghiem = data.mucDoKinhNghiem;
+    if (data.yeuCauKhac !== undefined) updatePayload.yeuCauKhac = data.yeuCauKhac;
+    if (data.noiQuyChung !== undefined) updatePayload.noiQuyChung = data.noiQuyChung;
+    if (data.luuYDatBiet !== undefined) updatePayload.luuYDatBiet = data.luuYDatBiet;
+    if (data.doDungCanMang !== undefined) updatePayload.doDungCanMang = data.doDungCanMang;
+    if (data.hanDangKy) updatePayload.hanDangKy = new Date(data.hanDangKy);
+
+    const updated = await this.hoatDongRepo.update(id, updatePayload);
+
+    if (data.thumbnail) {
+      await pool.query(`UPDATE hinh_anh_hoat_dong SET la_anh_dai_dien = false WHERE hoat_dong_id = $1`, [id]);
+      await this.hinhAnhRepo.create({ hoatDongId: id, duongDan: data.thumbnail, laAnhDaiDien: true });
+    }
 
     return updated;
   }
