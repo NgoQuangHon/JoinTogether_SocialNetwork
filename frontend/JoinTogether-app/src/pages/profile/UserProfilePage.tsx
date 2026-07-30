@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { getProfile } from '../../services/profile.service';
-import { getConnectionStatusApi, sendConnectionRequestApi, respondToRequestApi, blockUserApi, unblockUserApi, checkFollowingApi, followUserApi, unfollowUserApi, checkBlockedApi } from '../../services/connection.service';
+import { getConnectionStatusApi, sendConnectionRequestApi, respondToRequestApi, blockUserApi, unblockUserApi, checkBlockedApi } from '../../services/connection.service';
 import type { HoSoNguoiDung } from '../../types/profile';
 import type { ConnectionStatus } from '../../types/connection';
 import SidebarLayout from '../../components/SidebarLayout';
@@ -19,7 +19,6 @@ export default function UserProfilePage() {
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [loiNhan, setLoiNhan] = useState('');
   const [sending, setSending] = useState(false);
-  const [isFollowing, setIsFollowing] = useState(false);
   const [isBlocked, setIsBlocked] = useState(false);
   const targetUserId = parseInt(id || '0', 10);
 
@@ -37,10 +36,9 @@ export default function UserProfilePage() {
     Promise.all([
       getProfile(targetUserId),
       getConnectionStatusApi(targetUserId),
-      checkFollowingApi(targetUserId),
       checkBlockedApi(targetUserId),
     ])
-      .then(([profileRes, statusRes, followRes, blockRes]) => {
+      .then(([profileRes, statusRes, blockRes]) => {
         if (profileRes.success && profileRes.data) {
           setProfile(profileRes.data);
         } else {
@@ -48,9 +46,6 @@ export default function UserProfilePage() {
         }
         if (statusRes.success && statusRes.data) {
           setConnStatus(statusRes.data);
-        }
-        if (followRes.success && followRes.data) {
-          setIsFollowing(followRes.data.isFollowing);
         }
         if (blockRes.success && blockRes.data) {
           setIsBlocked(blockRes.data.blocked);
@@ -92,18 +87,6 @@ export default function UserProfilePage() {
     } catch (err: any) {
       alert(err?.response?.data?.message || 'Lỗi xử lý yêu cầu.');
     }
-  };
-
-  const handleToggleFollow = async () => {
-    try {
-      if (isFollowing) {
-        await unfollowUserApi(targetUserId);
-        setIsFollowing(false);
-      } else {
-        await followUserApi(targetUserId);
-        setIsFollowing(true);
-      }
-    } catch {}
   };
 
   const handleToggleBlock = async () => {
@@ -159,11 +142,35 @@ export default function UserProfilePage() {
               <span className="verified">✓ Tài khoản xác thực</span>
             ) : (
               <span className="unverified-warning">
-                ⚠️ Tài khoản chưa xác thực, người dùng này có thể là ảo
+                ⚠️ Tài khoản chưa xác thực
               </span>
             )}
-            {profile.tieuSu && <p className="about" style={{ marginTop: 8 }}>{profile.tieuSu}</p>}
-            {profile.khuVuc && <p style={{ fontSize: 13, color: '#607d8b', marginTop: 4 }}>📍 {profile.khuVuc}</p>}
+            
+            {/* Tự giới thiệu / Tiểu sử */}
+            <div style={{ marginTop: 12, padding: '12px 16px', background: '#f5f7fa', borderRadius: 10 }}>
+              <strong style={{ fontSize: 13, color: '#37474f', display: 'block', marginBottom: 4 }}>📝 Tự giới thiệu bản thân</strong>
+              <p style={{ margin: 0, fontSize: 14, color: '#263238', lineHeight: 1.5 }}>
+                {profile.tieuSu || 'Người dùng chưa cập nhật tiểu sử giới thiệu bản thân.'}
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Thông tin cá nhân chi tiết */}
+        <section className="profile-card" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16 }}>
+          <div>
+            <span style={{ fontSize: 12, color: '#78909c', display: 'block' }}>🎂 Tuổi</span>
+            <strong style={{ fontSize: 14, color: '#263238' }}>{profile.tuoi ? `${profile.tuoi} tuổi` : 'Chưa cập nhật'}</strong>
+          </div>
+          <div>
+            <span style={{ fontSize: 12, color: '#78909c', display: 'block' }}>👤 Giới tính</span>
+            <strong style={{ fontSize: 14, color: '#263238' }}>
+              {profile.gioiTinh === 'nam' ? 'Nam' : profile.gioiTinh === 'nu' ? 'Nữ' : profile.gioiTinh || 'Chưa cập nhật'}
+            </strong>
+          </div>
+          <div>
+            <span style={{ fontSize: 12, color: '#78909c', display: 'block' }}>📍 Khu vực</span>
+            <strong style={{ fontSize: 14, color: '#263238' }}>{profile.khuVuc || 'Chưa cập nhật'}</strong>
           </div>
         </section>
 
@@ -171,7 +178,7 @@ export default function UserProfilePage() {
         <section className="profile-card" style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           {connStatus?.status === 'NONE' || !connStatus ? (
             <button className="edit-button" onClick={() => setShowRequestModal(true)}>
-              Gửi yêu cầu kết nối
+              + Gửi yêu cầu kết nối
             </button>
           ) : connStatus.status === 'PENDING_SENT' ? (
             <span style={{ padding: '8px 16px', background: '#fff8e1', borderRadius: 8, fontSize: 13, color: '#f57f17' }}>
@@ -188,10 +195,6 @@ export default function UserProfilePage() {
             </span>
           )}
 
-          <button className="edit-button" style={{ background: isFollowing ? '#f5f5f5' : '#e3f2fd', color: isFollowing ? '#333' : '#1565c0' }} onClick={handleToggleFollow}>
-            {isFollowing ? 'Bỏ theo dõi' : 'Theo dõi'}
-          </button>
-
           <button className="edit-button" style={{ background: '#fce4ec', color: '#c62828' }} onClick={handleToggleBlock}>
             {isBlocked ? 'Bỏ chặn' : 'Chặn'}
           </button>
@@ -200,7 +203,7 @@ export default function UserProfilePage() {
         {/* Interests */}
         {soThich.length > 0 && (
           <section className="profile-card">
-            <h2>Sở thích</h2>
+            <h2>🌱 Sở thích ({soThich.length})</h2>
             <div className="tags">
               {soThich.map((st) => <span key={st.soThichId}>🌱 {st.tenSoThich}</span>)}
             </div>

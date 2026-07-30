@@ -235,16 +235,19 @@ export default function ChatPage() {
             borderRight: '1px solid var(--border, #e4ece6)',
             display: 'flex',
             flexDirection: 'column',
+            height: '100%',
+            maxHeight: '100%',
+            overflow: 'hidden',
             background: '#fafbfc',
           }}
         >
-          <div style={{ padding: '16px 18px', borderBottom: '1px solid var(--border, #e4ece6)' }}>
+          <div style={{ padding: '16px 18px', borderBottom: '1px solid var(--border, #e4ece6)', flexShrink: 0 }}>
             <h3 style={{ margin: 0, fontSize: 15, color: 'var(--primary-800, #3d7d43)' }}>
               💬 Danh sách trò chuyện ({rooms.length})
             </h3>
           </div>
 
-          <div style={{ flex: 1, overflowY: 'auto', padding: '8px' }}>
+          <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '8px' }}>
             {loadingRooms ? (
               <div style={{ textAlign: 'center', color: '#90a4ae', padding: 20, fontSize: 13 }}>Đang tải danh sách phòng...</div>
             ) : rooms.length === 0 ? (
@@ -293,6 +296,8 @@ export default function ChatPage() {
             display: 'flex',
             flexDirection: 'column',
             height: '100%',
+            maxHeight: '100%',
+            overflow: 'hidden',
             background: '#ffffff',
           }}
         >
@@ -307,6 +312,7 @@ export default function ChatPage() {
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   background: '#ffffff',
+                  flexShrink: 0,
                 }}
               >
                 <div>
@@ -324,9 +330,9 @@ export default function ChatPage() {
                 </div>
               </div>
 
-              {/* SLIDING PROPOSAL BANNER (ĐỀ XUẤT KẾT BẠN TRƯỢT XUỐNG - LƯU TRẠNG THÁI VĨNH VIỄN KHÔNG MẤT KHI RELOAD) */}
+              {/* SLIDING PROPOSAL BANNER */}
               {activeRoom.loaiPhong === 'RIENG_TU' && !activeRoom.isFriend && !isClosed && (
-                <div className="friend-proposal-banner">
+                <div className="friend-proposal-banner" style={{ flexShrink: 0 }}>
                   <div className="proposal-content">
                     <span className="proposal-icon">🤝</span>
                     <div className="proposal-text">
@@ -355,7 +361,7 @@ export default function ChatPage() {
 
               {/* SUCCESS BANNER WHEN BOTH AGREE */}
               {showSuccessBanner && (
-                <div style={{ background: '#e8f5e9', borderBottom: '1.5px solid #a5d6a7', padding: '12px 20px', color: '#2e7d32', fontSize: 13, fontWeight: 700, textAlign: 'center' }}>
+                <div style={{ background: '#e8f5e9', borderBottom: '1.5px solid #a5d6a7', padding: '12px 20px', color: '#2e7d32', fontSize: 13, fontWeight: 700, textAlign: 'center', flexShrink: 0 }}>
                   🎉 Cả hai đã đồng ý! Bạn và {activeRoom.tenPhong} đã chính thức trở thành bạn bè và có thể trò chuyện vĩnh viễn!
                 </div>
               )}
@@ -373,6 +379,7 @@ export default function ChatPage() {
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     borderBottom: '1px solid #ffcdd2',
+                    flexShrink: 0,
                   }}
                 >
                   <span>⚠️ {errorMsg}</span>
@@ -389,6 +396,7 @@ export default function ChatPage() {
               <div
                 style={{
                   flex: 1,
+                  minHeight: 0,
                   padding: '20px 24px',
                   overflowY: 'auto',
                   display: 'flex',
@@ -455,6 +463,7 @@ export default function ChatPage() {
                   padding: '16px 24px',
                   borderTop: '1px solid var(--border, #e4ece6)',
                   background: '#ffffff',
+                  flexShrink: 0,
                 }}
               >
                 {isClosed ? (

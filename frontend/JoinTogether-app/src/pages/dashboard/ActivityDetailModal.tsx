@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { HoatDongResponse } from '../../types/activity';
 import { cancelActivityApi, joinActivityApi, leaveActivityApi } from '../../services/activity.service';
 import { getReviewsByActivityApi } from '../../services/review.service';
@@ -43,6 +44,7 @@ export default function ActivityDetailModal({
   currentUserId?: number | null;
   onDataChanged?: () => void;
 }) {
+  const navigate = useNavigate();
   const [showEdit, setShowEdit] = useState(false);
   const [showCriteria, setShowCriteria] = useState(false);
   const [showChat, setShowChat] = useState(false);
@@ -201,7 +203,11 @@ export default function ActivityDetailModal({
           </div>
 
           {/* Yêu cầu 3: Hiện người tạo hoạt động */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 8, marginBottom: 12, padding: '8px 12px', background: '#f5f7fa', borderRadius: 8 }}>
+          <div
+            style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 8, marginBottom: 12, padding: '8px 12px', background: '#f5f7fa', borderRadius: 8, cursor: 'pointer' }}
+            onClick={() => navigate(`/profile/${activity.nguoiToChucId}`)}
+            title={`Xem hồ sơ của ${activity.nguoiToChuc || 'Người tạo'}`}
+          >
             <img
               src={activity.anhDaiDienNguoiToChuc || `https://i.pravatar.cc/100?u=${activity.nguoiToChucId}`}
               alt={activity.nguoiToChuc || 'Người tạo'}
@@ -209,7 +215,7 @@ export default function ActivityDetailModal({
             />
             <div>
               <span style={{ fontSize: 11, color: '#78909c', display: 'block' }}>Người tạo hoạt động</span>
-              <strong style={{ fontSize: 13, color: '#263238' }}>{activity.nguoiToChuc || 'Ẩn danh'}</strong>
+              <strong style={{ fontSize: 13, color: '#1b5e20' }}>{activity.nguoiToChuc || 'Ẩn danh'}</strong>
             </div>
           </div>
 
@@ -326,13 +332,17 @@ export default function ActivityDetailModal({
                 {reviewsList.map((r) => (
                   <div key={r.danhGiaId} style={{ background: '#fafafa', border: '1px solid #eeeeee', borderRadius: 8, padding: 10 }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div
+                        style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}
+                        onClick={() => navigate(`/profile/${r.nguoiDanhGiaId}`)}
+                        title={`Xem hồ sơ của ${r.nguoiDanhGia || 'Thành viên'}`}
+                      >
                         <img
                           src={r.anhDaiDienNguoiDanhGia || `https://i.pravatar.cc/100?u=${r.nguoiDanhGiaId}`}
                           alt={r.nguoiDanhGia || 'User'}
                           style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover' }}
                         />
-                        <span style={{ fontWeight: 600, fontSize: 13 }}>{r.nguoiDanhGia || 'Thành viên'}</span>
+                        <span style={{ fontWeight: 600, fontSize: 13, color: '#1b5e20' }}>{r.nguoiDanhGia || 'Thành viên'}</span>
                         {r.loaiDanhGia === 'HOAT_DONG' ? (
                           <span style={{ background: '#e3f2fd', color: '#1976d2', padding: '1px 6px', borderRadius: 4, fontSize: 10, fontWeight: 600 }}>Đánh giá Hoạt động</span>
                         ) : (

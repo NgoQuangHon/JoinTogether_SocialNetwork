@@ -714,15 +714,24 @@ export default function DashboardPage() {
               <div className="suggestions-list" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {suggestions.map((u) => (
                   <div key={u.nguoiDungId} className="companion-card" style={{ flexDirection: 'row', textAlign: 'left', padding: '12px 14px' }}>
-                    <Avatar mau="#66c2b2" chu={u.hoTen ? u.hoTen.charAt(0).toUpperCase() : 'U'} kichThuoc={40} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div className="companion-name">{u.hoTen}</div>
-                      <div className="companion-interest">{u.soThich ? u.soThich.join(', ') : u.khuVuc || 'Cộng đồng'}</div>
+                    <div
+                      style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0, cursor: 'pointer' }}
+                      onClick={() => navigate(`/profile/${u.nguoiDungId}`)}
+                      title={`Xem hồ sơ của ${u.hoTen}`}
+                    >
+                      <Avatar mau="#66c2b2" chu={u.hoTen ? u.hoTen.charAt(0).toUpperCase() : 'U'} kichThuoc={40} />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div className="companion-name" style={{ color: '#1b5e20', fontWeight: 600 }}>{u.hoTen}</div>
+                        <div className="companion-interest">{u.soThich ? u.soThich.join(', ') : u.khuVuc || 'Cộng đồng'}</div>
+                      </div>
                     </div>
                     <button
                       className="btn-follow"
                       style={requestedUserIds.has(u.nguoiDungId) ? { background: '#e8f5e9', color: '#2e7d32', border: '1px solid #a5d6a7', cursor: 'default' } : {}}
-                      onClick={() => handleSendConnect(u.nguoiDungId)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSendConnect(u.nguoiDungId);
+                      }}
                       disabled={requestedUserIds.has(u.nguoiDungId)}
                     >
                       {requestedUserIds.has(u.nguoiDungId) ? '✓ Đã gửi' : '+ Kết nối'}

@@ -114,6 +114,7 @@ export default function ActivityChatModal({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
+            flexShrink: 0,
           }}
         >
           <div>
@@ -146,6 +147,7 @@ export default function ActivityChatModal({
               alignItems: 'center',
               justifyContent: 'space-between',
               borderBottom: '1px solid #ffcdd2',
+              flexShrink: 0,
             }}
           >
             <span>⚠️ {errorMsg}</span>
@@ -163,6 +165,7 @@ export default function ActivityChatModal({
           className="chat-messages-body"
           style={{
             flex: 1,
+            minHeight: 0,
             padding: '16px 20px',
             overflowY: 'auto',
             display: 'flex',
@@ -228,6 +231,7 @@ export default function ActivityChatModal({
             display: 'flex',
             gap: 10,
             alignItems: 'center',
+            flexShrink: 0,
           }}
         >
           <input
