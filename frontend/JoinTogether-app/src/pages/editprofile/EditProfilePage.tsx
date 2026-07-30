@@ -37,6 +37,7 @@ const TIME_OPTIONS = [
   { value: 'chieu', label: 'Buổi chiều (12h-18h)' },
   { value: 'toi', label: 'Buổi tối (18h-22h)' },
   { value: 'dem', label: 'Đêm khuya (22h-6h)' },
+  { value: 'khac', label: 'Khung giờ khác' },
 ];
 
 const RADIUS_OPTIONS = [
@@ -71,12 +72,19 @@ export default function EditProfilePage() {
   const [thoiGianRanh, setThoiGianRanh] = useState('');
   const [avatar, setAvatar] = useState('');
 
-  // Interests state
+  // Interests state & Custom options state
   const [categories, setCategories] = useState<InterestCategory[]>([]);
   const [selectedInterests, setSelectedInterests] = useState<Set<number>>(new Set());
+  const [customInterests, setCustomInterests] = useState<string[]>([]);
+  const [newCustomInterest, setNewCustomInterest] = useState('');
+
   const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
+  const [customGoal, setCustomGoal] = useState('');
+
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
   const [selectedTimes, setSelectedTimes] = useState<string[]>([]);
+  const [customTime, setCustomTime] = useState('');
+
   const [radius, setRadius] = useState<number>(25);
 
   const initialValues = useRef('');
@@ -122,7 +130,7 @@ export default function EditProfilePage() {
   };
 
   const getCurrentValues = () =>
-    JSON.stringify({ hoTen, email, soDienThoai, tieuSu, ngaySinh, khuVuc, gioiTinh, mucTieuThamGia, thoiGianRanh, avatar });
+    JSON.stringify({ hoTen, email, soDienThoai, tieuSu, ngaySinh, khuVuc, gioiTinh, mucTieuThamGia, thoiGianRanh, avatar, selectedInterests: Array.from(selectedInterests), customInterests, selectedGoals, customGoal, selectedDays, selectedTimes, customTime });
 
   useEffect(() => {
     Promise.all([
@@ -144,6 +152,62 @@ export default function EditProfilePage() {
           setMucTieuThamGia(p.mucTieuThamGia || '');
           setThoiGianRanh(p.thoiGianRanh || '');
           if (p.anhDaiDien) setAvatar(p.anhDaiDien);
+
+          // 1. Giữ nguyên danh sách Sở thích đã chọn từ trước
+          if (p.soThich && Array.isArray(p.soThich)) {
+            const existingIds = p.soThich.map((s: any) => s.soThichId).filter(Boolean);
+            setSelectedInterests(new Set(existingIds));
+          }
+
+          // 2. Giữ nguyên Mục tiêu tham gia
+          if (p.mucTieuThamGia) {
+            const goalValues: string[] = [];
+            let customGoalStr = '';
+            const goalParts = p.mucTieuThamGia.split(',').map((s: string) => s.trim()).filter(Boolean);
+            for (const part of goalParts) {
+              const matched = GOAL_OPTIONS.find((o) => o.label.toLowerCase() === part.toLowerCase() || o.value === part);
+              if (matched && matched.value !== 'khac') {
+                goalValues.push(matched.value);
+              } else {
+                customGoalStr = customGoalStr ? `${customGoalStr}, ${part}` : part;
+              }
+            }
+            if (customGoalStr) {
+              goalValues.push('khac');
+              setCustomGoal(customGoalStr);
+            }
+            setSelectedGoals(goalValues);
+          }
+
+          // 3. Giữ nguyên Thời gian rảnh
+          if (p.thoiGianRanh) {
+            const days: string[] = [];
+            const times: string[] = [];
+            let customTimeStr = p.thoiGianRanh;
+
+            DAY_OPTIONS.forEach((d) => {
+              if (p.thoiGianRanh?.includes(d.label)) {
+                days.push(d.value);
+                customTimeStr = customTimeStr.replace(d.label, '');
+              }
+            });
+
+            TIME_OPTIONS.forEach((t) => {
+              if (t.value !== 'khac' && p.thoiGianRanh?.includes(t.label)) {
+                times.push(t.value);
+                customTimeStr = customTimeStr.replace(t.label, '');
+              }
+            });
+
+            customTimeStr = customTimeStr.replace(/[(),]/g, '').trim();
+            if (customTimeStr.length > 0) {
+              times.push('khac');
+              setCustomTime(customTimeStr);
+            }
+
+            setSelectedDays(days);
+            setSelectedTimes(times);
+          }
         }
 
         if (catRes.success && catRes.data) {
@@ -178,6 +242,19 @@ export default function EditProfilePage() {
     });
   };
 
+  const handleAddCustomInterest = () => {
+    if (!newCustomInterest.trim()) return;
+    const val = newCustomInterest.trim();
+    if (!customInterests.includes(val)) {
+      setCustomInterests((prev) => [...prev, val]);
+    }
+    setNewCustomInterest('');
+  };
+
+  const handleRemoveCustomInterest = (name: string) => {
+    setCustomInterests((prev) => prev.filter((item) => item !== name));
+  };
+
   const toggleGoal = (value: string) => {
     setSelectedGoals((prev) =>
       prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value],
@@ -208,14 +285,34 @@ export default function EditProfilePage() {
     setError('');
     setSuccess('');
     try {
-      // 1. Save profile basic info
-      const finalMucTieu = selectedGoals.length > 0
-        ? selectedGoals.map(g => GOAL_OPTIONS.find(o => o.value === g)?.label || g).join(', ')
-        : mucTieuThamGia;
+      // 1. Tổng hợp Mục tiêu tham gia
+      const goalLabels = selectedGoals
+        .filter((g) => g !== 'khac')
+        .map((g) => GOAL_OPTIONS.find((o) => o.value === g)?.label || g);
+      if (selectedGoals.includes('khac') && customGoal.trim()) {
+        goalLabels.push(customGoal.trim());
+      }
+      const finalMucTieu = goalLabels.join(', ') || mucTieuThamGia;
 
-      const finalThoiGian = selectedDays.length > 0 || selectedTimes.length > 0
-        ? `${selectedDays.map(d => DAY_OPTIONS.find(o => o.value === d)?.label || d).join(', ')} (${selectedTimes.map(t => TIME_OPTIONS.find(o => o.value === t)?.label || t).join(', ')})`
-        : thoiGianRanh;
+      // 2. Tổng hợp Thời gian rảnh
+      const dayLabels = selectedDays.map((d) => DAY_OPTIONS.find((o) => o.value === d)?.label || d);
+      const timeLabels = selectedTimes
+        .filter((t) => t !== 'khac')
+        .map((t) => TIME_OPTIONS.find((o) => o.value === t)?.label || t);
+      if (selectedTimes.includes('khac') && customTime.trim()) {
+        timeLabels.push(customTime.trim());
+      }
+
+      let finalThoiGian = '';
+      if (dayLabels.length > 0 && timeLabels.length > 0) {
+        finalThoiGian = `${dayLabels.join(', ')} (${timeLabels.join(', ')})`;
+      } else if (dayLabels.length > 0) {
+        finalThoiGian = dayLabels.join(', ');
+      } else if (timeLabels.length > 0) {
+        finalThoiGian = timeLabels.join(', ');
+      } else {
+        finalThoiGian = thoiGianRanh;
+      }
 
       await updateProfile({
         hoTen,
@@ -229,7 +326,7 @@ export default function EditProfilePage() {
         thoiGianRanh: finalThoiGian,
       });
 
-      // 2. Save interests & goals if selected
+      // Save interests
       if (selectedInterests.size > 0) {
         await Promise.all(
           Array.from(selectedInterests).map((soThichId) =>
@@ -252,20 +349,7 @@ export default function EditProfilePage() {
     } catch (err: unknown) {
       const errObj = err as { response?: { data?: { message?: string; invalidFields?: string[] } } };
       const msg = errObj?.response?.data?.message || 'Lưu thông tin thất bại';
-      const invalidFields = errObj?.response?.data?.invalidFields;
-
-      if (invalidFields && invalidFields.length > 0) {
-        const fieldLabels: Record<string, string> = {
-          email: 'Email',
-          soDienThoai: 'Số điện thoại',
-          hoTen: 'Họ tên',
-          ngaySinh: 'Ngày sinh',
-        };
-        const details = invalidFields.map((f) => fieldLabels[f] || f).join(', ');
-        setError(`${msg}: ${details}`);
-      } else {
-        setError(msg);
-      }
+      setError(msg);
     } finally {
       setSaving(false);
     }
@@ -408,6 +492,34 @@ export default function EditProfilePage() {
                     </div>
                   ))
                 )}
+                {/* Thêm sở thích tùy chỉnh */}
+                <div style={{ marginTop: 14, display: 'flex', gap: 10, alignItems: 'center' }}>
+                  <input
+                    type="text"
+                    placeholder="➕ Nhập sở thích khác của bạn (Ví dụ: Chơi Guitar, Vẽ tranh...)"
+                    value={newCustomInterest}
+                    onChange={(e) => setNewCustomInterest(e.target.value)}
+                    style={{ flex: 1, padding: '10px 14px', borderRadius: 10, border: '1px solid var(--border)', fontSize: 13 }}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddCustomInterest}
+                    style={{ padding: '10px 18px', borderRadius: 10, border: 'none', background: '#2e7d32', color: '#fff', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}
+                  >
+                    Thêm
+                  </button>
+                </div>
+
+                {customInterests.length > 0 && (
+                  <div className="interests-grid" style={{ marginTop: 12 }}>
+                    {customInterests.map((item) => (
+                      <div key={item} className="interest-card selected" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'default' }}>
+                        <span className="interest-label">✨ {item}</span>
+                        <span style={{ cursor: 'pointer', marginLeft: 4, color: '#f44336', fontWeight: 'bold' }} onClick={() => handleRemoveCustomInterest(item)}>✕</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Mục tiêu tham gia */}
@@ -428,6 +540,17 @@ export default function EditProfilePage() {
                     </button>
                   ))}
                 </div>
+                {selectedGoals.includes('khac') && (
+                  <div style={{ marginTop: 12 }}>
+                    <input
+                      type="text"
+                      placeholder="✍️ Nhập mục tiêu tham gia khác của bạn..."
+                      value={customGoal}
+                      onChange={(e) => setCustomGoal(e.target.value)}
+                      style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid #2e7d32', fontSize: 13 }}
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Thời gian rảnh */}
@@ -459,6 +582,17 @@ export default function EditProfilePage() {
                     </button>
                   ))}
                 </div>
+                {selectedTimes.includes('khac') && (
+                  <div style={{ marginTop: 12 }}>
+                    <input
+                      type="text"
+                      placeholder="✍️ Nhập khung giờ rảnh khác của bạn (Ví dụ: Cuối tuần sau 20h)..."
+                      value={customTime}
+                      onChange={(e) => setCustomTime(e.target.value)}
+                      style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid #2e7d32', fontSize: 13 }}
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Bán kính mong muốn */}
