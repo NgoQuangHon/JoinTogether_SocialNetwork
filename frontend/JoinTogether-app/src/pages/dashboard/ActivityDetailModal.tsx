@@ -352,7 +352,7 @@ export default function ActivityDetailModal({
         </div>
 
         {!isCancelled && isOwner && (() => {
-          const isOngoing = activity.trangThai === 'dang_dien_ra' || (activity.thoiGianBatDau && new Date(activity.thoiGianBatDau) <= new Date());
+          const isOngoing = activity.trangThai === 'dang_dien_ra' || Boolean(activity.thoiGianBatDau && new Date(activity.thoiGianBatDau) <= new Date());
           return (
             <div className="cam-detail-actions">
               {activity.trangThai === 'da_ket_thuc' && (
