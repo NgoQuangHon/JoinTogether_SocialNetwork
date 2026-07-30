@@ -12,20 +12,24 @@ export interface ChiTietDanhGiaInput {
 
 export interface CreateReviewRequest {
   hoatDongId: number;
-  nguoiDuocDanhGiaId: number;
+  nguoiDuocDanhGiaId?: number | null;
   nhanXet?: string;
   diemTong?: number;
   chiTiet?: ChiTietDanhGiaInput[];
+  loaiDanhGia?: 'USER' | 'HOAT_DONG';
 }
 
 export interface DanhGia {
   danhGiaId: number;
   hoatDongId: number;
   nguoiDanhGiaId: number;
-  nguoiDuocDanhGiaId: number;
+  nguoiDuocDanhGiaId?: number | null;
+  nguoiDanhGia?: string;
+  anhDaiDienNguoiDanhGia?: string;
+  nguoiDuocDanhGia?: string;
   nhanXet?: string;
   diemTong?: number;
-  nguoiDanhGia?: { hoTen: string; anhDaiDien?: string };
+  loaiDanhGia?: 'USER' | 'HOAT_DONG' | string;
   chiTiet?: { tieuChiDanhGiaId: number; diem: number; tenTieuChi?: string }[];
 }
 

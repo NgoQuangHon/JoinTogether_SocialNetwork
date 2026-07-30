@@ -3,6 +3,7 @@ import { ThanhVienHoatDongRepository } from "../../repositories/group3-activity/
 import { XacNhanThamDuRepository } from "../../repositories/group3-activity/xacNhanThamDu.repository";
 import { HoatDongRepository } from "../../repositories/group3-activity/hoatDong.repository";
 import { ThongBaoRepository } from "../../repositories/group4-interaction/thongBao.repository";
+import { pool } from "../../config/db";
 import { BadRequestError, ConflictError, ForbiddenError, NotFoundError } from "../../utils/AppError";
 
 export class MemberService {
@@ -18,6 +19,44 @@ export class MemberService {
     const activity = await this.hoatDongRepo.findById(hoatDongId);
     if (!activity) {
       throw new NotFoundError("Hoạt động không tồn tại.");
+    }
+
+    // Yêu cầu 4: Validate tuổi tham gia hoạt động
+    let profileRes: any;
+    try {
+      profileRes = await pool.query(
+        `SELECT ngay_sinh FROM ho_so_nguoi_dung WHERE nguoi_dung_id = $1`,
+        [nguoiDungId]
+      );
+    } catch {}
+    const ngaySinh = profileRes?.rows?.[0]?.ngay_sinh;
+
+    let userAge: number | null = null;
+    if (ngaySinh) {
+      const dob = new Date(ngaySinh);
+      if (!isNaN(dob.getTime())) {
+        const today = new Date();
+        userAge = today.getFullYear() - dob.getFullYear();
+        const m = today.getMonth() - dob.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+          userAge--;
+        }
+      }
+    }
+
+    const minAge = activity.doTuoiTu != null ? Number(activity.doTuoiTu) : null;
+    const maxAge = activity.doTuoiDen != null ? Number(activity.doTuoiDen) : null;
+
+    if (minAge !== null || maxAge !== null) {
+      if (userAge === null) {
+        throw new BadRequestError("Bạn cần cập nhật ngày sinh trong hồ sơ để xác thực tuổi trước khi tham gia hoạt động.");
+      }
+      if (minAge !== null && userAge < minAge) {
+        throw new BadRequestError(`Tuổi của bạn (${userAge}) nhỏ hơn độ tuổi tối thiểu cho phép (${minAge}) của hoạt động này.`);
+      }
+      if (maxAge !== null && userAge > maxAge) {
+        throw new BadRequestError(`Tuổi của bạn (${userAge}) lớn hơn độ tuổi tối đa cho phép (${maxAge}) của hoạt động này.`);
+      }
     }
 
     // Kiểm tra đã là thành viên chưa

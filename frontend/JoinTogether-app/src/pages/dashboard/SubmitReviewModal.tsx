@@ -21,6 +21,7 @@ export default function SubmitReviewModal({
   onClose,
   onSuccess,
 }: SubmitReviewModalProps) {
+  const [loaiDanhGia, setLoaiDanhGia] = useState<'HOAT_DONG' | 'USER'>('HOAT_DONG');
   const [members, setMembers] = useState<any[]>([]);
   const [tieuChiList, setTieuChiList] = useState<TieuChiDanhGia[]>([]);
   const [selectedRevieweeId, setSelectedRevieweeId] = useState<number | null>(null);
@@ -40,7 +41,6 @@ export default function SubmitReviewModal({
     ])
       .then(([memRes, tcRes]) => {
         if (memRes.success && memRes.data) {
-          // Filter out current user (Luồng 5c: Self review prevention)
           const validMembers = memRes.data.filter((m: any) => m.nguoiDungId !== currentUserId);
           setMembers(validMembers);
           if (validMembers.length > 0) {
@@ -63,12 +63,12 @@ export default function SubmitReviewModal({
   }, [hoatDongId, currentUserId, organizerId]);
 
   const handleSubmit = async () => {
-    if (!selectedRevieweeId) {
+    if (loaiDanhGia === 'USER' && !selectedRevieweeId) {
       setError('Vui lòng chọn người cần đánh giá.');
       return;
     }
 
-    if (selectedRevieweeId === currentUserId) {
+    if (loaiDanhGia === 'USER' && selectedRevieweeId === currentUserId) {
       setError('Bạn không được phép tự đánh giá chính mình.');
       return;
     }
@@ -85,14 +85,19 @@ export default function SubmitReviewModal({
 
       const res = await createReviewApi({
         hoatDongId,
-        nguoiDuocDanhGiaId: selectedRevieweeId,
+        nguoiDuocDanhGiaId: loaiDanhGia === 'USER' ? selectedRevieweeId : null,
         diemTong,
         nhanXet: nhanXet.trim() || undefined,
         chiTiet,
+        loaiDanhGia,
       });
 
       if (res.success) {
-        setSuccessMsg('Gửi đánh giá thành công! Điểm uy tín của đối tượng đã được cập nhật.');
+        setSuccessMsg(
+          loaiDanhGia === 'HOAT_DONG'
+            ? 'Cảm ơn bạn đã gửi đánh giá cho hoạt động này!'
+            : 'Gửi đánh giá thành công! Điểm uy tín của thành viên đã được cập nhật.'
+        );
         setTimeout(() => {
           onClose();
           onSuccess?.();
@@ -112,7 +117,7 @@ export default function SubmitReviewModal({
     <div className="cam-overlay" onClick={onClose} style={{ zIndex: 1100 }}>
       <div className="cam-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 540 }}>
         <div className="cam-header">
-          <h2>⭐ Gửi đánh giá uy tín sau hoạt động</h2>
+          <h2>⭐ Gửi đánh giá sau hoạt động</h2>
           <button className="cam-close" onClick={onClose}>✕</button>
         </div>
 
@@ -120,6 +125,44 @@ export default function SubmitReviewModal({
           <p style={{ margin: '0 0 14px 0', fontWeight: 600, color: '#3d7d43', fontSize: 15 }}>
             Hoạt động: {tenHoatDong}
           </p>
+
+          {/* Chọn Loại Đánh Giá */}
+          <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
+            <button
+              type="button"
+              onClick={() => setLoaiDanhGia('HOAT_DONG')}
+              style={{
+                flex: 1,
+                padding: '10px 14px',
+                borderRadius: 10,
+                border: loaiDanhGia === 'HOAT_DONG' ? '2px solid #2e7d32' : '1px solid #cfd8dc',
+                background: loaiDanhGia === 'HOAT_DONG' ? '#e8f5e9' : '#fff',
+                color: loaiDanhGia === 'HOAT_DONG' ? '#1b5e20' : '#546e7a',
+                fontWeight: 700,
+                fontSize: 13,
+                cursor: 'pointer',
+              }}
+            >
+              🎯 Đánh giá Hoạt động
+            </button>
+            <button
+              type="button"
+              onClick={() => setLoaiDanhGia('USER')}
+              style={{
+                flex: 1,
+                padding: '10px 14px',
+                borderRadius: 10,
+                border: loaiDanhGia === 'USER' ? '2px solid #7b1fa2' : '1px solid #cfd8dc',
+                background: loaiDanhGia === 'USER' ? '#f3e5f5' : '#fff',
+                color: loaiDanhGia === 'USER' ? '#4a148c' : '#546e7a',
+                fontWeight: 700,
+                fontSize: 13,
+                cursor: 'pointer',
+              }}
+            >
+              👤 Đánh giá Thành viên
+            </button>
+          </div>
 
           {successMsg && (
             <div style={{ padding: '12px 16px', background: '#e8f5e9', color: '#2e7d32', borderRadius: 12, fontSize: 14, fontWeight: 600, marginBottom: 14 }}>
@@ -134,42 +177,44 @@ export default function SubmitReviewModal({
           )}
 
           {loading ? (
-            <div style={{ textAlign: 'center', color: '#90a4ae', padding: 24 }}>Đang tải thông tin thành viên...</div>
+            <div style={{ textAlign: 'center', color: '#90a4ae', padding: 24 }}>Đang tải thông tin...</div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {/* Đối tượng đánh giá */}
-              <div>
-                <label style={{ fontWeight: 600, fontSize: 13, color: '#37474f', display: 'block', marginBottom: 6 }}>
-                  1. Chọn thành viên cần đánh giá <span style={{ color: '#f44336' }}>*</span>
-                </label>
-                <select
-                  value={selectedRevieweeId || ''}
-                  onChange={(e) => setSelectedRevieweeId(Number(e.target.value))}
-                  style={{
-                    width: '100%',
-                    padding: '10px 14px',
-                    borderRadius: 12,
-                    border: '1px solid #cfd8dc',
-                    fontSize: 14,
-                    outline: 'none',
-                  }}
-                >
-                  {members.length === 0 ? (
-                    <option value="">Chưa có thành viên khả dụng để đánh giá</option>
-                  ) : (
-                    members.map((m) => (
-                      <option key={m.nguoiDungId} value={m.nguoiDungId}>
-                        {m.hoTen || `Thành viên #${m.nguoiDungId}`} {m.nguoiDungId === organizerId ? '(Người tổ chức)' : ''}
-                      </option>
-                    ))
-                  )}
-                </select>
-              </div>
+              {/* Nếu là đánh giá thành viên thì chọn thành viên */}
+              {loaiDanhGia === 'USER' && (
+                <div>
+                  <label style={{ fontWeight: 600, fontSize: 13, color: '#37474f', display: 'block', marginBottom: 6 }}>
+                    1. Chọn thành viên cần đánh giá <span style={{ color: '#f44336' }}>*</span>
+                  </label>
+                  <select
+                    value={selectedRevieweeId || ''}
+                    onChange={(e) => setSelectedRevieweeId(Number(e.target.value))}
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      borderRadius: 12,
+                      border: '1px solid #cfd8dc',
+                      fontSize: 14,
+                      outline: 'none',
+                    }}
+                  >
+                    {members.length === 0 ? (
+                      <option value="">Chưa có thành viên khả dụng để đánh giá</option>
+                    ) : (
+                      members.map((m) => (
+                        <option key={m.nguoiDungId} value={m.nguoiDungId}>
+                          {m.hoTen || `Thành viên #${m.nguoiDungId}`} {m.nguoiDungId === organizerId ? '(Người tổ chức)' : ''}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                </div>
+              )}
 
               {/* Chấm điểm tổng quan */}
               <div>
                 <label style={{ fontWeight: 600, fontSize: 13, color: '#37474f', display: 'block', marginBottom: 6 }}>
-                  2. Chấm điểm tổng quan (1 - 5 sao)
+                  {loaiDanhGia === 'HOAT_DONG' ? '1. Đánh giá chung cho hoạt động (1 - 5 sao)' : '2. Chấm điểm tổng quan thành viên (1 - 5 sao)'}
                 </label>
                 <div style={{ display: 'flex', gap: 8, fontSize: 24, cursor: 'pointer' }}>
                   {[1, 2, 3, 4, 5].map((star) => (
@@ -191,7 +236,7 @@ export default function SubmitReviewModal({
               {tieuChiList.length > 0 && (
                 <div>
                   <label style={{ fontWeight: 600, fontSize: 13, color: '#37474f', display: 'block', marginBottom: 8 }}>
-                    3. Đánh giá theo từng tiêu chí
+                    {loaiDanhGia === 'HOAT_DONG' ? '2. Đánh giá các tiêu chí của hoạt động' : '3. Đánh giá theo từng tiêu chí'}
                   </label>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10, background: '#f7f9f8', padding: 12, borderRadius: 12 }}>
                     {tieuChiList.map((tc) => (
@@ -217,13 +262,13 @@ export default function SubmitReviewModal({
               {/* Nhận xét */}
               <div>
                 <label style={{ fontWeight: 600, fontSize: 13, color: '#37474f', display: 'block', marginBottom: 6 }}>
-                  4. Nhận xét & Đóng góp ý kiến
+                  {loaiDanhGia === 'HOAT_DONG' ? '3. Nhận xét & Đóng góp ý kiến cho hoạt động' : '4. Nhận xét & Đóng góp ý kiến'}
                 </label>
                 <textarea
                   rows={3}
                   value={nhanXet}
                   onChange={(e) => setNhanXet(e.target.value)}
-                  placeholder="Viết nhận xét trải nghiệm tham gia cùng thành viên này..."
+                  placeholder={loaiDanhGia === 'HOAT_DONG' ? 'Viết nhận xét trải nghiệm về tổ chức, địa điểm, sự kiện...' : 'Viết nhận xét trải nghiệm tham gia cùng thành viên này...'}
                   style={{
                     width: '100%',
                     padding: '10px 14px',
@@ -243,7 +288,7 @@ export default function SubmitReviewModal({
                 <button
                   className="save-btn"
                   onClick={handleSubmit}
-                  disabled={submitting || !selectedRevieweeId}
+                  disabled={submitting || (loaiDanhGia === 'USER' && !selectedRevieweeId)}
                   style={{ borderRadius: 20, padding: '10px 24px' }}
                 >
                   {submitting ? 'Đang gửi...' : 'Gửi đánh giá'}

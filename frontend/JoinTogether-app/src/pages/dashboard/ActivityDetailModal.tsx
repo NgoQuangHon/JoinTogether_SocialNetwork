@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import type { HoatDongResponse } from '../../types/activity';
 import { cancelActivityApi, joinActivityApi, leaveActivityApi } from '../../services/activity.service';
+import { getReviewsByActivityApi } from '../../services/review.service';
+import type { DanhGia } from '../../types/review';
 import EditActivityModal from './EditActivityModal';
 import CriteriaManagerModal from './CriteriaManagerModal';
 import ActivityChatModal from '../../components/chat/ActivityChatModal';
@@ -58,11 +60,27 @@ export default function ActivityDetailModal({
   const [actionError, setActionError] = useState(false);
   const [isMember, setIsMember] = useState(activity.isMember ?? false);
   const [trangThaiYeuCau, setTrangThaiYeuCau] = useState<string | null>(activity.trangThaiYeuCau ?? null);
+  const [reviewsList, setReviewsList] = useState<DanhGia[]>([]);
+  const [loadingReviews, setLoadingReviews] = useState(false);
 
   useEffect(() => {
     setIsMember(activity.isMember ?? false);
     setTrangThaiYeuCau(activity.trangThaiYeuCau ?? null);
   }, [activity.isMember, activity.trangThaiYeuCau]);
+
+  useEffect(() => {
+    if (activity.hoatDongId) {
+      setLoadingReviews(true);
+      getReviewsByActivityApi(activity.hoatDongId)
+        .then((res) => {
+          if (res.success && res.data) {
+            setReviewsList(res.data);
+          }
+        })
+        .catch(() => {})
+        .finally(() => setLoadingReviews(false));
+    }
+  }, [activity.hoatDongId]);
 
   const isOwner = currentUserId != null && activity.nguoiToChucId === currentUserId;
 
@@ -182,6 +200,19 @@ export default function ActivityDetailModal({
             </div>
           </div>
 
+          {/* Yêu cầu 3: Hiện người tạo hoạt động */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 8, marginBottom: 12, padding: '8px 12px', background: '#f5f7fa', borderRadius: 8 }}>
+            <img
+              src={activity.anhDaiDienNguoiToChuc || `https://i.pravatar.cc/100?u=${activity.nguoiToChucId}`}
+              alt={activity.nguoiToChuc || 'Người tạo'}
+              style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover' }}
+            />
+            <div>
+              <span style={{ fontSize: 11, color: '#78909c', display: 'block' }}>Người tạo hoạt động</span>
+              <strong style={{ fontSize: 13, color: '#263238' }}>{activity.nguoiToChuc || 'Ẩn danh'}</strong>
+            </div>
+          </div>
+
           {activity.tenDanhMuc && (
             <p className="cam-detail-cat">{activity.tenDanhMuc}</p>
           )}
@@ -280,38 +311,84 @@ export default function ActivityDetailModal({
               )}
             </div>
           )}
+
+          {/* Yêu cầu 6: Danh sách đánh giá của các thành viên với hoạt động */}
+          <div className="cam-detail-section" style={{ marginTop: 20 }}>
+            <h5 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span>⭐ Đánh giá từ thành viên ({reviewsList.length})</span>
+            </h5>
+            {loadingReviews ? (
+              <p style={{ fontSize: 13, color: '#90a4ae' }}>Đang tải đánh giá...</p>
+            ) : reviewsList.length === 0 ? (
+              <p style={{ fontSize: 13, color: '#90a4ae' }}>Chưa có đánh giá nào cho hoạt động này.</p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 8 }}>
+                {reviewsList.map((r) => (
+                  <div key={r.danhGiaId} style={{ background: '#fafafa', border: '1px solid #eeeeee', borderRadius: 8, padding: 10 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <img
+                          src={r.anhDaiDienNguoiDanhGia || `https://i.pravatar.cc/100?u=${r.nguoiDanhGiaId}`}
+                          alt={r.nguoiDanhGia || 'User'}
+                          style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover' }}
+                        />
+                        <span style={{ fontWeight: 600, fontSize: 13 }}>{r.nguoiDanhGia || 'Thành viên'}</span>
+                        {r.loaiDanhGia === 'HOAT_DONG' ? (
+                          <span style={{ background: '#e3f2fd', color: '#1976d2', padding: '1px 6px', borderRadius: 4, fontSize: 10, fontWeight: 600 }}>Đánh giá Hoạt động</span>
+                        ) : (
+                          <span style={{ background: '#f3e5f5', color: '#7b1fa2', padding: '1px 6px', borderRadius: 4, fontSize: 10, fontWeight: 600 }}>
+                            Đánh giá người dùng: {r.nguoiDuocDanhGia || ''}
+                          </span>
+                        )}
+                      </div>
+                      <span style={{ color: '#ff9800', fontWeight: 700, fontSize: 13 }}>{'★'.repeat(r.diemTong || 5)} ({r.diemTong || 5}/5)</span>
+                    </div>
+                    {r.nhanXet && <p style={{ margin: '4px 0 0 0', fontSize: 13, color: '#37474f' }}>{r.nhanXet}</p>}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
-        {!isCancelled && isOwner && (
-          <div className="cam-detail-actions">
-            {activity.trangThai === 'da_ket_thuc' && (
-              <button className="cam-btn-outline" onClick={() => setShowReview(true)}>
-                ⭐ Đánh giá
+        {!isCancelled && isOwner && (() => {
+          const isOngoing = activity.trangThai === 'dang_dien_ra' || (activity.thoiGianBatDau && new Date(activity.thoiGianBatDau) <= new Date());
+          return (
+            <div className="cam-detail-actions">
+              {activity.trangThai === 'da_ket_thuc' && (
+                <button className="cam-btn-outline" onClick={() => setShowReview(true)}>
+                  ⭐ Đánh giá
+                </button>
+              )}
+              <button className="cam-btn-outline" onClick={() => setShowAttendance(true)}>
+                📋 Điểm danh
               </button>
-            )}
-            <button className="cam-btn-outline" onClick={() => setShowAttendance(true)}>
-              📋 Điểm danh
-            </button>
-            <button className="cam-btn-outline" onClick={() => setShowRequests(true)}>
-              📋 Yêu cầu
-            </button>
-            <button className="cam-btn-outline" onClick={() => setShowChat(true)}>
-              💬 Trò chuyện
-            </button>
-            <button
-              className="cam-btn-outline cam-btn-danger"
-              onClick={() => setShowCancelConfirm(true)}
-            >
-              Hủy
-            </button>
-            <button className="cam-btn-outline" onClick={() => setShowCriteria(true)}>
-              Tiêu chí
-            </button>
-            <button className="cam-btn-primary" onClick={() => setShowEdit(true)}>
-              Chỉnh sửa
-            </button>
-          </div>
-        )}
+              <button className="cam-btn-outline" onClick={() => setShowRequests(true)}>
+                📋 Yêu cầu
+              </button>
+              <button className="cam-btn-outline" onClick={() => setShowChat(true)}>
+                💬 Trò chuyện
+              </button>
+              <button
+                className="cam-btn-outline cam-btn-danger"
+                onClick={() => setShowCancelConfirm(true)}
+              >
+                Hủy
+              </button>
+              <button className="cam-btn-outline" onClick={() => setShowCriteria(true)}>
+                Tiêu chí
+              </button>
+              <button
+                className="cam-btn-primary"
+                disabled={isOngoing}
+                title={isOngoing ? 'Hoạt động đang diễn ra không thể chỉnh sửa' : ''}
+                onClick={() => !isOngoing && setShowEdit(true)}
+              >
+                {isOngoing ? 'Đang diễn ra (không thể sửa)' : 'Chỉnh sửa'}
+              </button>
+            </div>
+          );
+        })()}
 
         {!isCancelled && !isOwner && (
           <div className="cam-detail-actions">

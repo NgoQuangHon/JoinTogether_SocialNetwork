@@ -440,7 +440,18 @@ export default function EditProfilePage() {
           </div>
 
           <div className="form-group">
-            <label>Ngày sinh <span style={{ color: 'var(--error, #f44336)' }}>*</span></label>
+            <label>
+              Ngày sinh <span style={{ color: 'var(--error, #f44336)' }}>*</span>
+              {ngaySinh && (() => {
+                const dob = new Date(ngaySinh);
+                if (isNaN(dob.getTime())) return null;
+                const today = new Date();
+                let age = today.getFullYear() - dob.getFullYear();
+                const m = today.getMonth() - dob.getMonth();
+                if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+                return age >= 0 ? <span style={{ fontSize: 13, color: '#2e7d32', fontWeight: 600, marginLeft: 8 }}>(Tuổi: {age} tuổi)</span> : null;
+              })()}
+            </label>
             <input type="date" value={ngaySinh} onChange={(e) => setNgaySinh(e.target.value)} />
           </div>
 

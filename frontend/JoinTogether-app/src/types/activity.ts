@@ -56,6 +56,7 @@ export interface HoatDongResponse {
   hoatDongId: number;
   nguoiToChucId: number;
   nguoiToChuc?: string;
+  anhDaiDienNguoiToChuc?: string;
   danhMucHoatDongId?: number;
   tenDanhMuc?: string;
   diaDiemId?: number;

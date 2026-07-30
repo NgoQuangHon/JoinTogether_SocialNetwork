@@ -10,13 +10,21 @@ export class ReviewController {
   public createReview = asyncHandler(
     async (req: Request, res: Response): Promise<void> => {
       const nguoiDanhGiaId = req.user!.nguoiDungId;
-      const { hoatDongId, nguoiDuocDanhGiaId, nhanXet, diemTong, chiTiet } =
+      const { hoatDongId, nguoiDuocDanhGiaId, nhanXet, diemTong, chiTiet, loaiDanhGia } =
         req.body;
 
-      if (!hoatDongId || !nguoiDuocDanhGiaId) {
+      if (!hoatDongId) {
         res.status(400).json({
           success: false,
-          message: "Vui lòng cung cấp ID hoạt động và ID người được đánh giá.",
+          message: "Vui lòng cung cấp ID hoạt động.",
+        });
+        return;
+      }
+
+      if (loaiDanhGia !== 'HOAT_DONG' && !nguoiDuocDanhGiaId) {
+        res.status(400).json({
+          success: false,
+          message: "Vui lòng cung cấp người được đánh giá hoặc chọn đánh giá hoạt động.",
         });
         return;
       }
@@ -24,11 +32,12 @@ export class ReviewController {
       const result = await this.reviewService.createReview(
         nguoiDanhGiaId,
         hoatDongId,
-        nguoiDuocDanhGiaId,
+        nguoiDuocDanhGiaId ? Number(nguoiDuocDanhGiaId) : null,
         {
           nhanXet,
           diemTong,
           chiTiet,
+          loaiDanhGia: loaiDanhGia || (nguoiDuocDanhGiaId ? 'USER' : 'HOAT_DONG'),
         },
       );
 

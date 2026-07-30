@@ -74,10 +74,31 @@ export default function CreateActivityModal({ onClose }: { onClose: () => void }
   const thumbInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
 
+  const [profileIncomplete, setProfileIncomplete] = useState(false);
+  const [profileMsg, setProfileMsg] = useState('');
+
   useEffect(() => {
     getCategoriesApi()
       .then((res) => { if (res.success && res.data) setDanhMucList(res.data); })
       .catch(() => {});
+
+    import('../../services/profile.service').then(({ getMyProfile }) => {
+      getMyProfile().then((res) => {
+        if (res.success && res.data) {
+          const p = res.data;
+          const missing: string[] = [];
+          if (!p.user?.hoTen) missing.push('Họ tên');
+          if (!p.ngaySinh) missing.push('Ngày sinh');
+          if (!p.gioiTinh) missing.push('Giới tính');
+          if (!p.khuVuc) missing.push('Khu vực');
+
+          if (missing.length > 0) {
+            setProfileIncomplete(true);
+            setProfileMsg(`Hồ sơ của bạn chưa hoàn thiện 100%. Còn thiếu: ${missing.join(', ')}. Vui lòng hoàn thiện hồ sơ trước khi tạo hoạt động.`);
+          }
+        }
+      }).catch(() => {});
+    });
   }, []);
 
   const set = (key: keyof FormData, value: any) => setForm((prev) => ({ ...prev, [key]: value }));
@@ -245,6 +266,41 @@ export default function CreateActivityModal({ onClose }: { onClose: () => void }
 
         {renderStepIndicator()}
 
+        {profileIncomplete && (
+          <div style={{
+            background: '#fff3e0',
+            border: '1px solid #ffe0b2',
+            color: '#e65100',
+            padding: '14px 16px',
+            borderRadius: 8,
+            margin: '0 0 16px 0',
+            fontSize: 14,
+            lineHeight: 1.5,
+          }}>
+            <div style={{ fontWeight: 700, marginBottom: 4 }}>
+              ⚠️ Hồ sơ chưa đạt 100%!
+            </div>
+            <div style={{ color: '#d84315', marginBottom: 10 }}>
+              {profileMsg}
+            </div>
+            <a
+              href="/edit-profile"
+              style={{
+                background: '#e65100',
+                color: '#fff',
+                padding: '6px 14px',
+                borderRadius: 6,
+                textDecoration: 'none',
+                fontSize: 13,
+                fontWeight: 600,
+                display: 'inline-block'
+              }}
+            >
+              Cập nhật hồ sơ ngay
+            </a>
+          </div>
+        )}
+
         {error && <div className="cam-error">{error}</div>}
 
         {/* ========== BƯỚC 1: CƠ BẢN ========== */}
@@ -283,7 +339,9 @@ export default function CreateActivityModal({ onClose }: { onClose: () => void }
               <textarea rows={4} value={form.moTa} onChange={(e) => set('moTa', e.target.value)} placeholder="Mô tả về hoạt động..." />
             </div>
             <div className="cam-nav">
-              <button className="cam-btn-primary" disabled={!canStep1} onClick={() => setBuoc(2)}>Tiếp tục</button>
+              <button className="cam-btn-primary" disabled={!canStep1 || profileIncomplete} onClick={() => setBuoc(2)}>
+                {profileIncomplete ? 'Vui lòng cập nhật hồ sơ' : 'Tiếp tục'}
+              </button>
             </div>
           </div>
         )}

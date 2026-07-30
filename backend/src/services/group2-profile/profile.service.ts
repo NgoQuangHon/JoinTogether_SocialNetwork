@@ -35,8 +35,22 @@ export class ProfileService {
     );
     const daXacThuc = accountRes.rows[0]?.da_xac_thuc === true;
 
+    let tuoi: number | null = null;
+    if (profile.ngaySinh) {
+      const dob = new Date(profile.ngaySinh);
+      if (!isNaN(dob.getTime())) {
+        const today = new Date();
+        tuoi = today.getFullYear() - dob.getFullYear();
+        const m = today.getMonth() - dob.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+          tuoi--;
+        }
+      }
+    }
+
     const result: any = {};
     Object.assign(result, profile);
+    result.tuoi = tuoi;
     result.soThich = interests;
     result.daXacThuc = daXacThuc;
     result.user = user

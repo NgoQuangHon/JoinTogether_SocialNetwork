@@ -28,11 +28,18 @@ export class ReviewService {
   async createReview(
     nguoiDanhGiaId: number,
     hoatDongId: number,
-    nguoiDuocDanhGiaId: number,
-    data: { nhanXet?: string; diemTong?: number; chiTiet?: Array<{ tieuChiDanhGiaId: number; diem: number }> },
+    nguoiDuocDanhGiaId: number | null,
+    data: {
+      nhanXet?: string;
+      diemTong?: number;
+      chiTiet?: Array<{ tieuChiDanhGiaId: number; diem: number }>;
+      loaiDanhGia?: string;
+    },
   ): Promise<any> {
-    // Luồng 5c: Tự đánh giá chính mình
-    if (nguoiDanhGiaId === nguoiDuocDanhGiaId) {
+    const isActivityReview = data.loaiDanhGia === 'HOAT_DONG' || !nguoiDuocDanhGiaId;
+    const targetUserId = isActivityReview ? null : Number(nguoiDuocDanhGiaId);
+
+    if (!isActivityReview && targetUserId && nguoiDanhGiaId === targetUserId) {
       throw new AppError("Bạn không được phép tự đánh giá chính mình.", 400);
     }
 
@@ -57,18 +64,25 @@ export class ReviewService {
       throw new AppError("Bạn chưa được xác nhận tham dự thực tế cho hoạt động này nên chưa đủ điều kiện gửi đánh giá.", 403);
     }
 
-    const reviewedIsMember =
-      (await this.thanhVienRepo.isMember(nguoiDuocDanhGiaId, hoatDongId)) ||
-      activity.nguoiToChucId === nguoiDuocDanhGiaId;
+    if (!isActivityReview && targetUserId) {
+      const reviewedIsMember =
+        (await this.thanhVienRepo.isMember(targetUserId, hoatDongId)) ||
+        activity.nguoiToChucId === targetUserId;
 
-    if (!reviewedIsMember) {
-      throw new AppError("Người được đánh giá không tham gia hoạt động này.", 403);
-    }
+      if (!reviewedIsMember) {
+        throw new AppError("Người được đánh giá không tham gia hoạt động này.", 403);
+      }
 
-    // Luồng 5b: Đã tồn tại đánh giá của người dùng với cùng đối tượng trong hoạt động
-    const existing = await this.danhGiaRepo.findExistingReview(hoatDongId, nguoiDanhGiaId, nguoiDuocDanhGiaId);
-    if (existing) {
-      throw new ConflictError("Đã tồn tại đánh giá của bạn đối với người dùng này trong hoạt động này.");
+      // Luồng 5b: Đã tồn tại đánh giá của người dùng với cùng đối tượng trong hoạt động
+      const existing = await this.danhGiaRepo.findExistingReview(hoatDongId, nguoiDanhGiaId, targetUserId);
+      if (existing) {
+        throw new ConflictError("Đã tồn tại đánh giá của bạn đối với người dùng này trong hoạt động này.");
+      }
+    } else {
+      const existingActReview = await this.danhGiaRepo.findExistingActivityReview(hoatDongId, nguoiDanhGiaId);
+      if (existingActReview) {
+        throw new ConflictError("Bạn đã đánh giá hoạt động này trước đó rồi.");
+      }
     }
 
     // Luồng 5d: Nội dung nhận xét có dấu hiệu vi phạm
@@ -80,7 +94,7 @@ export class ReviewService {
       }
     }
 
-    // Luồng 6, 7 & 8: Lưu đánh giá và tính lại điểm uy tín trong Transaction
+    // Lưu đánh giá trong Transaction
     const client = await pool.connect();
     try {
       await client.query("BEGIN");
@@ -89,9 +103,10 @@ export class ReviewService {
         {
           hoatDongId,
           nguoiDanhGiaId,
-          nguoiDuocDanhGiaId,
+          nguoiDuocDanhGiaId: targetUserId,
           nhanXet: data.nhanXet === undefined || data.nhanXet === null ? null : data.nhanXet,
           diemTong: data.diemTong === undefined || data.diemTong === null ? null : data.diemTong,
+          loaiDanhGia: isActivityReview ? 'HOAT_DONG' : 'USER',
         },
         client,
       );
@@ -109,31 +124,36 @@ export class ReviewService {
         }
       }
 
-      // Cập nhật điểm uy tín dựa trên điểm số
+      // Cập nhật điểm uy tín nếu là đánh giá người dùng
+      let diemThayDoi = 0;
       const score = data.diemTong || 5;
-      const diemThayDoi = Math.round((score / 5) * 10 - 5);
-      const updatedDiem = await this.diemUyTinRepo.updateDiem(nguoiDuocDanhGiaId, diemThayDoi, client);
+      if (!isActivityReview && targetUserId) {
+        diemThayDoi = Math.round((score / 5) * 10 - 5);
+        const updatedDiem = await this.diemUyTinRepo.updateDiem(targetUserId, diemThayDoi, client);
 
-      if (updatedDiem) {
-        await this.lichSuRepo.create(
-          {
-            diemUyTinId: updatedDiem.diemUyTinId!,
-            diemThayDoi,
-            lyDoThayDoi: `Nhận đánh giá ${score}/5★ từ hoạt động #${hoatDongId}`,
-          },
-          client,
-        );
+        if (updatedDiem) {
+          await this.lichSuRepo.create(
+            {
+              diemUyTinId: updatedDiem.diemUyTinId!,
+              diemThayDoi,
+              lyDoThayDoi: `Nhận đánh giá ${score}/5★ từ hoạt động #${hoatDongId}`,
+            },
+            client,
+          );
+        }
       }
 
       await client.query("COMMIT");
 
-      // Gửi thông báo cho người nhận đánh giá
-      await this.thongBaoRepo.create({
-        nguoiNhanId: nguoiDuocDanhGiaId,
-        tieuDe: "Bạn có 1 đánh giá mới",
-        noiDung: `Bạn vừa nhận được đánh giá ${score}/5★ từ hoạt động "${activity.tenHoatDong}".`,
-        loaiThongBao: "DANH_GIA",
-      });
+      // Gửi thông báo nếu có người nhận đánh giá
+      if (!isActivityReview && targetUserId) {
+        await this.thongBaoRepo.create({
+          nguoiNhanId: targetUserId,
+          tieuDe: "Bạn có 1 đánh giá mới",
+          noiDung: `Bạn vừa nhận được đánh giá ${score}/5★ từ hoạt động "${activity.tenHoatDong}".`,
+          loaiThongBao: "DANH_GIA",
+        });
+      }
 
       return {
         ...danhGia,
@@ -200,12 +220,15 @@ export class ReviewService {
 
   async getReputation(targetUserId: number, requesterId?: number): Promise<any> {
     // 1. Luồng 2a: Kiểm tra quyền riêng tư hồ sơ
-    const profileRes = await pool.query(
-      `SELECT quyen_rieng_tu FROM ho_so_nguoi_dung WHERE nguoi_dung_id = $1`,
-      [targetUserId]
-    ).catch(() => ({ rows: [] }));
+    let profileRes: any;
+    try {
+      profileRes = await pool.query(
+        `SELECT quyen_rieng_tu FROM ho_so_nguoi_dung WHERE nguoi_dung_id = $1`,
+        [targetUserId]
+      );
+    } catch {}
 
-    const isPrivate = profileRes.rows.length > 0 && profileRes.rows[0].quyen_rieng_tu === 'PRIVATE';
+    const isPrivate = profileRes?.rows?.length > 0 && profileRes.rows[0]?.quyen_rieng_tu === 'PRIVATE';
     if (isPrivate && requesterId && requesterId !== targetUserId) {
       return {
         isPrivate: true,
@@ -220,20 +243,26 @@ export class ReviewService {
     }
 
     // Đếm số lượng đánh giá thực tế và điểm trung bình
-    const countRes = await pool.query(
-      `SELECT COUNT(*) AS total, AVG(diem_tong) AS avg_score FROM danh_gia WHERE nguoi_duoc_danh_gia_id = $1`,
-      [targetUserId]
-    );
-    const reviewCount = parseInt(countRes.rows[0].total || '0', 10);
-    const avgScore = countRes.rows[0].avg_score ? parseFloat(countRes.rows[0].avg_score).toFixed(1) : null;
+    let countRes: any;
+    try {
+      countRes = await pool.query(
+        `SELECT COUNT(*) AS total, AVG(diem_tong) AS avg_score FROM danh_gia WHERE nguoi_duoc_danh_gia_id = $1`,
+        [targetUserId]
+      );
+    } catch {}
+    const reviewCount = parseInt(countRes?.rows?.[0]?.total || '0', 10);
+    const avgScore = countRes?.rows?.[0]?.avg_score ? parseFloat(countRes.rows[0].avg_score).toFixed(1) : null;
 
     // 3. Luồng 3b: Điểm uy tín đang được xem xét do khiếu nại hoặc kiểm duyệt
-    const reportCheck = await pool.query(
-      `SELECT COUNT(*) AS total FROM bao_cao_vi_pham WHERE nguoi_bi_bao_cao_id = $1 AND trang_thai = 'CHO_XU_LY'`,
-      [targetUserId]
-    ).catch(() => ({ rows: [{ total: '0' }] }));
+    let reportCheck: any;
+    try {
+      reportCheck = await pool.query(
+        `SELECT COUNT(*) AS total FROM bao_cao_vi_pham WHERE nguoi_bi_bao_cao_id = $1 AND trang_thai = 'CHO_XU_LY'`,
+        [targetUserId]
+      );
+    } catch {}
 
-    const isUnderReview = parseInt(reportCheck.rows[0]?.total || '0', 10) >= 3;
+    const isUnderReview = parseInt(reportCheck?.rows?.[0]?.total || '0', 10) >= 3;
     if (isUnderReview) {
       return {
         ...diemRecord,

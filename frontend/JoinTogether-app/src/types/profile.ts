@@ -11,6 +11,7 @@ export interface HoSoNguoiDung {
   nguoiDungId: number;
   tieuSu?: string | null;
   ngaySinh?: string | null;
+  tuoi?: number | null;
   khuVuc?: string | null;
   gioiTinh?: string | null;
   mucTieuThamGia?: string | null;

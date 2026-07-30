@@ -83,6 +83,7 @@ export class HoatDongRepository {
         hd.hoat_dong_id AS "hoatDongId",
         hd.nguoi_to_chuc_id AS "nguoiToChucId",
         nd.ho_ten AS "nguoiToChuc",
+        hs.anh_dai_dien AS "anhDaiDienNguoiToChuc",
         hd.danh_muc_hoat_dong_id AS "danhMucHoatDongId",
         dm.ten_danh_muc AS "tenDanhMuc",
         hd.dia_diem_id AS "diaDiemId",
@@ -108,6 +109,7 @@ export class HoatDongRepository {
         (SELECT COUNT(*) FROM thanh_vien_hoat_dong tv WHERE tv.hoat_dong_id = hd.hoat_dong_id) AS "soLuongThanhVien"
       FROM hoat_dong hd
       LEFT JOIN nguoi_dung nd ON hd.nguoi_to_chuc_id = nd.nguoi_dung_id
+      LEFT JOIN ho_so_nguoi_dung hs ON hs.nguoi_dung_id = nd.nguoi_dung_id
       LEFT JOIN danh_muc_hoat_dong dm ON hd.danh_muc_hoat_dong_id = dm.danh_muc_hoat_dong_id
       LEFT JOIN dia_diem dd ON hd.dia_diem_id = dd.dia_diem_id
       WHERE (hd.trang_thai IS NULL OR hd.trang_thai != 'da_huy')
@@ -124,6 +126,7 @@ export class HoatDongRepository {
         hd.hoat_dong_id AS "hoatDongId",
         hd.nguoi_to_chuc_id AS "nguoiToChucId",
         nd.ho_ten AS "nguoiToChuc",
+        hs.anh_dai_dien AS "anhDaiDienNguoiToChuc",
         hd.danh_muc_hoat_dong_id AS "danhMucHoatDongId",
         dm.ten_danh_muc AS "tenDanhMuc",
         hd.dia_diem_id AS "diaDiemId",
@@ -149,6 +152,7 @@ export class HoatDongRepository {
         hd.ly_do_huy AS "lyDoHuy"
       FROM hoat_dong hd
       LEFT JOIN nguoi_dung nd ON hd.nguoi_to_chuc_id = nd.nguoi_dung_id
+      LEFT JOIN ho_so_nguoi_dung hs ON hs.nguoi_dung_id = nd.nguoi_dung_id
       LEFT JOIN danh_muc_hoat_dong dm ON hd.danh_muc_hoat_dong_id = dm.danh_muc_hoat_dong_id
       LEFT JOIN dia_diem dd ON hd.dia_diem_id = dd.dia_diem_id
       WHERE hd.hoat_dong_id = $1
