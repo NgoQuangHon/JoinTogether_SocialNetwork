@@ -113,7 +113,7 @@ export class HoatDongRepository {
       LEFT JOIN danh_muc_hoat_dong dm ON hd.danh_muc_hoat_dong_id = dm.danh_muc_hoat_dong_id
       LEFT JOIN dia_diem dd ON hd.dia_diem_id = dd.dia_diem_id
       WHERE (hd.trang_thai IS NULL OR hd.trang_thai != 'da_huy')
-      ORDER BY hd.thoi_gian_bat_dau DESC NULLS LAST
+      ORDER BY hd.hoat_dong_id DESC
     `;
     const result = await pool.query(query);
     return result.rows;
@@ -306,7 +306,7 @@ export class HoatDongRepository {
       LEFT JOIN danh_muc_hoat_dong dm ON hd.danh_muc_hoat_dong_id = dm.danh_muc_hoat_dong_id
       LEFT JOIN dia_diem dd ON hd.dia_diem_id = dd.dia_diem_id
       WHERE hd.nguoi_to_chuc_id = $1
-      ORDER BY hd.thoi_gian_bat_dau DESC NULLS LAST
+      ORDER BY hd.hoat_dong_id DESC
     `;
     const result = await pool.query(query, [nguoiDungId]);
     return result.rows;
@@ -348,7 +348,7 @@ export class HoatDongRepository {
       WHERE hd.hoat_dong_id IN (
         SELECT hoat_dong_id FROM thanh_vien_hoat_dong WHERE nguoi_dung_id = $1
       )
-      ORDER BY hd.thoi_gian_bat_dau DESC NULLS LAST
+      ORDER BY hd.hoat_dong_id DESC
     `;
     const result = await pool.query(query, [nguoiDungId]);
     return result.rows;
@@ -390,7 +390,7 @@ export class HoatDongRepository {
       WHERE hd.hoat_dong_id IN (
         SELECT hoat_dong_id FROM yeu_cau_tham_gia WHERE nguoi_dung_id = $1
       )
-      ORDER BY hd.thoi_gian_bat_dau DESC NULLS LAST
+      ORDER BY hd.hoat_dong_id DESC
     `;
     const result = await pool.query(query, [nguoiDungId]);
     return result.rows;
@@ -525,7 +525,7 @@ export class HoatDongRepository {
       LEFT JOIN danh_muc_hoat_dong dm ON hd.danh_muc_hoat_dong_id = dm.danh_muc_hoat_dong_id
       LEFT JOIN dia_diem dd ON hd.dia_diem_id = dd.dia_diem_id
       ${whereClause}
-      ORDER BY hd.thoi_gian_bat_dau DESC NULLS LAST
+      ORDER BY hd.hoat_dong_id DESC
       LIMIT $${paramIndex++} OFFSET $${paramIndex++}
     `;
     values.push(limit, offset);
