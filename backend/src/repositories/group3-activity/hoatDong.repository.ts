@@ -2,7 +2,16 @@ import { pool } from "../../config/db";
 import { HoatDong } from "../../models/group3-activity/hoatDong.model";
 
 export class HoatDongRepository {
+  private static lastSyncTime = 0;
+
   async syncActivityStatuses(): Promise<void> {
+    const now = Date.now();
+    // Throttling: Tối đa 5 phút mới chạy đồng bộ 1 lần để giảm 80% truy vấn dư thừa tới Database
+    if (now - HoatDongRepository.lastSyncTime < 5 * 60 * 1000) {
+      return;
+    }
+    HoatDongRepository.lastSyncTime = now;
+
     try {
       // 1. Chuyển sang 'dang_dien_ra' nếu CURRENT_TIMESTAMP >= thoi_gian_bat_dau và < thoi_gian_ket_thuc
       await pool.query(`

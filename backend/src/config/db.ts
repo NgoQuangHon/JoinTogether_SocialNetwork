@@ -48,6 +48,9 @@ export const pool = new Pool({
     user: dbUser,
     password: dbPass,
     parseInt8: true,
+    max: 10,
+    idleTimeoutMillis: 10000,
+    connectionTimeoutMillis: 5000,
     ssl: process.env.DB_SSL === 'true' || process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
 } as any);
 
