@@ -61,6 +61,88 @@ class EmailService {
     `;
     return this.sendMail(to, subject, html);
   }
+
+  async sendNewActivityNotification(
+    to: string,
+    userName: string,
+    activity: {
+      tenHoatDong: string;
+      moTa?: string;
+      thoiGianBatDau?: Date | string;
+      tenDiaDiem?: string;
+      diaChi?: string;
+      soLuongToiDa?: number;
+    }
+  ): Promise<boolean> {
+    const subject = `🎯 [JoinTogether] Hoạt động mới phù hợp: "${activity.tenHoatDong}" - Tham gia ngay!`;
+    const formattedTime = activity.thoiGianBatDau
+      ? new Date(activity.thoiGianBatDau).toLocaleString('vi-VN', {
+          dateStyle: 'full',
+          timeStyle: 'short',
+        })
+      : 'Sắp diễn ra';
+
+    const locationText = [activity.tenDiaDiem, activity.diaChi].filter(Boolean).join(' - ') || 'Địa điểm linh hoạt / Online';
+
+    const html = `
+      <div style="font-family: 'Segoe UI', Helvetica, Arial, sans-serif; background-color: #f4fbf5; padding: 30px 15px; color: #263238;">
+        <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(46, 125, 50, 0.1); border: 1px solid #e8f5e9;">
+          
+          <!-- Header Banner -->
+          <div style="background: linear-gradient(135deg, #2e7d32, #6fbf73); padding: 28px 24px; text-align: center; color: #ffffff;">
+            <div style="font-size: 26px; font-weight: 800; margin-bottom: 8px;">✨ JoinTogether Social Network</div>
+            <h1 style="margin: 0; font-size: 20px; font-weight: 800; letter-spacing: 0.5px;">GỢI Ý HOẠT ĐỘNG MỚI DÀNH CHO BẠN</h1>
+          </div>
+
+          <!-- Body Content -->
+          <div style="padding: 28px 24px;">
+            <p style="font-size: 16px; margin-top: 0;">Xin chào <strong>${userName}</strong> 👋,</p>
+            <p style="font-size: 14.5px; color: #455a64; line-height: 1.6;">
+              Chúc mừng bạn đã <strong>hoàn thiện 100% hồ sơ cá nhân</strong> trên hệ thống! Dựa trên độ uy tín và thông tin hồ sơ của bạn, JoinTogether trân trọng giới thiệu hoạt động mới vừa được khởi tạo trên nền tảng:
+            </p>
+
+            <!-- Activity Card Box -->
+            <div style="background: #f7fbf8; border: 1.5px solid #c8e6c9; border-radius: 14px; padding: 20px; margin: 20px 0;">
+              <h2 style="margin: 0 0 12px 0; color: #2e7d32; font-size: 18px; font-weight: 700;">
+                🎯 ${activity.tenHoatDong}
+              </h2>
+              <div style="font-size: 14px; color: #37474f; line-height: 1.6; margin-bottom: 12px;">
+                ⏱️ <strong>Thời gian:</strong> ${formattedTime}<br/>
+                📍 <strong>Địa điểm:</strong> ${locationText}<br/>
+                👥 <strong>Quy mô:</strong> Tối đa ${activity.soLuongToiDa || 20} thành viên
+              </div>
+              ${
+                activity.moTa
+                  ? `<div style="font-size: 13.5px; color: #546e7a; background: #ffffff; padding: 12px; border-radius: 8px; border: 1px dashed #a5d6a7;">
+                      <em>"${activity.moTa}"</em>
+                    </div>`
+                  : ''
+              }
+            </div>
+
+            <!-- Friends & Community Callout -->
+            <div style="background: #fff8e1; border-left: 4px solid #ffb300; padding: 14px 16px; border-radius: 8px; margin-bottom: 24px; font-size: 13.5px; color: #5d4037;">
+              🤝 <strong>Cộng đồng & Bạn bè:</strong> Rất nhiều thành viên đã hoàn thiện hồ sơ và bạn bè lân cận đang xem và đăng ký tham gia các hoạt động tuần này. Hãy là một trong những người đầu tiên tham gia kết nối!
+            </div>
+
+            <!-- CTA Button -->
+            <div style="text-align: center; margin: 30px 0 15px 0;">
+              <a href="http://localhost:5173/dashboard" target="_blank" style="display: inline-block; background: #2e7d32; color: #ffffff; font-weight: 700; font-size: 15px; padding: 14px 32px; border-radius: 30px; text-decoration: none; box-shadow: 0 4px 12px rgba(46, 125, 50, 0.3);">
+                💬 XEM & ĐĂNG KÝ THAM GIA NGAY
+              </a>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div style="background: #f1f8e9; padding: 16px 24px; text-align: center; font-size: 12px; color: #689f38; border-top: 1px solid #ded;">
+            Bạn nhận được email này vì tài khoản JoinTogether của bạn đã hoàn thiện 100% hồ sơ.<br/>
+            © 2026 JoinTogether Social Network. All rights reserved.
+          </div>
+        </div>
+      </div>
+    `;
+    return this.sendMail(to, subject, html);
+  }
 }
 
 export const emailService = new EmailService();

@@ -11,6 +11,7 @@ import { HinhAnhHoatDongModel } from "../../models/group3-activity/hinhAnhHoatDo
 import { ThanhVienHoatDongRepository } from "../../repositories/group3-activity/thanhVienHoatDong.repository";
 import { YeuCauThamGiaRepository } from "../../repositories/group3-activity/yeuCauThamGia.repository";
 import { NotFoundError, BadRequestError, ForbiddenError } from "../../utils/AppError";
+import { emailService } from "../group1-user/email.service";
 
 export class ActivityService {
   private hoatDongRepo = new HoatDongRepository();
@@ -207,12 +208,105 @@ export class ActivityService {
       if (client?.query) await client.query("COMMIT");
 
       const fetched = await this.hoatDongRepo.findById(hoatDongId);
-      return fetched || activity;
+      const finalActivity = fetched || activity;
+
+      // Trigger background email dispatch to 100% completed profile users
+      this.notifyUsersWith100PercentProfile(finalActivity);
+
+      return finalActivity;
     } catch (error) {
       if (client?.query) await client.query("ROLLBACK");
       throw error;
     } finally {
       if (client?.release) client.release();
+    }
+  }
+
+  private async notifyUsersWith100PercentProfile(activity: any) {
+    try {
+      let categoryName = '';
+      if (activity.danhMucHoatDongId) {
+        const cat = await this.danhMucRepo.findById(Number(activity.danhMucHoatDongId));
+        categoryName = cat?.tenDanhMuc || '';
+      }
+
+      // Fetch creator's region
+      let creatorKhuVuc = '';
+      try {
+        const creatorRes = await pool.query(
+          `SELECT khu_vuc FROM ho_so_nguoi_dung WHERE nguoi_dung_id = $1`,
+          [activity.nguoiToChucId || 0]
+        );
+        creatorKhuVuc = creatorRes.rows[0]?.khu_vuc || '';
+      } catch {}
+
+      const activityLocation = [activity.diaChi, activity.tenDiaDiem, creatorKhuVuc]
+        .filter(Boolean)
+        .join(' ');
+
+      const matchPattern = `%${categoryName || activity.tenHoatDong || ''}%`;
+      const catId = Number(activity.danhMucHoatDongId) || 0;
+      const locPattern = creatorKhuVuc ? `%${creatorKhuVuc.trim()}%` : '%';
+      const actLocPattern = activityLocation ? `%${activityLocation.trim()}%` : '%';
+
+      // Query 1: Users with 100% completed profile (WITH AVATAR) + SAME LIVING REGION/CITY + MATCHING INTERESTS
+      let result = await pool.query(`
+        SELECT DISTINCT nd.nguoi_dung_id AS "nguoiDungId", nd.ho_ten AS "hoTen", nd.email AS "email", hs.khu_vuc AS "khuVuc"
+        FROM nguoi_dung nd
+        JOIN ho_so_nguoi_dung hs ON nd.nguoi_dung_id = hs.nguoi_dung_id
+        JOIN ho_so_so_thich hsst ON hs.ho_so_id = hsst.ho_so_id
+        JOIN so_thich st ON hsst.so_thich_id = st.so_thich_id
+        LEFT JOIN danh_muc_so_thich dmst ON st.danh_muc_so_thich_id = dmst.danh_muc_so_thich_id
+        WHERE nd.email IS NOT NULL AND nd.email != '' AND nd.email LIKE '%@%'
+          AND nd.nguoi_dung_id != $1
+          AND nd.ho_ten IS NOT NULL AND nd.ho_ten != ''
+          AND hs.ngay_sinh IS NOT NULL
+          AND (hs.gioi_tinh IS NOT NULL AND hs.gioi_tinh != '')
+          AND (hs.khu_vuc IS NOT NULL AND hs.khu_vuc != '')
+          AND (hs.anh_dai_dien IS NOT NULL AND hs.anh_dai_dien != '')
+          AND (
+            dmst.danh_muc_so_thich_id = $2
+            OR dmst.ten_danh_muc ILIKE $3
+            OR st.ten_so_thich ILIKE $3
+            OR $3 ILIKE '%' || st.ten_so_thich || '%'
+            OR $3 ILIKE '%' || dmst.ten_danh_muc || '%'
+          )
+          AND (
+            hs.khu_vuc ILIKE $4 OR $4 ILIKE '%' || hs.khu_vuc || '%'
+            OR hs.khu_vuc ILIKE $5 OR $5 ILIKE '%' || hs.khu_vuc || '%'
+          )
+      `, [activity.nguoiToChucId || 0, catId, matchPattern, locPattern, actLocPattern]);
+
+      // Fallback: If no exact interest tag match, notify 100% completed profile users (WITH AVATAR) in the SAME LIVING REGION/CITY
+      if (result.rows.length === 0) {
+        result = await pool.query(`
+          SELECT DISTINCT nd.nguoi_dung_id AS "nguoiDungId", nd.ho_ten AS "hoTen", nd.email AS "email", hs.khu_vuc AS "khuVuc"
+          FROM nguoi_dung nd
+          JOIN ho_so_nguoi_dung hs ON nd.nguoi_dung_id = hs.nguoi_dung_id
+          WHERE nd.email IS NOT NULL AND nd.email != '' AND nd.email LIKE '%@%'
+            AND nd.nguoi_dung_id != $1
+            AND nd.ho_ten IS NOT NULL AND nd.ho_ten != ''
+            AND hs.ngay_sinh IS NOT NULL
+            AND (hs.gioi_tinh IS NOT NULL AND hs.gioi_tinh != '')
+            AND (hs.khu_vuc IS NOT NULL AND hs.khu_vuc != '')
+            AND (hs.anh_dai_dien IS NOT NULL AND hs.anh_dai_dien != '')
+            AND (
+              hs.khu_vuc ILIKE $2 OR $2 ILIKE '%' || hs.khu_vuc || '%'
+              OR hs.khu_vuc ILIKE $3 OR $3 ILIKE '%' || hs.khu_vuc || '%'
+            )
+        `, [activity.nguoiToChucId || 0, locPattern, actLocPattern]);
+      }
+
+      if (result.rows.length > 0) {
+        console.log(`✉️ [EVENT EMAIL] Gửi email gợi ý hoạt động mới "${activity.tenHoatDong}" (${categoryName || 'Sự kiện'}) cho ${result.rows.length} tài khoản 100% hồ sơ (có Avatar & cùng khu vực sống)...`);
+        for (const u of result.rows) {
+          emailService.sendNewActivityNotification(u.email, u.hoTen, { ...activity, tenDanhMuc: categoryName }).catch((err) => {
+            console.error(`❌ [EVENT EMAIL FAILED] Error sending to ${u.email}:`, err);
+          });
+        }
+      }
+    } catch (err: any) {
+      console.error('❌ [EVENT EMAIL ERROR]:', err.message || err);
     }
   }
 
