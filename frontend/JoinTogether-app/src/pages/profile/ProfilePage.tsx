@@ -165,13 +165,20 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
 import VerifyPhoneModal from './VerifyPhoneModal';
 
 export default function ProfilePage() {
-    const { nguoiDungId } = useAuth();
+    const { nguoiDungId, logout } = useAuth();
     const navigate = useNavigate();
     const [profile, setProfile] = useState<HoSoNguoiDung | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [showChangePassword, setShowChangePassword] = useState(false);
     const [showVerifyPhone, setShowVerifyPhone] = useState(false);
+
+    const handleLogout = () => {
+        if (window.confirm('Bạn có chắc chắn muốn đăng xuất tài khoản?')) {
+            logout();
+            navigate('/login', { replace: true });
+        }
+    };
 
     const loadProfile = () => {
         getMyProfile()
@@ -387,6 +394,32 @@ export default function ProfilePage() {
                             <span className="tag-empty">Chưa có sở thích nào.</span>
                         )}
                     </div>
+                </section>
+
+                {/* LOGOUT BUTTON - RENDERED AT VERY BOTTOM */}
+                <section className="profile-card mobile-logout-section" style={{ marginTop: 20, textAlign: 'center', background: '#fff5f5', border: '1px solid #ffebee' }}>
+                    <button
+                        onClick={handleLogout}
+                        style={{
+                            width: '100%',
+                            padding: '14px 20px',
+                            borderRadius: 14,
+                            border: 'none',
+                            background: 'linear-gradient(135deg, #e53935, #c62828)',
+                            color: '#fff',
+                            fontSize: 15,
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: 8,
+                            boxShadow: '0 4px 14px rgba(229, 57, 53, 0.28)',
+                            transition: 'all 0.2s ease',
+                        }}
+                    >
+                        🚪 Đăng xuất tài khoản
+                    </button>
                 </section>
             </div>
         </SidebarLayout>
