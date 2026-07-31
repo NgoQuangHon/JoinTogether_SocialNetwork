@@ -300,9 +300,12 @@ export class ActivityService {
       if (result.rows.length > 0) {
         console.log(`✉️ [EVENT EMAIL] Gửi email gợi ý hoạt động mới "${activity.tenHoatDong}" (${categoryName || 'Sự kiện'}) cho ${result.rows.length} tài khoản 100% hồ sơ (có Avatar & cùng khu vực sống)...`);
         for (const u of result.rows) {
-          emailService.sendNewActivityNotification(u.email, u.hoTen, { ...activity, tenDanhMuc: categoryName }).catch((err) => {
+          try {
+            await emailService.sendNewActivityNotification(u.email, u.hoTen, { ...activity, tenDanhMuc: categoryName });
+            await new Promise((res) => setTimeout(res, 150));
+          } catch (err: any) {
             console.error(`❌ [EVENT EMAIL FAILED] Error sending to ${u.email}:`, err);
-          });
+          }
         }
       }
     } catch (err: any) {
