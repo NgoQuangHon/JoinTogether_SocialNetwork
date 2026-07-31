@@ -164,6 +164,113 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
 
 import VerifyPhoneModal from './VerifyPhoneModal';
 
+function LogoutConfirmModal({ onClose, onConfirm }: { onClose: () => void; onConfirm: () => void }) {
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(15, 23, 42, 0.65)',
+        backdropFilter: 'blur(6px)',
+        WebkitBackdropFilter: 'blur(6px)',
+        zIndex: 9999,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 16,
+      }}
+      onClick={onClose}
+    >
+      <div
+        style={{
+          background: '#ffffff',
+          borderRadius: 24,
+          padding: '28px 24px',
+          width: '100%',
+          maxWidth: 380,
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+          textAlign: 'center',
+          animation: 'modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div
+          style={{
+            width: 64,
+            height: 64,
+            borderRadius: '50%',
+            background: 'linear-gradient(135deg, #ffebee, #ffcdd2)',
+            color: '#d32f2f',
+            fontSize: 28,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 16px',
+            boxShadow: '0 8px 20px rgba(239, 68, 68, 0.2)',
+          }}
+        >
+          🚪
+        </div>
+
+        <h3 style={{ margin: '0 0 8px 0', fontSize: 19, fontWeight: 700, color: '#1e293b' }}>
+          Đăng xuất tài khoản?
+        </h3>
+
+        <p style={{ margin: '0 0 24px 0', fontSize: 14, color: '#64748b', lineHeight: 1.5 }}>
+          Bạn có chắc chắn muốn đăng xuất khỏi <strong>JoinTogether</strong> không?
+        </p>
+
+        <div style={{ display: 'flex', gap: 12 }}>
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              flex: 1,
+              padding: '12px 16px',
+              borderRadius: 14,
+              border: '1.5px solid #e2e8f0',
+              background: '#f8fafc',
+              color: '#475569',
+              fontSize: 14,
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            Quay lại
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            style={{
+              flex: 1.2,
+              padding: '12px 16px',
+              borderRadius: 14,
+              border: 'none',
+              background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+              color: '#ffffff',
+              fontSize: 14,
+              fontWeight: 700,
+              cursor: 'pointer',
+              boxShadow: '0 4px 14px rgba(239, 68, 68, 0.35)',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            Đăng xuất
+          </button>
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes modalPop {
+          from { opacity: 0; transform: scale(0.92) translateY(10px); }
+          to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+      `}</style>
+    </div>
+  );
+}
+
 export default function ProfilePage() {
     const { nguoiDungId, logout } = useAuth();
     const navigate = useNavigate();
@@ -172,12 +279,11 @@ export default function ProfilePage() {
     const [error, setError] = useState('');
     const [showChangePassword, setShowChangePassword] = useState(false);
     const [showVerifyPhone, setShowVerifyPhone] = useState(false);
+    const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
-    const handleLogout = () => {
-        if (window.confirm('Bạn có chắc chắn muốn đăng xuất tài khoản?')) {
-            logout();
-            navigate('/login', { replace: true });
-        }
+    const handleConfirmLogout = () => {
+        logout();
+        navigate('/login', { replace: true });
     };
 
     const loadProfile = () => {
@@ -263,6 +369,13 @@ export default function ProfilePage() {
                     currentPhone={user?.soDienThoai || ''}
                     onClose={() => setShowVerifyPhone(false)}
                     onSuccess={() => loadProfile()}
+                />
+            )}
+
+            {showLogoutConfirm && (
+                <LogoutConfirmModal
+                    onClose={() => setShowLogoutConfirm(false)}
+                    onConfirm={handleConfirmLogout}
                 />
             )}
 
@@ -399,7 +512,7 @@ export default function ProfilePage() {
                 {/* LOGOUT BUTTON - RENDERED AT VERY BOTTOM */}
                 <section className="profile-card mobile-logout-section" style={{ marginTop: 20, textAlign: 'center', background: '#fff5f5', border: '1px solid #ffebee' }}>
                     <button
-                        onClick={handleLogout}
+                        onClick={() => setShowLogoutConfirm(true)}
                         style={{
                             width: '100%',
                             padding: '14px 20px',
