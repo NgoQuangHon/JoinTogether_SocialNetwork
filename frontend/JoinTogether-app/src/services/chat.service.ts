@@ -5,6 +5,7 @@ export interface PhongTroChuyen {
   phongId: number;
   tenPhong: string;
   hoatDongId?: number;
+  otherUserId?: number;
   loaiPhong?: 'NHOM' | 'RIENG_TU';
   trangThai?: 'ACTIVE' | 'CLOSED';
   activityStatus?: string;

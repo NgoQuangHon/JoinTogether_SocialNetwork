@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from '../../contexts/AuthContext';
 import SidebarLayout from '../../components/SidebarLayout';
+import ReportModal from '../reports/ReportModal';
 import { getUserRoomsApi, getMessagesApi, sendMessageApi } from '../../services/chat.service';
 import type { PhongTroChuyen, TinNhan } from '../../services/chat.service';
 import '../../styles/dashboard.css';
@@ -23,6 +24,10 @@ export default function ChatPage() {
   const [sending, setSending] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [isReadOnly, setIsReadOnly] = useState(false);
+
+  // Safety & Anti-Scam state
+  const [showScamWarning, setShowScamWarning] = useState(true);
+  const [reportTarget, setReportTarget] = useState<{ id?: number; name?: string } | null>(null);
 
   // Proposal state
   const [myProposal, setMyProposal] = useState<'NONE' | 'AGREED' | 'DECLINED'>('NONE');
@@ -86,22 +91,43 @@ export default function ChatPage() {
     }
   }, [activeRoom]);
 
-  // 3. Load User Rooms
+  // 3. Load User Rooms & Open Target Room Immediately
   useEffect(() => {
     setLoadingRooms(true);
     getUserRoomsApi()
       .then((res) => {
         if (res.success && res.data) {
-          setRooms(res.data);
+          const roomList = res.data;
+          setRooms(roomList);
+
           if (roomParam) {
-            const found = res.data.find((r) => r.phongId === Number(roomParam) || r.hoatDongId === Number(roomParam));
-            if (found) {
-              selectRoom(found);
-            } else if (res.data.length > 0) {
-              selectRoom(res.data[0]);
+            const targetId = Number(roomParam);
+            const foundIndex = roomList.findIndex(
+              (r) =>
+                Number(r.phongId) === targetId ||
+                String(r.phongId) === String(roomParam) ||
+                Number(r.hoatDongId) === targetId
+            );
+
+            if (foundIndex !== -1) {
+              const foundRoom = roomList[foundIndex];
+              // Đưa phòng cần mở lên ĐẦU danh sách (Index 0) để người dùng thấy ngay
+              const reordered = [foundRoom, ...roomList.filter((_, idx) => idx !== foundIndex)];
+              setRooms(reordered);
+              selectRoom(foundRoom);
+            } else {
+              // Phòng mới được tạo mà chưa kịp nằm trong roomList API
+              const newTempRoom: PhongTroChuyen = {
+                phongId: targetId,
+                tenPhong: 'Cuộc trò chuyện mới',
+                loaiPhong: 'RIENG_TU',
+                trangThai: 'ACTIVE',
+              };
+              setRooms((prev) => [newTempRoom, ...prev.filter((r) => Number(r.phongId) !== targetId)]);
+              selectRoom(newTempRoom);
             }
-          } else if (res.data.length > 0) {
-            selectRoom(res.data[0]);
+          } else if (roomList.length > 0) {
+            selectRoom(roomList[0]);
           }
         }
       })
@@ -144,6 +170,7 @@ export default function ChatPage() {
     setLoadingMessages(true);
     setErrorMsg('');
     setShowSuccessBanner(false);
+    setShowScamWarning(true);
     setMyProposal(roomItem.myProposal || 'NONE');
 
     const isClosed = roomItem.trangThai === 'CLOSED';
@@ -211,6 +238,13 @@ export default function ChatPage() {
   };
 
   const isClosed = activeRoom?.trangThai === 'CLOSED' || isReadOnly;
+
+  const otherMsg = messages.find((m) => m.nguoiGuiId !== Number(nguoiDungId));
+  const targetReportUserId = activeRoom?.otherUserId
+    ? Number(activeRoom.otherUserId)
+    : otherMsg?.nguoiGuiId
+    ? Number(otherMsg.nguoiGuiId)
+    : undefined;
 
   return (
     <SidebarLayout title="Trò chuyện">
@@ -328,6 +362,31 @@ export default function ChatPage() {
                     {isClosed ? '🔒 Cuộc trò chuyện tạm thời đã kết thúc' : activeRoom.isFriend ? '👫 Bạn bè trực tiếp' : '🟢 Đang trò chuyện tạm thời (Tự xóa sau 10p)'}
                   </span>
                 </div>
+                {activeRoom.loaiPhong === 'RIENG_TU' && (
+                  <button
+                    onClick={() =>
+                      setReportTarget({
+                        id: targetReportUserId,
+                        name: activeRoom.tenPhong,
+                      })
+                    }
+                    style={{
+                      border: '1px solid #ffcdd2',
+                      background: '#fff',
+                      color: '#d32f2f',
+                      fontSize: 12,
+                      fontWeight: 600,
+                      padding: '6px 12px',
+                      borderRadius: 8,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 4,
+                    }}
+                  >
+                    🚩 Báo cáo
+                  </button>
+                )}
               </div>
 
               {/* SLIDING PROPOSAL BANNER */}
@@ -356,6 +415,77 @@ export default function ChatPage() {
                       </button>
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* ANTI-SCAM FRAUD WARNING BANNER FOR FIRST-TIME STRANGER CHAT */}
+              {activeRoom.loaiPhong === 'RIENG_TU' && !activeRoom.isFriend && showScamWarning && (
+                <div
+                  style={{
+                    background: 'linear-gradient(135deg, #fff3e0, #ffe0b2)',
+                    borderBottom: '1.5px solid #ffe082',
+                    padding: '12px 20px',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: 12,
+                    fontSize: 13,
+                    color: '#e65100',
+                    boxShadow: '0 2px 8px rgba(230, 81, 0, 0.08)',
+                    flexShrink: 0,
+                  }}
+                >
+                  <div style={{ fontSize: 22, flexShrink: 0 }}>🛡️</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 700, fontSize: 13.5, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      CẢNH BÁO AN TOÀN & CHỐNG LỪA ĐẢO
+                      <span style={{ fontSize: 11, background: '#e65100', color: '#fff', padding: '2px 8px', borderRadius: 10 }}>Lần đầu kết nối</span>
+                    </div>
+                    <div style={{ color: '#4e342e', lineHeight: 1.45, fontSize: 12.5 }}>
+                      • <strong>Tuyệt đối KHÔNG chuyển tiền</strong>, nạp thẻ hoặc đặt cọc dưới mọi hình thức.<br />
+                      • <strong>KHÔNG chia sẻ mã OTP</strong>, tài khoản ngân hàng hoặc nhấp vào đường link lạ.<br />
+                      • <strong>Gặp mặt an toàn:</strong> Chọn nơi công cộng đông người nếu có hẹn gặp ngoài đời.
+                    </div>
+                    <div style={{ marginTop: 8, display: 'flex', gap: 10, alignItems: 'center' }}>
+                      <button
+                        onClick={() =>
+                          setReportTarget({
+                            id: targetReportUserId,
+                            name: activeRoom.tenPhong,
+                          })
+                        }
+                        style={{
+                          border: 'none',
+                          background: '#d32f2f',
+                          color: '#fff',
+                          fontSize: 12,
+                          fontWeight: 700,
+                          padding: '5px 14px',
+                          borderRadius: 8,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 4,
+                        }}
+                      >
+                        🚩 Báo cáo vi phạm / Lừa đảo
+                      </button>
+                      <button
+                        onClick={() => setShowScamWarning(false)}
+                        style={{
+                          border: '1px solid #bcaaa4',
+                          background: '#ffffff',
+                          color: '#5d4037',
+                          fontSize: 12,
+                          fontWeight: 600,
+                          padding: '5px 12px',
+                          borderRadius: 8,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        ✕ Đã hiểu
+                      </button>
+                    </div>
+                  </div>
                 </div>
               )}
 
@@ -405,6 +535,27 @@ export default function ChatPage() {
                   background: '#f7f9f8',
                 }}
               >
+                {/* System Anti-Scam Notice Card */}
+                {activeRoom.loaiPhong === 'RIENG_TU' && !activeRoom.isFriend && (
+                  <div
+                    style={{
+                      alignSelf: 'center',
+                      margin: '4px 0 10px',
+                      padding: '8px 16px',
+                      borderRadius: 20,
+                      background: '#fff3e0',
+                      border: '1px solid #ffe082',
+                      color: '#e65100',
+                      fontSize: 12,
+                      fontWeight: 600,
+                      textAlign: 'center',
+                      maxWidth: '92%',
+                      boxShadow: '0 2px 6px rgba(0, 0, 0, 0.03)',
+                    }}
+                  >
+                    🔒 HỆ THỐNG: Bạn và <strong>{activeRoom.tenPhong}</strong> lần đầu kết nối. Nâng cao cảnh giác chống lừa đảo & tuyệt đối không chuyển tiền cho người lạ!
+                  </div>
+                )}
                 {loadingMessages ? (
                   <div style={{ textAlign: 'center', color: '#78909c', marginTop: 40 }}>Đang tải tin nhắn...</div>
                 ) : messages.length === 0 ? (
@@ -540,6 +691,12 @@ export default function ChatPage() {
           )}
         </div>
       </div>
+
+      <ReportModal
+        open={!!reportTarget}
+        onClose={() => setReportTarget(null)}
+        tenNguoiBiBaoCao={reportTarget?.name}
+      />
     </SidebarLayout>
   );
 }

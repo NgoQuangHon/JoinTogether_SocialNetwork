@@ -108,27 +108,91 @@ export class ProfileService {
       const userKhuVuc = (prof.khuVuc || '').toLowerCase().trim();
       const userSchedule = (prof.thoiGianRanh || '').toLowerCase().trim();
 
+      // 1. Tính bạn chung (Mutual Friends)
+      const mutualRes = await pool.query(`
+        SELECT DISTINCT nd.ho_ten FROM nguoi_dung nd
+        WHERE nd.nguoi_dung_id IN (
+          SELECT CASE WHEN nguoi_dung_id_1 = $1 THEN nguoi_dung_id_2 ELSE nguoi_dung_id_1 END
+          FROM quan_he_ket_noi WHERE (nguoi_dung_id_1 = $1 OR nguoi_dung_id_2 = $1) AND trang_thai = 'ACTIVE'
+        )
+        AND nd.nguoi_dung_id IN (
+          SELECT CASE WHEN nguoi_dung_id_1 = $2 THEN nguoi_dung_id_2 ELSE nguoi_dung_id_1 END
+          FROM quan_he_ket_noi WHERE (nguoi_dung_id_1 = $2 OR nguoi_dung_id_2 = $2) AND trang_thai = 'ACTIVE'
+        )
+        LIMIT 5
+      `, [currentUserId, u.nguoiDungId]);
+      const danhSachBanChung = mutualRes.rows.map((r: any) => r.ho_ten);
+      const banChungCount = mutualRes.rows.length;
+
+      // 2. Tính điểm đánh giá thành viên (Average User Rating)
+      const ratingRes = await pool.query(`
+        SELECT COALESCE(AVG(so_sao), 0) AS avg_stars, COUNT(*) AS total_reviews
+        FROM danh_gia
+        WHERE nguoi_nhat_danh_gia_id = $1 AND loai_danh_gia = 'USER'
+      `, [u.nguoiDungId]);
+      const diemTrungBinh = Math.round(Number(ratingRes.rows[0]?.avg_stars || 0) * 10) / 10;
+      const soLuotDanhGia = Number(ratingRes.rows[0]?.total_reviews || 0);
+
+      // 3. Tiêu chí match score
       let score = 55; // Base score
 
-      // 1. Tiêu chí 1: Trùng sở thích (>= 3 sở thích +45%)
       const commonInterests = currentInterests.filter(i => userInterests.includes(i));
       score += Math.min(45, commonInterests.length * 15);
 
-      // 2. Tiêu chí 2: Khoảng cách địa lý / Khu vực (< 10km +20%)
       const isLocationMatched = currentKhuVuc && userKhuVuc && (currentKhuVuc.includes(userKhuVuc) || userKhuVuc.includes(currentKhuVuc));
       if (isLocationMatched) {
         score += 20;
       }
 
-      // 3. Tiêu chí 3: Lịch rảnh trùng nhau (+15%)
       const isScheduleMatched = currentSchedule && userSchedule && (currentSchedule.includes(userSchedule) || userSchedule.includes(currentSchedule) || (currentSchedule.length > 2 && userSchedule.length > 2));
       if (isScheduleMatched) {
         score += 15;
       }
 
-      score = Math.min(98, score);
+      if (banChungCount > 0) {
+        score += Math.min(15, banChungCount * 5);
+      }
+
+      if (diemTrungBinh >= 4.0) {
+        score += 10;
+      }
+
+      score = Math.min(99, score);
+
+      // 4. Tìm hoạt động đôi phù hợp cho kèo Next Meetup
+      let hoatDongGoiY = null;
+      if (commonInterests.length > 0) {
+        try {
+          const actRes = await pool.query(`
+            SELECT hoat_dong_id, ten_hoat_dong, mo_ta, dia_diem, thoi_gian_bat_dau
+            FROM hoat_dong
+            WHERE (
+              LOWER(ten_hoat_dong) LIKE ANY($1::text[])
+              OR LOWER(mo_ta) LIKE ANY($1::text[])
+            )
+            ORDER BY thoi_gian_bat_dau DESC LIMIT 1
+          `, [commonInterests.map(i => `%${i}%`)]);
+          if (actRes.rows.length > 0) {
+            hoatDongGoiY = {
+              hoatDongId: Number(actRes.rows[0].hoat_dong_id),
+              tenHoatDong: actRes.rows[0].ten_hoat_dong,
+              moTa: actRes.rows[0].mo_ta,
+              diaDiem: actRes.rows[0].dia_diem,
+              thoiGianBatDau: actRes.rows[0].thoi_gian_bat_dau,
+            };
+          }
+        } catch {
+          hoatDongGoiY = null;
+        }
+      }
 
       const matchBadges: string[] = [];
+      if (banChungCount > 0) {
+        matchBadges.push(`🤝 ${banChungCount} bạn chung`);
+      }
+      if (diemTrungBinh >= 4.0) {
+        matchBadges.push(`⭐ ${diemTrungBinh}/5.0 Đánh giá cao`);
+      }
       if (commonInterests.length >= 3) {
         matchBadges.push(`🎯 Trùng ${commonInterests.length} sở thích`);
       } else if (commonInterests.length > 0) {
@@ -140,7 +204,7 @@ export class ProfileService {
       }
 
       if (isScheduleMatched) {
-        matchBadges.push("📅 Có lịch rảnh trùng khớp");
+        matchBadges.push("📅 Lịch rảnh trùng khớp");
       }
 
       if (matchBadges.length === 0) {
@@ -157,6 +221,11 @@ export class ProfileService {
         matchScore: score,
         matchBadges,
         reason: matchBadges.join(' • '),
+        banChungCount,
+        danhSachBanChung,
+        diemTrungBinh,
+        soLuotDanhGia,
+        hoatDongGoiY,
       });
     }
 

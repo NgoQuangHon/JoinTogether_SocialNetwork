@@ -72,6 +72,12 @@ export class PhongTroChuyenRepository {
           )
           ELSE pt.ten_phong 
         END AS "tenPhong",
+        (
+          SELECT tvp2.nguoi_dung_id 
+          FROM thanh_vien_phong tvp2 
+          WHERE tvp2.phong_id = pt.phong_id AND tvp2.nguoi_dung_id != $1 
+          LIMIT 1
+        ) AS "otherUserId",
         pt.loai_phong AS "loaiPhong",
         pt.trang_thai AS "trangThai",
         pt.ngay_tao AS "ngayTao",

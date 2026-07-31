@@ -317,28 +317,32 @@ export class ActivityService {
 
     const updated = await this.hoatDongRepo.update(id, updatePayload);
 
-    // Yêu cầu 2: Xử lý cập nhật ảnh sạch sẽ, tránh bị duplicate ảnh đại diện và lỗi 5 ảnh
+    // Yêu cầu 2: Xử lý cập nhật và xóa ảnh sạch sẽ (Cả ảnh đại diện và ảnh phụ)
     if (data.thumbnail !== undefined || data.hinhAnh !== undefined) {
-      await pool.query(`DELETE FROM hinh_anh_hoat_dong WHERE hoat_dong_id = $1`, [id]);
-
-      if (data.thumbnail) {
-        await this.hinhAnhRepo.create({
-          hoatDongId: id,
-          duongDan: data.thumbnail,
-          moTa: "Ảnh đại diện",
-          laAnhDaiDien: true,
-        });
+      if (data.thumbnail !== undefined) {
+        await pool.query(`DELETE FROM hinh_anh_hoat_dong WHERE hoat_dong_id = $1 AND la_anh_dai_dien = true`, [id]);
+        if (data.thumbnail && typeof data.thumbnail === 'string' && data.thumbnail.trim().length > 0) {
+          await this.hinhAnhRepo.create({
+            hoatDongId: id,
+            duongDan: data.thumbnail,
+            moTa: "Ảnh đại diện",
+            laAnhDaiDien: true,
+          });
+        }
       }
 
-      if (data.hinhAnh && Array.isArray(data.hinhAnh)) {
-        for (const url of data.hinhAnh.slice(0, 5)) {
-          if (url && url !== data.thumbnail) {
-            await this.hinhAnhRepo.create({
-              hoatDongId: id,
-              duongDan: url,
-              moTa: null,
-              laAnhDaiDien: false,
-            });
+      if (data.hinhAnh !== undefined) {
+        await pool.query(`DELETE FROM hinh_anh_hoat_dong WHERE hoat_dong_id = $1 AND (la_anh_dai_dien = false OR la_anh_dai_dien IS NULL)`, [id]);
+        if (Array.isArray(data.hinhAnh) && data.hinhAnh.length > 0) {
+          for (const url of data.hinhAnh.slice(0, 5)) {
+            if (url && url !== data.thumbnail) {
+              await this.hinhAnhRepo.create({
+                hoatDongId: id,
+                duongDan: url,
+                moTa: null,
+                laAnhDaiDien: false,
+              });
+            }
           }
         }
       }
