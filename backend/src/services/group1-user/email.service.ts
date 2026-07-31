@@ -59,18 +59,28 @@ class EmailService {
   private async sendMailjetRestApi(to: string, subject: string, html: string): Promise<{ success: boolean; error?: string }> {
     const apiKey = process.env.MAILJET_API_KEY?.trim() || process.env.SMTP_USER?.trim();
     const secretKey = process.env.MAILJET_SECRET_KEY?.trim() || process.env.SMTP_PASS?.trim();
-    const sender = process.env.SENDER_EMAIL?.trim() || process.env.SMTP_FROM?.trim() || process.env.SMTP_USER?.trim();
+    
+    // Ưu tiên Email chính chủ đã Verify trên Mailjet (phucviplc12@gmail.com / SENDER_EMAIL)
+    let sender = process.env.SENDER_EMAIL?.trim();
+    if (!sender) {
+      const userEmail = process.env.SMTP_USER?.trim();
+      if (userEmail && userEmail.includes('@') && userEmail.length !== 32) {
+        sender = userEmail;
+      } else {
+        sender = 'phucviplc12@gmail.com';
+      }
+    }
 
     if (!apiKey || !secretKey || !sender) {
       const missing = [];
-      if (!apiKey) missing.push('MAILJET_API_KEY / SMTP_USER');
-      if (!secretKey) missing.push('MAILJET_SECRET_KEY / SMTP_PASS');
-      if (!sender) missing.push('SENDER_EMAIL / SMTP_FROM');
+      if (!apiKey) missing.push('MAILJET_API_KEY');
+      if (!secretKey) missing.push('MAILJET_SECRET_KEY');
+      if (!sender) missing.push('SENDER_EMAIL');
       return { success: false, error: `Thiếu cấu hình Mailjet: ${missing.join(', ')}` };
     }
 
     try {
-      console.log(`📡 [MAILJET HTTPS API] Gửi mail tới (${to}) bằng Mailjet API Key... Sender: "${sender}"`);
+      console.log(`📡 [MAILJET HTTPS API] Gửi mail tới (${to}) từ Email đã Verify: "${sender}"...`);
       const authHeader = 'Basic ' + Buffer.from(`${apiKey}:${secretKey}`).toString('base64');
       const response = await fetch('https://api.mailjet.com/v3.1/send', {
         method: 'POST',
@@ -82,7 +92,7 @@ class EmailService {
           Messages: [
             {
               From: {
-                Email: sender.includes('@') ? sender : 'phucviplc12@gmail.com',
+                Email: sender,
                 Name: 'JoinTogether Network',
               },
               To: [
