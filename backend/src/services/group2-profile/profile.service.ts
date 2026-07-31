@@ -14,6 +14,11 @@ export class ProfileService {
   // ==================== UC1.3 - PROFILE ====================
 
   async getProfile(nguoiDungId: number): Promise<any> {
+    const user = await this.nguoiDungRepo.findById(nguoiDungId);
+    if (!user) {
+      throw new NotFoundError("Tài khoản chưa tồn tại trên Cơ sở dữ liệu mới. Vui lòng bấm Đăng xuất và Đăng ký tài khoản mới.");
+    }
+
     let profile = await this.hoSoNguoiDungRepo.findByNguoiDungId(nguoiDungId);
 
     if (!profile) {
@@ -25,8 +30,6 @@ export class ProfileService {
     const interests = await this.soThichRepo.findInterestsByProfileId(
       profile.hoSoId!,
     );
-
-    const user = await this.nguoiDungRepo.findById(nguoiDungId);
 
     // Kiểm tra trạng thái xác thực tài khoản từ tai_khoan
     const accountRes = await pool.query(
