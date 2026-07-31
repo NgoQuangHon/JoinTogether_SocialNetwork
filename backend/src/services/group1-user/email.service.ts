@@ -29,6 +29,19 @@ class EmailService {
 
     const senderEmail = process.env.SENDER_EMAIL?.trim() || user;
 
+    if (host.includes('gmail') || user.toLowerCase().includes('@gmail.com')) {
+      return nodemailer.createTransport({
+        service: 'gmail',
+        auth: { user, pass },
+        tls: {
+          rejectUnauthorized: false
+        },
+        connectionTimeout: 10000,
+        greetingTimeout: 10000,
+        socketTimeout: 15000,
+      });
+    }
+
     return nodemailer.createTransport({
       host,
       port,
@@ -44,20 +57,20 @@ class EmailService {
   }
 
   private async sendMailjetRestApi(to: string, subject: string, html: string): Promise<{ success: boolean; error?: string }> {
-    const apiKey = process.env.SMTP_USER?.trim();
-    const secretKey = process.env.SMTP_PASS?.trim();
-    const sender = process.env.SENDER_EMAIL?.trim() || process.env.SMTP_USER?.trim();
+    const apiKey = process.env.MAILJET_API_KEY?.trim() || process.env.SMTP_USER?.trim();
+    const secretKey = process.env.MAILJET_SECRET_KEY?.trim() || process.env.SMTP_PASS?.trim();
+    const sender = process.env.SENDER_EMAIL?.trim() || process.env.SMTP_FROM?.trim() || process.env.SMTP_USER?.trim();
 
     if (!apiKey || !secretKey || !sender) {
       const missing = [];
-      if (!apiKey) missing.push('SMTP_USER');
-      if (!secretKey) missing.push('SMTP_PASS');
-      if (!sender) missing.push('SENDER_EMAIL');
+      if (!apiKey) missing.push('MAILJET_API_KEY / SMTP_USER');
+      if (!secretKey) missing.push('MAILJET_SECRET_KEY / SMTP_PASS');
+      if (!sender) missing.push('SENDER_EMAIL / SMTP_FROM');
       return { success: false, error: `Thiếu cấu hình Mailjet: ${missing.join(', ')}` };
     }
 
     try {
-      console.log(`📡 [MAILJET DIAGNOSTIC] Thử gửi HTTPS API tới Mailjet (${to}). Sender: "${sender}"`);
+      console.log(`📡 [MAILJET HTTPS API] Gửi mail tới (${to}) bằng Mailjet API Key... Sender: "${sender}"`);
       const authHeader = 'Basic ' + Buffer.from(`${apiKey}:${secretKey}`).toString('base64');
       const response = await fetch('https://api.mailjet.com/v3.1/send', {
         method: 'POST',
@@ -69,7 +82,7 @@ class EmailService {
           Messages: [
             {
               From: {
-                Email: sender,
+                Email: sender.includes('@') ? sender : 'phucviplc12@gmail.com',
                 Name: 'JoinTogether Network',
               },
               To: [
@@ -86,14 +99,14 @@ class EmailService {
       });
 
       if (response.ok) {
-        console.log(`✅ [MAILJET SUCCESS] Email đã gửi thành công đến: ${to}`);
+        console.log(`✅ [MAILJET SUCCESS] Email đã gửi thành công qua HTTPS API đến: ${to}`);
         return { success: true };
       } else {
         const errText = await response.text();
         console.error(`❌ [MAILJET API ERROR ${response.status}]:`, errText);
         let hint = '';
-        if (response.status === 401) hint = 'Sai API Key / Secret Key (SMTP_USER / SMTP_PASS).';
-        if (response.status === 400 || response.status === 403) hint = 'Email người gửi (SENDER_EMAIL) chưa được Verify trên Mailjet.';
+        if (response.status === 401) hint = 'Sai MAILJET_API_KEY hoặc MAILJET_SECRET_KEY.';
+        if (response.status === 400 || response.status === 403) hint = 'Email người gửi (SMTP_FROM) chưa được Verify trên Mailjet.';
         return { success: false, error: `HTTP ${response.status}: ${errText}. ${hint}` };
       }
     } catch (err: any) {
@@ -103,31 +116,21 @@ class EmailService {
   }
 
   async sendMail(to: string, subject: string, html: string): Promise<boolean> {
+    const mailjetKey = process.env.MAILJET_API_KEY?.trim();
+    const mailjetSecret = process.env.MAILJET_SECRET_KEY?.trim();
     const user = process.env.SMTP_USER?.trim() || '';
     const pass = process.env.SMTP_PASS?.trim() || '';
     const host = process.env.SMTP_HOST?.trim() || '';
-    const sender = process.env.SENDER_EMAIL?.trim() || user;
+    const sender = process.env.SENDER_EMAIL?.trim() || process.env.SMTP_FROM?.trim() || user;
 
     console.log(`🔍 [EMAIL SERVICE] Khởi tạo gửi email tới: ${to}`);
-    console.log(`ℹ️ [CONFIG DIAGNOSTIC] Host: "${host || 'auto'}" | User len: ${user.length} | Pass len: ${pass.length} | Sender: "${sender}"`);
+    console.log(`ℹ️ [CONFIG DIAGNOSTIC] Host: "${host || 'auto'}" | MailjetKey: ${mailjetKey ? 'Yes' : 'No'} | User len: ${user.length} | Sender: "${sender}"`);
 
-    if (!user || !pass) {
-      console.warn(`⚠️ [SMTP DEV MODE] Chưa cài SMTP_USER/SMTP_PASS trên Render. Giả lập gửi thành công đến: ${to}`);
-      return true;
-    }
-
-    // 1. Thử gửi qua Mailjet REST HTTPS API (Cổng 443 không bao giờ bị nghẽn socket/timeout)
-    const isMailjetHint =
-      host.toLowerCase().includes('mailjet') ||
-      user.length === 32 ||
-      pass.length === 32 ||
-      user.toLowerCase().includes('mailjet') ||
-      sender.includes('@');
-
-    if (isMailjetHint) {
+    // 1. Ưu tiên hàng đầu: Nếu có cài MAILJET_API_KEY & MAILJET_SECRET_KEY trên Render -> Gửi qua HTTPS API (Cổng 443)
+    if (mailjetKey && mailjetSecret) {
       const mailjetResult = await this.sendMailjetRestApi(to, subject, html);
       if (mailjetResult.success) return true;
-      console.warn(`⚠️ Mailjet REST API không gửi được: ${mailjetResult.error}. Thử chuyển sang gửi SMTP...`);
+      console.warn(`⚠️ Gửi qua Mailjet API thất bại: ${mailjetResult.error}. Thử chuyển sang gửi qua SMTP...`);
     }
 
     // 2. Thử gửi qua Nodemailer SMTP
