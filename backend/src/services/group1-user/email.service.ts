@@ -43,14 +43,21 @@ class EmailService {
     });
   }
 
-  private async sendMailjetRestApi(to: string, subject: string, html: string): Promise<boolean> {
+  private async sendMailjetRestApi(to: string, subject: string, html: string): Promise<{ success: boolean; error?: string }> {
     const apiKey = process.env.SMTP_USER?.trim();
     const secretKey = process.env.SMTP_PASS?.trim();
     const sender = process.env.SENDER_EMAIL?.trim() || process.env.SMTP_USER?.trim();
 
-    if (!apiKey || !secretKey || !sender) return false;
+    if (!apiKey || !secretKey || !sender) {
+      const missing = [];
+      if (!apiKey) missing.push('SMTP_USER');
+      if (!secretKey) missing.push('SMTP_PASS');
+      if (!sender) missing.push('SENDER_EMAIL');
+      return { success: false, error: `Thiếu cấu hình Mailjet: ${missing.join(', ')}` };
+    }
 
     try {
+      console.log(`📡 [MAILJET DIAGNOSTIC] Thử gửi HTTPS API tới Mailjet (${to}). Sender: "${sender}"`);
       const authHeader = 'Basic ' + Buffer.from(`${apiKey}:${secretKey}`).toString('base64');
       const response = await fetch('https://api.mailjet.com/v3.1/send', {
         method: 'POST',
@@ -79,16 +86,19 @@ class EmailService {
       });
 
       if (response.ok) {
-        console.log(`✉️ Email (Mailjet HTTPS API) đã được gửi thành công đến: ${to}`);
-        return true;
+        console.log(`✅ [MAILJET SUCCESS] Email đã gửi thành công đến: ${to}`);
+        return { success: true };
       } else {
         const errText = await response.text();
-        console.warn(`⚠️ [Mailjet API ${response.status} Error]:`, errText);
-        return false;
+        console.error(`❌ [MAILJET API ERROR ${response.status}]:`, errText);
+        let hint = '';
+        if (response.status === 401) hint = 'Sai API Key / Secret Key (SMTP_USER / SMTP_PASS).';
+        if (response.status === 400 || response.status === 403) hint = 'Email người gửi (SENDER_EMAIL) chưa được Verify trên Mailjet.';
+        return { success: false, error: `HTTP ${response.status}: ${errText}. ${hint}` };
       }
     } catch (err: any) {
-      console.warn(`⚠️ [Mailjet REST API Exception]:`, err.message || err);
-      return false;
+      console.error(`❌ [MAILJET FETCH EXCEPTION]:`, err.stack || err.message || err);
+      return { success: false, error: err.message || String(err) };
     }
   }
 
@@ -96,39 +106,57 @@ class EmailService {
     const user = process.env.SMTP_USER?.trim() || '';
     const pass = process.env.SMTP_PASS?.trim() || '';
     const host = process.env.SMTP_HOST?.trim() || '';
+    const sender = process.env.SENDER_EMAIL?.trim() || user;
 
-    // Nếu cấu hình là Mailjet, ưu tiên sử dụng REST API qua HTTPS (Cổng 443 không bao giờ bị chặn/timeout)
-    const isMailjet =
-      host.includes('mailjet') ||
-      user.length === 32 ||
-      pass.length === 32 ||
-      user.toLowerCase().includes('mailjet');
+    console.log(`🔍 [EMAIL SERVICE] Khởi tạo gửi email tới: ${to}`);
+    console.log(`ℹ️ [CONFIG DIAGNOSTIC] Host: "${host || 'auto'}" | User len: ${user.length} | Pass len: ${pass.length} | Sender: "${sender}"`);
 
-    if (isMailjet) {
-      const mailjetSuccess = await this.sendMailjetRestApi(to, subject, html);
-      if (mailjetSuccess) return true;
+    if (!user || !pass) {
+      console.warn(`⚠️ [SMTP DEV MODE] Chưa cài SMTP_USER/SMTP_PASS trên Render. Giả lập gửi thành công đến: ${to}`);
+      return true;
     }
 
+    // 1. Thử gửi qua Mailjet REST HTTPS API (Cổng 443 không bao giờ bị nghẽn socket/timeout)
+    const isMailjetHint =
+      host.toLowerCase().includes('mailjet') ||
+      user.length === 32 ||
+      pass.length === 32 ||
+      user.toLowerCase().includes('mailjet') ||
+      sender.includes('@');
+
+    if (isMailjetHint) {
+      const mailjetResult = await this.sendMailjetRestApi(to, subject, html);
+      if (mailjetResult.success) return true;
+      console.warn(`⚠️ Mailjet REST API không gửi được: ${mailjetResult.error}. Thử chuyển sang gửi SMTP...`);
+    }
+
+    // 2. Thử gửi qua Nodemailer SMTP
     try {
       const transporter = this.getTransporter();
       if (transporter) {
-        const sender = process.env.SENDER_EMAIL || process.env.SMTP_USER;
+        console.log(`📡 [SMTP DIAGNOSTIC] Đang kết nối SMTP Server... Host: ${host || 'smtp.gmail.com'}`);
         await transporter.sendMail({
           from: `"JoinTogether Network" <${sender}>`,
           to,
           subject,
           html,
         });
-        console.log(`✉️ Email (SMTP) đã được gửi đến: ${to}`);
-        return true;
-      } else {
-        console.warn(`⚠️ [SMTP DEV MODE] Chưa cài SMTP_USER/SMTP_PASS trên Render. Email gửi đến ${to} | Tiêu đề: ${subject}`);
+        console.log(`✅ [SMTP SUCCESS] Email đã gửi thành công đến: ${to}`);
         return true;
       }
     } catch (err: any) {
-      console.error('❌ Lỗi gửi email (SMTP):', err.message || err);
+      console.error(`❌ [SMTP ERROR DETAIL]:`, {
+        message: err.message,
+        code: err.code,
+        command: err.command,
+        response: err.response,
+        stack: err.stack
+      });
+      console.error(`💡 [DIAGNOSTIC HINT] Lỗi Connection timeout xuất hiện khi Render chặn cổng TCP (587/465). Hãy kiểm tra lại SENDER_EMAIL đã được verify trên Mailjet chưa.`);
       return false;
     }
+
+    return false;
   }
 
   async sendVerificationOtp(to: string, otpCode: string): Promise<boolean> {
