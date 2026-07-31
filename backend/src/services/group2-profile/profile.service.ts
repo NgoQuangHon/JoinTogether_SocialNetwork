@@ -126,9 +126,9 @@ export class ProfileService {
 
       // 2. Tính điểm đánh giá thành viên (Average User Rating)
       const ratingRes = await pool.query(`
-        SELECT COALESCE(AVG(so_sao), 0) AS avg_stars, COUNT(*) AS total_reviews
+        SELECT COALESCE(AVG(diem_tong), 0) AS avg_stars, COUNT(*) AS total_reviews
         FROM danh_gia
-        WHERE nguoi_nhat_danh_gia_id = $1 AND loai_danh_gia = 'USER'
+        WHERE nguoi_duoc_danh_gia_id = $1 AND (loai_danh_gia = 'USER' OR loai_danh_gia IS NULL)
       `, [u.nguoiDungId]);
       const diemTrungBinh = Math.round(Number(ratingRes.rows[0]?.avg_stars || 0) * 10) / 10;
       const soLuotDanhGia = Number(ratingRes.rows[0]?.total_reviews || 0);

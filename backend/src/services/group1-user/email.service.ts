@@ -7,29 +7,49 @@ class EmailService {
     const user = process.env.SMTP_USER?.trim();
     const pass = process.env.SMTP_PASS?.trim();
 
-    if (user && pass) {
-      return nodemailer.createTransport({
-        host: 'smtp.gmail.com',
-        port: 465,
-        secure: true,
-        auth: { user, pass },
-        tls: {
-          rejectUnauthorized: false
-        },
-        connectionTimeout: 10000,
-        greetingTimeout: 10000,
-        socketTimeout: 15000,
-      });
+    if (!user || !pass) return null;
+
+    // Tự động nhận diện nhà cung cấp: Mailjet, Gmail hoặc SMTP tùy chỉnh
+    let host = process.env.SMTP_HOST?.trim();
+    let port = parseInt(process.env.SMTP_PORT || '587', 10);
+    let secure = process.env.SMTP_SECURE === 'true' || port === 465;
+
+    if (!host) {
+      // Tự động phát hiện Mailjet (API Key 32 ký tự) hoặc mặc định Mailjet
+      if (user.length === 32 || user.toLowerCase().includes('mailjet') || pass.length === 32) {
+        host = 'in-v3.mailjet.com';
+        port = 587;
+        secure = false;
+      } else {
+        host = 'smtp.gmail.com';
+        port = 587;
+        secure = false;
+      }
     }
-    return null;
+
+    const senderEmail = process.env.SENDER_EMAIL?.trim() || user;
+
+    return nodemailer.createTransport({
+      host,
+      port,
+      secure,
+      auth: { user, pass },
+      tls: {
+        rejectUnauthorized: false
+      },
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 15000,
+    });
   }
 
   async sendMail(to: string, subject: string, html: string): Promise<boolean> {
     try {
       const transporter = this.getTransporter();
       if (transporter) {
+        const sender = process.env.SENDER_EMAIL || process.env.SMTP_USER;
         await transporter.sendMail({
-          from: `"JoinTogether Network" <${process.env.SMTP_USER}>`,
+          from: `"JoinTogether Network" <${sender}>`,
           to,
           subject,
           html,
