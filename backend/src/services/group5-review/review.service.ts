@@ -48,7 +48,22 @@ export class ReviewService {
       throw new NotFoundError("Hoạt động không tồn tại.");
     }
 
-    // Luồng 5a: Kiểm tra người đánh giá đã được xác nhận tham dự chưa
+    // Kiểm tra hoạt động đã kết thúc chưa
+    const isEnded =
+      activity.trangThai === 'da_ket_thuc' ||
+      activity.trangThai === 'DA_KET_THUC' ||
+      activity.trangThai === 'COMPLETED' ||
+      activity.trangThai === 'ENDED' ||
+      (activity.thoiGianKetThuc && new Date(activity.thoiGianKetThuc) < new Date());
+
+    if (!isEnded) {
+      throw new AppError("Hoạt động đang diễn ra hoặc chưa kết thúc. Bạn chỉ có thể gửi đánh giá sau khi hoạt động đã diễn ra xong.", 400);
+    }
+
+    // Kiểm tra người đánh giá có thuộc hoạt động này không (Thành viên hoặc Người tổ chức)
+    const isOrganizer = Number(activity.nguoiToChucId) === Number(nguoiDanhGiaId);
+    const isMember = await this.thanhVienRepo.isMember(nguoiDanhGiaId, hoatDongId);
+
     const attendanceCheck = await pool.query(
       `SELECT xnt.trang_thai_tham_du
        FROM thanh_vien_hoat_dong tv
@@ -57,11 +72,10 @@ export class ReviewService {
       [hoatDongId, nguoiDanhGiaId]
     );
 
-    const isOrganizer = activity.nguoiToChucId === nguoiDanhGiaId;
-    const isAttended = isOrganizer || (attendanceCheck.rows.length > 0 && (attendanceCheck.rows[0].trang_thai_tham_du === 'DA_DIEM_DANH' || attendanceCheck.rows[0].trang_thai_tham_du === 'DA_CHECKIN'));
+    const isAttended = isOrganizer || isMember || attendanceCheck.rows.length > 0;
 
     if (!isAttended) {
-      throw new AppError("Bạn chưa được xác nhận tham dự thực tế cho hoạt động này nên chưa đủ điều kiện gửi đánh giá.", 403);
+      throw new AppError("Bạn chưa đủ điều kiện gửi đánh giá cho hoạt động này (cần là thành viên hoặc người tổ chức).", 403);
     }
 
     if (!isActivityReview && targetUserId) {

@@ -176,7 +176,35 @@ export class MemberService {
   // ==================== QUẢN LÝ THÀNH VIÊN ====================
 
   async getMembers(hoatDongId: number): Promise<any[]> {
-    return await this.thanhVienRepo.findByHoatDongId(hoatDongId);
+    const members = await this.thanhVienRepo.findByHoatDongId(hoatDongId);
+    const activity = await this.hoatDongRepo.findById(hoatDongId);
+    if (activity && activity.nguoiToChucId) {
+      const orgId = Number(activity.nguoiToChucId);
+      const hasOrganizer = members.some((m: any) => Number(m.nguoiDungId) === orgId);
+      if (!hasOrganizer) {
+        try {
+          const orgRes = await pool.query(
+            `SELECT nd.nguoi_dung_id AS "nguoiDungId", nd.ho_ten AS "hoTen", nd.email, hs.anh_dai_dien AS "anhDaiDien"
+             FROM nguoi_dung nd
+             LEFT JOIN ho_so_nguoi_dung hs ON nd.nguoi_dung_id = hs.nguoi_dung_id
+             WHERE nd.nguoi_dung_id = $1`,
+            [orgId]
+          );
+          if (orgRes.rows.length > 0) {
+            members.unshift({
+              thanhVienId: 0,
+              hoatDongId,
+              nguoiDungId: orgId,
+              hoTen: orgRes.rows[0].hoTen + ' (Người tổ chức)',
+              email: orgRes.rows[0].email,
+              anhDaiDien: orgRes.rows[0].anhDaiDien,
+              trangThaiThamDu: 'DA_DIEM_DANH',
+            });
+          }
+        } catch {}
+      }
+    }
+    return members;
   }
 
   async removeMember(thanhVienId: number, nguoiToChucId: number): Promise<void> {

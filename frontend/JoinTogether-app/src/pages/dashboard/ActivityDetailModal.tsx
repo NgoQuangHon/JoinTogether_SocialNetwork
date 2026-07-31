@@ -151,6 +151,12 @@ export default function ActivityDetailModal({
   const statusLabel = TRANG_THAI_LABEL[activity.trangThai || 'sap_dien_ra'] || 'Sắp diễn ra';
   const statusColor = TRANG_THAI_COLOR[activity.trangThai || 'sap_dien_ra'] || '#4caf50';
   const isCancelled = activity.trangThai === 'da_huy';
+  const isEnded =
+    activity.trangThai === 'da_ket_thuc' ||
+    activity.trangThai === 'DA_KET_THUC' ||
+    activity.trangThai === 'COMPLETED' ||
+    activity.trangThai === 'ENDED' ||
+    Boolean(activity.thoiGianKetThuc && new Date(activity.thoiGianKetThuc) < new Date());
   const thumbnail = activity.hinhAnh?.find((h) => h.laAnhDaiDien)?.duongDan;
 
   if (showEdit) {
@@ -202,7 +208,6 @@ export default function ActivityDetailModal({
             </div>
           </div>
 
-          {/* Yêu cầu 3: Hiện người tạo hoạt động */}
           <div
             style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 8, marginBottom: 12, padding: '8px 12px', background: '#f5f7fa', borderRadius: 8, cursor: 'pointer' }}
             onClick={() => navigate(`/profile/${activity.nguoiToChucId}`)}
@@ -365,7 +370,7 @@ export default function ActivityDetailModal({
           const isOngoing = activity.trangThai === 'dang_dien_ra' || Boolean(activity.thoiGianBatDau && new Date(activity.thoiGianBatDau) <= new Date());
           return (
             <div className="cam-detail-actions">
-              {activity.trangThai === 'da_ket_thuc' && (
+              {isEnded && (
                 <button className="cam-btn-outline" onClick={() => setShowReview(true)}>
                   ⭐ Đánh giá
                 </button>
@@ -421,7 +426,7 @@ export default function ActivityDetailModal({
             <button className="cam-btn-outline" onClick={() => setShowReport(true)} style={{ color: '#d32f2f', borderColor: '#ffcdd2' }}>
               🚩 Báo cáo
             </button>
-            {isMember && (
+            {isMember && isEnded && (
               <button className="cam-btn-outline" onClick={() => setShowReview(true)}>
                 ⭐ Đánh giá
               </button>
