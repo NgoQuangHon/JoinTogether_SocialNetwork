@@ -1,4 +1,4 @@
-import { pool } from '../../config/db';
+import { pool } from "../../config/db";
 
 export interface NearbyUser {
   nguoiDungId: number;
@@ -55,18 +55,28 @@ export class NearbyService {
   }
 
   // Bắt đầu phiên quét - lưu vị trí người dùng
-  async startScan(nguoiDungId: number, viDo: number, kinhDo: number, socketId: string): Promise<void> {
+  async startScan(
+    nguoiDungId: number,
+    viDo: number,
+    kinhDo: number,
+    socketId: string,
+  ): Promise<void> {
     if (this.isUserInCooldown(nguoiDungId)) {
-      throw new Error(`Tài khoản đang trong thời gian chờ 5s sau khi hủy ghép.`);
+      throw new Error(
+        `Tài khoản đang trong thời gian chờ 5s sau khi hủy ghép.`,
+      );
     }
 
-    await pool.query(`
+    await pool.query(
+      `
       INSERT INTO phien_quet_ban (nguoi_dung_id, vi_do, kinh_do, socket_id, het_han_luc)
       VALUES ($1, $2, $3, $4, NOW() + INTERVAL '10 minutes')
       ON CONFLICT (nguoi_dung_id)
       DO UPDATE SET vi_do = $2, kinh_do = $3, socket_id = $4, 
                     bat_dau_luc = NOW(), het_han_luc = NOW() + INTERVAL '10 minutes'
-    `, [nguoiDungId, viDo, kinhDo, socketId]);
+    `,
+      [nguoiDungId, viDo, kinhDo, socketId],
+    );
 
     // Dọn phiên hết hạn
     await pool.query(`DELETE FROM phien_quet_ban WHERE het_han_luc < NOW()`);
@@ -74,19 +84,26 @@ export class NearbyService {
 
   // Dừng phiên quét
   async stopScan(nguoiDungId: number): Promise<void> {
-    await pool.query(`DELETE FROM phien_quet_ban WHERE nguoi_dung_id = $1`, [nguoiDungId]);
+    await pool.query(`DELETE FROM phien_quet_ban WHERE nguoi_dung_id = $1`, [
+      nguoiDungId,
+    ]);
   }
 
   // Cập nhật socket_id mới (khi reconnect)
   async updateSocketId(nguoiDungId: number, socketId: string): Promise<void> {
     await pool.query(
       `UPDATE phien_quet_ban SET socket_id = $1 WHERE nguoi_dung_id = $2`,
-      [socketId, nguoiDungId]
+      [socketId, nguoiDungId],
     );
   }
 
   // Tìm người phù hợp: trong 10km + có chung sở thích + không phải bạn bè rồi + không đang match + không nằm trong cooldown 5s
-  async findMatches(nguoiDungId: number, viDo: number, kinhDo: number, excludeIds: number[] = []): Promise<NearbyUser[]> {
+  async findMatches(
+    nguoiDungId: number,
+    viDo: number,
+    kinhDo: number,
+    excludeIds: number[] = [],
+  ): Promise<NearbyUser[]> {
     const cooldownIds: number[] = [];
     for (const [uid, expiry] of this.cooldownUsers.entries()) {
       if (expiry > Date.now()) {
@@ -95,9 +112,15 @@ export class NearbyService {
         this.cooldownUsers.delete(uid);
       }
     }
-    const excludeList = Array.from(new Set([Number(nguoiDungId), ...excludeIds.map(Number), ...cooldownIds]));
+    const excludeList = Array.from(
+      new Set([Number(nguoiDungId), ...excludeIds.map(Number), ...cooldownIds]),
+    );
 
-    const result = await pool.query(`
+    //Định luật Cosin trên mặt cầu (Spherical Law of Cosines)
+    // – một công thức toán học dùng để tính Khoảng cách đường tròn lớn
+    // (Great-Circle Distance) giữa 2 điểm trên bề mặt Trái Đất dựa trên Vĩ độ (Latitude) và Kinh độ (Longitude).
+    const result = await pool.query(
+      `
       WITH my_interests AS (
         SELECT st.so_thich_id, st.ten_so_thich
         FROM ho_so_so_thich hss
@@ -148,7 +171,9 @@ export class NearbyService {
         )
       ORDER BY count_chung DESC, khoang_cach_km ASC
       LIMIT 1
-    `, [nguoiDungId, viDo, kinhDo, excludeList]);
+    `,
+      [nguoiDungId, viDo, kinhDo, excludeList],
+    );
 
     return result.rows.map((row: any) => ({
       nguoiDungId: Number(row.nguoi_dung_id),
@@ -163,7 +188,12 @@ export class NearbyService {
   }
 
   // Tạo match session mới
-  createMatchSession(userAId: number, userBId: number, socketAId: string, socketBId: string): MatchSession {
+  createMatchSession(
+    userAId: number,
+    userBId: number,
+    socketAId: string,
+    socketBId: string,
+  ): MatchSession {
     const matchId = `match_${userAId}_${userBId}_${Date.now()}`;
     const session: MatchSession = {
       matchId,
@@ -207,38 +237,47 @@ export class NearbyService {
   }
 
   // Tạo/lấy phòng chat tạm thời 10 phút sau khi cả 2 đồng ý ở màn hình quét
-  async finalizeMatch(userAId: number, userBId: number): Promise<{ chatRoomId: number }> {
+  async finalizeMatch(
+    userAId: number,
+    userBId: number,
+  ): Promise<{ chatRoomId: number }> {
     const client = await pool.connect();
     try {
-      await client.query('BEGIN');
+      await client.query("BEGIN");
 
       const uA = Number(userAId);
       const uB = Number(userBId);
 
       // Kiểm tra phòng chat RIENG_TU đã tồn tại chưa
-      const existingRoom = await client.query(`
+      const existingRoom = await client.query(
+        `
         SELECT p.phong_id FROM phong_tro_chuyen p
         JOIN thanh_vien_phong tv1 ON tv1.phong_id = p.phong_id AND tv1.nguoi_dung_id = $1
         JOIN thanh_vien_phong tv2 ON tv2.phong_id = p.phong_id AND tv2.nguoi_dung_id = $2
         WHERE p.loai_phong = 'RIENG_TU'
         LIMIT 1
-      `, [uA, uB]);
+      `,
+        [uA, uB],
+      );
 
       let chatRoomId: number;
 
       if (existingRoom.rows.length > 0) {
         chatRoomId = Number(existingRoom.rows[0].phong_id);
         // Cập nhật lại thời hạn 10 phút cho chat tạm thời
-        await client.query(`
+        await client.query(
+          `
           UPDATE phong_tro_chuyen 
           SET het_han_luc = NOW() + INTERVAL '10 minutes', trang_thai = 'ACTIVE'
           WHERE phong_id = $1
-        `, [chatRoomId]);
+        `,
+          [chatRoomId],
+        );
       } else {
         // Lấy tên cả 2 người
         const namesRes = await client.query(
           `SELECT nguoi_dung_id, ho_ten FROM nguoi_dung WHERE nguoi_dung_id = ANY($1::bigint[])`,
-          [[uA, uB]]
+          [[uA, uB]],
         );
         const names = namesRes.rows.reduce((acc: any, r: any) => {
           acc[r.nguoi_dung_id] = r.ho_ten;
@@ -246,29 +285,38 @@ export class NearbyService {
         }, {});
 
         // Tạo phòng chat tạm thời mới có thời hạn 10 phút
-        const roomRes = await client.query(`
+        const roomRes = await client.query(
+          `
           INSERT INTO phong_tro_chuyen (ten_phong, loai_phong, trang_thai, het_han_luc)
           VALUES ($1, 'RIENG_TU', 'ACTIVE', NOW() + INTERVAL '10 minutes')
           RETURNING phong_id
-        `, [`${names[uA] || 'User'} & ${names[uB] || 'User'}`]);
+        `,
+          [`${names[uA] || "User"} & ${names[uB] || "User"}`],
+        );
 
         chatRoomId = Number(roomRes.rows[0].phong_id);
 
         // Thêm cả 2 vào phòng
-        await client.query(`
+        await client.query(
+          `
           INSERT INTO thanh_vien_phong (phong_id, nguoi_dung_id)
           VALUES ($1, $2), ($1, $3)
           ON CONFLICT DO NOTHING
-        `, [chatRoomId, uA, uB]);
+        `,
+          [chatRoomId, uA, uB],
+        );
       }
 
       // Xóa phiên quét của cả 2
-      await client.query(`DELETE FROM phien_quet_ban WHERE nguoi_dung_id = ANY($1::bigint[])`, [[uA, uB]]);
+      await client.query(
+        `DELETE FROM phien_quet_ban WHERE nguoi_dung_id = ANY($1::bigint[])`,
+        [[uA, uB]],
+      );
 
-      await client.query('COMMIT');
+      await client.query("COMMIT");
       return { chatRoomId };
     } catch (err) {
-      await client.query('ROLLBACK');
+      await client.query("ROLLBACK");
       throw err;
     } finally {
       client.release();
@@ -276,49 +324,65 @@ export class NearbyService {
   }
 
   // Đề xuất kết bạn trong khung chat: người dùng bấm Đồng ý
-  async acceptFriendProposal(phongId: number, nguoiDungId: number): Promise<{ bothAccepted: boolean; isFriend: boolean }> {
+  async acceptFriendProposal(
+    phongId: number,
+    nguoiDungId: number,
+  ): Promise<{ bothAccepted: boolean; isFriend: boolean }> {
     const pId = Number(phongId);
     const uId = Number(nguoiDungId);
 
     // Lưu vào bảng de_xuat_ket_ban
-    await pool.query(`
+    await pool.query(
+      `
       INSERT INTO de_xuat_ket_ban (phong_id, nguoi_dung_id, trang_thai)
       VALUES ($1, $2, 'AGREED')
       ON CONFLICT (phong_id, nguoi_dung_id)
       DO UPDATE SET trang_thai = 'AGREED'
-    `, [pId, uId]);
+    `,
+      [pId, uId],
+    );
 
     // Lấy tất cả thành viên phòng
     const membersRes = await pool.query(
       `SELECT nguoi_dung_id FROM thanh_vien_phong WHERE phong_id = $1`,
-      [pId]
+      [pId],
     );
     const memberIds = membersRes.rows.map((r: any) => Number(r.nguoi_dung_id));
 
     // Lấy danh sách thành viên đã đồng ý trong DB
     const agreedRes = await pool.query(
       `SELECT nguoi_dung_id FROM de_xuat_ket_ban WHERE phong_id = $1 AND trang_thai = 'AGREED'`,
-      [pId]
+      [pId],
     );
-    const agreedUserIds = new Set(agreedRes.rows.map((r: any) => Number(r.nguoi_dung_id)));
+    const agreedUserIds = new Set(
+      agreedRes.rows.map((r: any) => Number(r.nguoi_dung_id)),
+    );
 
-    const bothAccepted = memberIds.length >= 2 && memberIds.every((id: number) => agreedUserIds.has(id));
+    const bothAccepted =
+      memberIds.length >= 2 &&
+      memberIds.every((id: number) => agreedUserIds.has(id));
 
     if (bothAccepted && memberIds.length >= 2) {
       const u1 = memberIds[0]!;
       const u2 = memberIds[1]!;
 
       // Thêm vào bạn bè
-      await pool.query(`
+      await pool.query(
+        `
         INSERT INTO quan_he_ket_noi (nguoi_dung_id_1, nguoi_dung_id_2, trang_thai)
         VALUES ($1, $2, 'ACTIVE')
         ON CONFLICT DO NOTHING
-      `, [Math.min(u1, u2), Math.max(u1, u2)]);
+      `,
+        [Math.min(u1, u2), Math.max(u1, u2)],
+      );
 
       // Xóa hết hạn 10 phút -> biến thành chat vĩnh viễn
-      await pool.query(`
+      await pool.query(
+        `
         UPDATE phong_tro_chuyen SET het_han_luc = NULL WHERE phong_id = $1
-      `, [pId]);
+      `,
+        [pId],
+      );
 
       return { bothAccepted: true, isFriend: true };
     }
@@ -327,30 +391,42 @@ export class NearbyService {
   }
 
   // Từ chối đề xuất kết bạn — VẪN CHO CHAT TIẾP TRONG 10 PHÚT
-  async declineFriendProposal(phongId: number, nguoiDungId: number): Promise<void> {
+  async declineFriendProposal(
+    phongId: number,
+    nguoiDungId: number,
+  ): Promise<void> {
     const pId = Number(phongId);
     const uId = Number(nguoiDungId);
 
     // Lưu trạng thái DECLINED vào DB (vẫn cho chat tiếp trong 10 phút)
-    await pool.query(`
+    await pool.query(
+      `
       INSERT INTO de_xuat_ket_ban (phong_id, nguoi_dung_id, trang_thai)
       VALUES ($1, $2, 'DECLINED')
       ON CONFLICT (phong_id, nguoi_dung_id)
       DO UPDATE SET trang_thai = 'DECLINED'
-    `, [pId, uId]);
+    `,
+      [pId, uId],
+    );
   }
 
   // Lấy trạng thái đề xuất kết bạn từ DB cho 1 phòng
-  async getProposalStatus(phongId: number, nguoiDungId: number): Promise<{ myProposal: string; otherProposal: string }> {
+  async getProposalStatus(
+    phongId: number,
+    nguoiDungId: number,
+  ): Promise<{ myProposal: string; otherProposal: string }> {
     const pId = Number(phongId);
     const uId = Number(nguoiDungId);
 
-    const res = await pool.query(`
+    const res = await pool.query(
+      `
       SELECT nguoi_dung_id, trang_thai FROM de_xuat_ket_ban WHERE phong_id = $1
-    `, [pId]);
+    `,
+      [pId],
+    );
 
-    let myProposal = 'NONE';
-    let otherProposal = 'NONE';
+    let myProposal = "NONE";
+    let otherProposal = "NONE";
 
     res.rows.forEach((row: any) => {
       if (Number(row.nguoi_dung_id) === uId) {
