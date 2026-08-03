@@ -8,6 +8,7 @@ import { getAllActivitiesApi } from '../../services/activity.service';
 import { getAIMatchApi } from '../../services/profile.service';
 import { getOrCreatePrivateRoomApi } from '../../services/chat.service';
 import type { HoatDongResponse } from '../../types/activity';
+import aiBannerImg from '../../assets/Aibanner.jpg';
 import '../../styles/dashboard.css';
 import './AIMatch.css';
 
@@ -152,7 +153,14 @@ export default function AIMatchPage() {
   return (
     <MainLayout pageTitle="Next Meetup & AI Match">
       <div className="aimatch-page">
-        <section className="aimatch-hero">
+        <section
+          className="aimatch-hero"
+          style={{
+            backgroundImage: `linear-gradient(135deg, rgba(28, 31, 30, 0.85) 0%, rgba(12, 13, 13, 0.92) 100%), url(${aiBannerImg})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+        >
           <div className="aimatch-hero-icon">🤝</div>
           <h1>Next Meetup & AI Match</h1>
           <p>

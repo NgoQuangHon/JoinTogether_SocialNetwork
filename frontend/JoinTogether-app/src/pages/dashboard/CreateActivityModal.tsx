@@ -25,6 +25,7 @@ interface FormData {
   noiQuyChung: string;
   luuYDatBiet: string;
   doDungCanMang: string;
+  tuDongChapNhan: boolean;
 }
 
 const GIOI_TINH_OPTIONS = [
@@ -60,6 +61,7 @@ const initialForm: FormData = {
   noiQuyChung: '',
   luuYDatBiet: '',
   doDungCanMang: '',
+  tuDongChapNhan: true,
 };
 
 export default function CreateActivityModal({ onClose }: { onClose: () => void }) {
@@ -219,7 +221,7 @@ export default function CreateActivityModal({ onClose }: { onClose: () => void }
   };
 
   const canStep1 = form.tenHoatDong.trim().length > 0 && form.danhMucHoatDongId > 0 && form.moTa.trim().length > 0;
-  const canStep2 = form.thoiGianBatDau && form.thoiGianKetThuc && form.tenDiaDiem.trim().length > 0;
+  const canStep2 = form.thoiGianBatDau && form.thoiGianKetThuc && form.tenDiaDiem.trim().length > 0 && form.diaChi.trim().length > 0;
   const canStep3 = form.soLuongToiDa !== '' && Number(form.soLuongToiDa) > 0;
 
   const gioiTinhLabel = (v: string) => GIOI_TINH_OPTIONS.find((o) => o.value === v)?.label || 'Tất cả';
@@ -379,11 +381,11 @@ export default function CreateActivityModal({ onClose }: { onClose: () => void }
             </div>
             <div className="cam-field">
               <label>Địa điểm <span className="req">*</span></label>
-              <input type="text" value={form.tenDiaDiem} onChange={(e) => set('tenDiaDiem', e.target.value)} placeholder="Tên địa điểm" />
+              <input type="text" value={form.tenDiaDiem} onChange={(e) => set('tenDiaDiem', e.target.value)} placeholder="Tên địa điểm (Ví dụ: Công viên Thống Nhất)" />
             </div>
             <div className="cam-field">
-              <label>Địa chỉ chi tiết</label>
-              <input type="text" value={form.diaChi} onChange={(e) => set('diaChi', e.target.value)} placeholder="Số nhà, đường, phường..." />
+              <label>Vị trí cụ thể (Địa chỉ chi tiết) <span className="req">*</span></label>
+              <input type="text" value={form.diaChi} onChange={(e) => set('diaChi', e.target.value)} placeholder="Số nhà, tên đường, phường/xã (Bắt buộc)..." />
             </div>
             <div className="cam-field">
               <label>Bản đồ</label>
@@ -400,7 +402,7 @@ export default function CreateActivityModal({ onClose }: { onClose: () => void }
                   />
                 </div>
               ) : (
-                <p className="cam-hint">Nhập địa chỉ để hiển thị bản đồ</p>
+                <p className="cam-hint">Nhập vị trí cụ thể để hiển thị bản đồ</p>
               )}
             </div>
             <div className="cam-nav">
@@ -418,6 +420,39 @@ export default function CreateActivityModal({ onClose }: { onClose: () => void }
               <label>Số lượng người tối đa <span className="req">*</span></label>
               <input type="number" min={1} value={form.soLuongToiDa} onChange={(e) => set('soLuongToiDa', e.target.value ? Number(e.target.value) : '')} placeholder="Ví dụ: 20" />
             </div>
+
+            {/* Toggle On/Off Tự động chấp nhận người đăng ký */}
+            <div className="cam-field" style={{ background: '#F8FAFC', padding: '14px 16px', borderRadius: 16, border: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 12, marginBottom: 16 }}>
+              <div style={{ paddingRight: 12 }}>
+                <label style={{ margin: 0, fontWeight: 700, cursor: 'pointer', color: '#1F2937', fontSize: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  ⚡ Tự động chấp nhận người đăng ký
+                </label>
+                <p style={{ margin: '4px 0 0', fontSize: 12, color: '#4B5563', lineHeight: 1.4 }}>
+                  {form.tuDongChapNhan
+                    ? 'Đang BẬT: Người đăng ký sẽ tự động được chấp nhận tham gia ngay.'
+                    : 'Đang TẮT: Bạn cần phê duyệt thủ công từng yêu cầu tham gia.'}
+                </p>
+              </div>
+              <label style={{ position: 'relative', display: 'inline-block', width: 48, height: 26, flexShrink: 0, cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={form.tuDongChapNhan}
+                  onChange={(e) => set('tuDongChapNhan', e.target.checked)}
+                  style={{ opacity: 0, width: 0, height: 0 }}
+                />
+                <span style={{
+                  position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                  backgroundColor: form.tuDongChapNhan ? '#6FBF73' : '#9CA3AF',
+                  transition: '.3s', borderRadius: 26
+                }}>
+                  <span style={{
+                    position: 'absolute', height: 20, width: 20, left: form.tuDongChapNhan ? 24 : 3, bottom: 3,
+                    backgroundColor: 'white', transition: '.3s', borderRadius: '50%', boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                  }} />
+                </span>
+              </label>
+            </div>
+
             <div className="cam-row">
               <div className="cam-field">
                 <label>Độ tuổi từ</label>

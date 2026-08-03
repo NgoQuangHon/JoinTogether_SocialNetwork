@@ -17,6 +17,9 @@ import type { BaiVietResponse, BinhLuanResponse } from '../../services/post.serv
 import { danhMucList, MOCK_ACTIVITIES, MOCK_SUGGESTIONS, MOCK_POSTS } from './feedMockData';
 import { API_BASE_URL } from '../../config/constants';
 
+import aiBannerImg from '../../assets/Aibanner.jpg';
+import imagesFriendsImg from '../../assets/imagesFriends.jpg';
+
 const LIMIT = 5;
 
 function fillMock<T>(arr: T[], mock: T[], key: keyof T, limit = LIMIT): T[] {
@@ -53,7 +56,15 @@ function MatchBannersSection() {
   return (
     <section className="match-banners-container">
       {/* NỬA TRÁI: AI MATCHING */}
-      <div className="match-banner-card ai-card" onClick={() => navigate('/ai-match')}>
+      <div
+        className="match-banner-card ai-card"
+        style={{
+          backgroundImage: `linear-gradient(135deg, rgba(27, 67, 50, 0.75) 0%, rgba(15, 34, 25, 0.85) 100%), url(${aiBannerImg})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+        onClick={() => navigate('/ai-match')}
+      >
         <div className="match-banner-header">
           <div className="match-icon-badge ai-icon">✦ AI MATCHING</div>
           <span className="match-tag-badge">Thuật toán AI</span>
@@ -67,7 +78,15 @@ function MatchBannersSection() {
       </div>
 
       {/* NỬA PHẢI: AREA MATCHING (QUÉT LÂN CẬN) */}
-      <div className="match-banner-card area-card" onClick={() => navigate('/nearby')}>
+      <div
+        className="match-banner-card area-card"
+        style={{
+          backgroundImage: `linear-gradient(135deg, rgba(13, 59, 102, 0.75) 0%, rgba(7, 28, 48, 0.85) 100%), url(${imagesFriendsImg})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+        onClick={() => navigate('/nearby')}
+      >
         <div className="match-banner-header">
           <div className="match-icon-badge area-icon">📍 AREA MATCHING</div>
           <span className="match-tag-badge live-tag">● Trực tiếp</span>
