@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuth } from "../../contexts/AuthContext";
+import TermsModal from "./TermsModal";
 
 const registerSchema = z
   .object({
@@ -28,6 +29,7 @@ export default function RegisterPage() {
   const { register: registerUser, isLoading } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = useState("");
+  const [termsTab, setTermsTab] = useState<'TERMS' | 'PRIVACY' | null>(null);
 
   const {
     register,
@@ -130,7 +132,7 @@ export default function RegisterPage() {
             style={{ width: 16, height: 16, marginTop: 2, accentColor: '#6fbf73', cursor: 'pointer', flexShrink: 0 }}
           />
           <label htmlFor="dongYDieuKhoan" style={{ cursor: 'pointer', lineHeight: 1.4 }}>
-            Tôi đồng ý với <a href="#terms" onClick={(e) => { e.preventDefault(); alert("Điều khoản dịch vụ: 1. Tôn trọng cộng đồng. 2. Không phát tán nội dung độc hại. 3. Bảo mật thông tin cá nhân."); }} style={{ color: '#2e7d32', fontWeight: 600, textDecoration: 'underline' }}>Điều khoản dịch vụ</a> và <a href="#privacy" onClick={(e) => { e.preventDefault(); alert("Chính sách bảo mật: JoinTogether cam kết bảo vệ dữ liệu cá nhân của bạn theo quy định pháp luật."); }} style={{ color: '#2e7d32', fontWeight: 600, textDecoration: 'underline' }}>Chính sách bảo mật</a> của JoinTogether.
+            Tôi đồng ý với <a href="#terms" onClick={(e) => { e.preventDefault(); setTermsTab('TERMS'); }} style={{ color: '#2e7d32', fontWeight: 600, textDecoration: 'underline' }}>Điều khoản dịch vụ</a> và <a href="#privacy" onClick={(e) => { e.preventDefault(); setTermsTab('PRIVACY'); }} style={{ color: '#2e7d32', fontWeight: 600, textDecoration: 'underline' }}>Chính sách bảo mật</a> của JoinTogether.
           </label>
         </div>
         {errors.dongYDieuKhoan && (
@@ -149,6 +151,12 @@ export default function RegisterPage() {
       <Link to="/login" className="outline-btn">
         Tôi đã có tài khoản
       </Link>
+
+      <TermsModal
+        isOpen={!!termsTab}
+        onClose={() => setTermsTab(null)}
+        defaultTab={termsTab || 'TERMS'}
+      />
     </div>
   );
 }
