@@ -39,9 +39,9 @@
     --info: #4D9DE0;
 
     /* ================= BACKGROUNDS & CARDS ================= */
-    --background: #FFFFFF;
-    --secondary-bg: #F8FAFC;
-    --surface: #FFFFFF;
+    --background: linear-gradient(135deg, #f5fcef 0%, #d5f2e1 100%);
+    --secondary-bg: #e5f6eb;
+    --surface: #ffffff;
 
     /* ================= TEXT ================= */
     --text: #1F2937;
@@ -88,6 +88,8 @@ html {
 
 body {
     background: var(--background);
+    background-attachment: fixed;
+    min-height: 100vh;
     color: var(--text);
 }
 

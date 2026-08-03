@@ -46,7 +46,8 @@ export default function MainLayout({ children, pageTitle: _pageTitle = 'JoinToge
       {/* ================= DESKTOP SIDEBAR (>= 1024px) ================= */}
       <aside className="desktop-sidebar">
         <div className="sidebar-brand" onClick={() => navigate('/dashboard')} style={{ cursor: 'pointer' }}>
-          <div className="brand-icon">JT</div>
+          <div className="brand-icon">🌿</div>
+          <span className="brand-text">JoinTogether</span>
         </div>
 
         <nav className="sidebar-nav">
