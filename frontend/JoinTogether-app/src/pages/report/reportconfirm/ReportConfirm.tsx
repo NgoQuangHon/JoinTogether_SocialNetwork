@@ -15,7 +15,7 @@ const ReportConfirm = () => {
 
     const location = useLocation();
 
-    const { reasonId, description, images } = location.state || {};
+    const { reasonId, description, images, hoatDongId, thanhVienId, nguoiBiBaoCaoId, targetUserName } = location.state || {};
 
     const handleConfirm = () => {
         navigate('/report/loading', {
@@ -23,6 +23,10 @@ const ReportConfirm = () => {
                 reasonId,
                 description,
                 images,
+                hoatDongId,
+                thanhVienId,
+                nguoiBiBaoCaoId,
+                targetUserName,
             },
         });
     };
@@ -49,6 +53,13 @@ const ReportConfirm = () => {
                 </section>
 
                 <section className="confirm-card">
+                    {targetUserName && (
+                        <div className="confirm-row">
+                            <label>Người bị báo cáo</label>
+                            <span className="reason-tag">👤 {targetUserName}</span>
+                        </div>
+                    )}
+
                     <div className="confirm-row">
                         <label>Lý do báo cáo</label>
 

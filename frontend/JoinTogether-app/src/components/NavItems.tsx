@@ -67,8 +67,8 @@ export default function NavItems({ onClose, onNavigate }: { onClose?: () => void
       <a href="/reviews" className={`nav-item ${isActive('/reviews') ? 'active' : ''}`} onClick={go('/reviews')}>
         <span>Đánh giá uy tín</span>
       </a>
-      <a href="/report" className={`nav-item ${isActive('/report') ? 'active' : ''}`} onClick={go('/report')}>
-        <span>Báo cáo vi phạm</span>
+      <a href="/sus" className={`nav-item ${isActive('/sus') || location.pathname.startsWith('/sus') || location.pathname.startsWith('/report') ? 'active' : ''}`} onClick={go('/sus')}>
+        <span>Hỗ trợ (SUS)</span>
       </a>
     </nav>
   );

@@ -59,7 +59,26 @@ export default function LoginPage() {
         Đăng nhập để tiếp tục hành trình cùng JoinTogether.
       </p>
 
-      {error && <div className="error-message">{error}</div>}
+      {error && (
+        <div
+          className="error-message"
+          style={{
+            background: error.includes("khóa vĩnh viễn") ? "#fef2f2" : undefined,
+            color: error.includes("khóa vĩnh viễn") ? "#991b1b" : undefined,
+            border: error.includes("khóa vĩnh viễn") ? "1.5px solid #fca5a5" : undefined,
+            padding: "14px 16px",
+            borderRadius: "12px",
+            fontSize: "14px",
+            fontWeight: error.includes("khóa vĩnh viễn") ? 700 : 500,
+            lineHeight: 1.5,
+            marginBottom: "16px",
+            textAlign: "center",
+          }}
+        >
+          {error.includes("khóa vĩnh viễn") && <div style={{ fontSize: 24, marginBottom: 4 }}>⛔</div>}
+          {error}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit(onSubmit)}>
         <input
@@ -97,7 +116,10 @@ export default function LoginPage() {
           <p className="field-error" style={{ marginTop: -10, marginBottom: 12 }}>{errors.dongYDieuKhoan.message}</p>
         )}
 
-        <Link to="/forgot-password" className="forgot-link">Quên mật khẩu?</Link>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '8px 0 16px', fontSize: 13 }}>
+          <Link to="/forgot-password" className="forgot-link" style={{ margin: 0 }}>Quên mật khẩu?</Link>
+          <Link to="/admin/login" style={{ color: '#16a34a', fontWeight: 600, textDecoration: 'underline' }}>🔐 Đăng nhập Quản trị</Link>
+        </div>
 
         <button type="submit" className="primary-btn" disabled={isLoading}>
           {isLoading ? "Đang đăng nhập..." : "Đăng nhập"}

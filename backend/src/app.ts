@@ -23,6 +23,7 @@ import accountRouter from "./routes/group6-admin/account.routes";
 import path from "path";
 import rolePermissionRouter from "./routes/group6-admin/rolePermission.routes";
 import uploadRouter from "./routes/upload.routes";
+import supportRouter from "./routes/group6-admin/support.routes";
 
 const app = express();
 
@@ -50,6 +51,7 @@ app.use("/api/admin/accounts", accountRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/admin", rolePermissionRouter);
 app.use("/api/upload", uploadRouter);
+app.use("/api/support", supportRouter);
 
 app.get("/", (req, res) => {
   res.status(200).send({ status: "online", message: "JoinTogether Backend API is running 24/7" });

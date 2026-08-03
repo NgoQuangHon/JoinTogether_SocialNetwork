@@ -15,6 +15,8 @@ export interface CreateReportRequest {
   loaiViPhamId: number;
   noiDung?: string;
   bangChung?: BangChungInput[];
+  hoatDongId?: number;
+  thanhVienId?: number;
 }
 
 export interface BaoCaoViPham {
@@ -22,17 +24,21 @@ export interface BaoCaoViPham {
   nguoiBaoCaoId: number;
   nguoiBiBaoCaoId: number;
   loaiViPhamId: number;
+  tenLoaiViPham?: string;
   noiDung?: string;
   trangThai?: string;
   thoiGianTao?: string;
-  nguoiBaoCao?: { hoTen: string };
-  nguoiBiBaoCao?: { hoTen: string };
+  hoatDongId?: number;
+  thanhVienId?: number;
+  tenHoatDong?: string;
+  nguoiBaoCao?: { hoTen: string } | string;
+  nguoiBiBaoCao?: { hoTen: string } | string;
   loaiViPham?: LoaiViPham;
   bangChung?: { bangChungId: number; loaiBangChung: string; duongDan: string }[];
-  quyetDinh?: { ketQua: string; ngayXuLy: string; nguoiXuLyId: number };
+  quyetDinh?: { ketQua: string; ngayXuLy?: string; nguoiXuLyId?: number };
 }
 
 export interface ProcessReportRequest {
   ketQua: string;
-  truDiem?: number;
+  truDiem?: boolean | number;
 }

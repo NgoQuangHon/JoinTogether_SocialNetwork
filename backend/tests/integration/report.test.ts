@@ -70,21 +70,26 @@ describe("Report Router Integration Tests (/api/reports)", () => {
         .send({ nguoiBiBaoCaoId: 10, loaiViPhamId: 1, noiDung: "Self report" });
 
       expect(res.status).toBe(400);
-      expect(res.body.message).toBe("Không thể báo cáo chính mình.");
+      expect(res.body.message).toBe("Bạn không thể tự báo cáo chính mình.");
     });
 
-    it("should return 404 if reported user not found", async () => {
+    it("should create report even if reported user no longer exists (reference note)", async () => {
       (NguoiDungRepository.prototype.findById as jest.Mock).mockResolvedValue(null);
       (LoaiViPhamRepository.prototype.findById as jest.Mock)
         .mockResolvedValue({ loaiViPhamId: 1 });
+      (BaoCaoViPhamRepository.prototype.create as jest.Mock).mockResolvedValue({
+        baoCaoId: 1,
+        nguoiBaoCaoId: 10,
+        nguoiBiBaoCaoId: null,
+      });
 
       const res = await request(app)
         .post("/api/reports")
         .set("Authorization", `Bearer ${userToken}`)
-        .send({ nguoiBiBaoCaoId: 9999, loaiViPhamId: 1 });
+        .send({ nguoiBiBaoCaoId: 9999, loaiViPhamId: 1, noiDung: "Người dùng này đã rời hệ thống" });
 
-      expect(res.status).toBe(404);
-      expect(res.body.message).toBe("Người dùng bị báo cáo không tồn tại.");
+      expect(res.status).toBe(201);
+      expect(res.body.success).toBe(true);
     });
 
     it("should create report successfully", async () => {

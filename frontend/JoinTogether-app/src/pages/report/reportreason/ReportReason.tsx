@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './ReportReason.css';
 
 interface ReportReasonItem {
@@ -11,6 +11,9 @@ interface ReportReasonItem {
 
 const ReportReason = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+
+    const { hoatDongId, thanhVienId, nguoiBiBaoCaoId, targetUserName } = location.state || {};
 
     const reasons: ReportReasonItem[] = [
         {
@@ -62,6 +65,10 @@ const ReportReason = () => {
         navigate('/report/description', {
             state: {
                 reasonId: selectedReason,
+                hoatDongId,
+                thanhVienId,
+                nguoiBiBaoCaoId,
+                targetUserName,
             },
         });
     };

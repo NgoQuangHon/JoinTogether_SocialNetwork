@@ -15,7 +15,7 @@ const ReportDescription = () => {
 
     const [images, setImages] = useState<string[]>([]);
 
-    const reasonId = location.state?.reasonId;
+    const { reasonId, hoatDongId, thanhVienId, nguoiBiBaoCaoId, targetUserName } = location.state || {};
 
     const handleDescription = (e: ChangeEvent<HTMLTextAreaElement>) => {
         if (e.target.value.length <= MAX_LENGTH) {
@@ -32,13 +32,17 @@ const ReportDescription = () => {
 
         if (!files) return;
 
-        const list: string[] = [];
-
         Array.from(files).forEach((file) => {
-            list.push(URL.createObjectURL(file));
-        });
+            if (file.size > 5 * 1024 * 1024) return;
 
-        setImages((prev) => [...prev, ...list]);
+            const reader = new FileReader();
+
+            reader.onload = () => {
+                setImages((prev) => [...prev, reader.result as string]);
+            };
+
+            reader.readAsDataURL(file);
+        });
     };
 
     const removeImage = (index: number) => {
@@ -51,6 +55,10 @@ const ReportDescription = () => {
                 reasonId,
                 description,
                 images,
+                hoatDongId,
+                thanhVienId,
+                nguoiBiBaoCaoId,
+                targetUserName,
             },
         });
     };

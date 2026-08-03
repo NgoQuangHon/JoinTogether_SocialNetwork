@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import dns from 'dns';
 import fs from 'fs';
 import path from 'path';
+import bcrypt from 'bcrypt';
 
 try {
   dns.setDefaultResultOrder('ipv4first');
@@ -157,6 +158,83 @@ export async function connectDB() {
             PRIMARY KEY (phong_id, nguoi_dung_id)
           );
         `);
+
+        // Khởi tạo / Cập nhật tài khoản Admin mặc định (admin / adminpassword)
+        const adminCheck = await client.query(`SELECT tai_khoan_id FROM tai_khoan WHERE ten_dang_nhap = 'admin'`);
+        const hashedPassword = await bcrypt.hash('adminpassword', 10);
+
+        let adminTaiKhoanId: number;
+        if (adminCheck.rows.length === 0) {
+          const userRes = await client.query(`
+            INSERT INTO nguoi_dung (ho_ten, email, so_dien_thoai)
+            VALUES ('Quản trị viên', 'admin@jointogether.vn', '0999999999')
+            RETURNING nguoi_dung_id
+          `);
+          const nguoiDungId = userRes.rows[0].nguoi_dung_id;
+
+          const tkRes = await client.query(`
+            INSERT INTO tai_khoan (nguoi_dung_id, ten_dang_nhap, mat_khau_ma_hoa, trang_thai, da_xac_thuc)
+            VALUES ($1, 'admin', $2, 'ACTIVE', true)
+            RETURNING tai_khoan_id
+          `, [nguoiDungId, hashedPassword]);
+          adminTaiKhoanId = tkRes.rows[0].tai_khoan_id;
+
+          // Gán vai trò ADMIN
+          await client.query(`
+            INSERT INTO tai_khoan_vai_tro (tai_khoan_id, vai_tro_id)
+            SELECT $1, vai_tro_id FROM vai_tro WHERE ten_vai_tro = 'ADMIN'
+            ON CONFLICT DO NOTHING
+          `, [adminTaiKhoanId]);
+          console.log('🔑 Đã tạo tự động tài khoản admin (admin / adminpassword) thành công!');
+        } else {
+          adminTaiKhoanId = adminCheck.rows[0].tai_khoan_id;
+          await client.query(`
+            UPDATE tai_khoan
+            SET mat_khau_ma_hoa = $1, trang_thai = 'ACTIVE', da_xac_thuc = true
+            WHERE tai_khoan_id = $2
+          `, [hashedPassword, adminTaiKhoanId]);
+          
+          await client.query(`
+            INSERT INTO tai_khoan_vai_tro (tai_khoan_id, vai_tro_id)
+            SELECT $1, vai_tro_id FROM vai_tro WHERE ten_vai_tro = 'ADMIN'
+            ON CONFLICT DO NOTHING
+          `, [adminTaiKhoanId]);
+          console.log('🔑 Đã cập nhật mật khẩu tài khoản admin (admin / adminpassword) thành công!');
+        }
+
+        // Tự động Seed Loại vi phạm & Báo cáo / Yêu cầu hỗ trợ mẫu (nếu chưa có)
+        await client.query(`
+          INSERT INTO loai_vi_pham (loai_vi_pham_id, ten_loai, mo_ta, muc_do)
+          VALUES 
+            (1, 'Quấy rối', 'Hành vi xúc phạm, đe dọa người khác', 'CAO'),
+            (2, 'Giả mạo', 'Giả mạo danh tính cá nhân', 'TRUNG_BINH'),
+            (3, 'Lừa đảo', 'Chiếm đoạt tài sản hoặc thông tin', 'NGHIEM_TRONG'),
+            (4, 'Nội dung không phù hợp', 'Nội dung phản cảm', 'TRUNG_BINH'),
+            (5, 'Spam', 'Quảng cáo hoặc gửi tin rác', 'NHE'),
+            (6, 'Khác', 'Lý do vi phạm khác', 'NHE')
+          ON CONFLICT (loai_vi_pham_id) DO NOTHING;
+        `);
+
+        // Đảm bảo sequence loai_vi_pham_id khớp với max id
+        await client.query(`SELECT setval(pg_get_serial_sequence('loai_vi_pham', 'loai_vi_pham_id'), COALESCE(MAX(loai_vi_pham_id), 1)) FROM loai_vi_pham;`).catch(() => {});
+
+        const countReports = await client.query(`SELECT COUNT(*) FROM bao_cao_vi_pham`);
+        if (parseInt(countReports.rows[0].count, 10) === 0) {
+          await client.query(`
+            INSERT INTO bao_cao_vi_pham (nguoi_bao_cao_id, nguoi_bi_bao_cao_id, loai_vi_pham_id, noi_dung, trang_thai)
+            VALUES 
+              (1, 1, 1, 'Báo cáo mẫu: Người dùng có hành vi ngôn từ quấy rối trong phòng chat hoạt động.', 'CHO_XU_LY')
+          `).catch(() => {});
+        }
+
+        const countSupports = await client.query(`SELECT COUNT(*) FROM yeu_cau_ho_tro`);
+        if (parseInt(countSupports.rows[0].count, 10) === 0) {
+          await client.query(`
+            INSERT INTO yeu_cau_ho_tro (nguoi_gui_id, loai_ho_tro, tieu_de, mo_ta, trang_thai)
+            VALUES 
+              (1, 'LOI_KY_THUAT', 'Yêu cầu hỗ trợ mẫu: Lỗi không mở được khung chat lân cận', 'Hệ thống báo lỗi kết nối Socket.IO khi tôi bật quét tìm bạn lân cận.', 'CHO_XU_LY')
+          `).catch(() => {});
+        }
 
         client.release();
     } catch (error) {

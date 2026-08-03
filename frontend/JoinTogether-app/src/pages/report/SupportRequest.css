@@ -1,0 +1,138 @@
+.support-page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 32px 20px;
+}
+
+.support-header {
+  margin-bottom: 24px;
+}
+
+.support-header .back-btn {
+  background: none;
+  border: none;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 12px;
+}
+
+.support-header h1 {
+  font-size: 24px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+}
+
+.support-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 32px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+}
+
+.support-card .form-group {
+  margin-bottom: 20px;
+}
+
+.support-card label {
+  display: block;
+  font-weight: 600;
+  font-size: 14px;
+  color: #334155;
+  margin-bottom: 8px;
+}
+
+.support-card .required {
+  color: #ef4444;
+}
+
+.support-card .form-control {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1.5px solid #cbd5e1;
+  font-size: 14px;
+  color: #1e293b;
+  background: #f8fafc;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.support-card .form-control:focus {
+  outline: none;
+  border-color: #16a34a;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.15);
+}
+
+.support-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.support-actions .primary-btn,
+.support-actions .secondary-btn,
+.support-success-card .primary-btn,
+.support-success-card .secondary-btn {
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.primary-btn {
+  background: #16a34a;
+  color: #ffffff;
+  border: none;
+}
+
+.primary-btn:hover {
+  background: #15803d;
+}
+
+.secondary-btn {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+}
+
+.secondary-btn:hover {
+  background: #e2e8f0;
+}
+
+.support-success-card {
+  text-align: center;
+  padding: 48px 32px;
+}
+
+.support-success-card .success-icon {
+  font-size: 54px;
+  margin-bottom: 16px;
+}
+
+.support-success-card h2 {
+  font-size: 22px;
+  color: #166534;
+  margin: 0 0 12px;
+}
+
+.support-success-card p {
+  color: #64748b;
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0 0 28px;
+}
+
+.support-success-card .button-group {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}

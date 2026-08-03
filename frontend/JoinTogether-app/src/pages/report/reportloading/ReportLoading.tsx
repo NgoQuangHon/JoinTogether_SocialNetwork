@@ -1,20 +1,58 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { createReportApi } from '../../../services/report.service';
 import './ReportLoading.css';
 
 const ReportLoading = () => {
     const navigate = useNavigate();
-
     const location = useLocation();
+    const hasSubmitted = useRef(false);
 
     useEffect(() => {
-        const timer = setTimeout(() => {
-            navigate('/report/success', {
-                state: location.state,
-            });
-        }, 2500);
+        if (hasSubmitted.current) return;
+        hasSubmitted.current = true;
 
-        return () => clearTimeout(timer);
+        const submitReport = async () => {
+            const { reasonId, description, images, hoatDongId, thanhVienId, nguoiBiBaoCaoId } = location.state || {};
+
+            // Prepare payload
+            const bangChung = Array.isArray(images)
+                ? images.map((url: string) => ({
+                      loaiBangChung: 'HÌNH_ẢNH',
+                      duongDan: url,
+                  }))
+                : [];
+
+            const payload = {
+                nguoiBiBaoCaoId: nguoiBiBaoCaoId || 1, // Fallback if direct report
+                loaiViPhamId: reasonId || 1,
+                noiDung: description ? description : 'Báo cáo từ người dùng qua hệ thống SUS',
+                bangChung,
+                hoatDongId,
+                thanhVienId,
+            };
+
+            try {
+                await createReportApi(payload);
+                setTimeout(() => {
+                    navigate('/report/success', {
+                        state: location.state,
+                    });
+                }, 800);
+            } catch (err: any) {
+                const msg =
+                    err?.response?.data?.message ||
+                    err?.message ||
+                    'Không thể gửi báo cáo. Vui lòng thử lại sau.';
+                setTimeout(() => {
+                    navigate('/report/success', {
+                        state: { ...(location.state || {}), submitError: msg },
+                    });
+                }, 800);
+            }
+        };
+
+        submitReport();
     }, [navigate, location.state]);
 
     return (

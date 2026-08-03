@@ -6,6 +6,8 @@ export interface BaoCaoViPham {
     nguoiBiBaoCaoId?: number | null;
     loaiViPhamId?: number | null;
     noiDung?: string | null;
+    hoatDongId?: number | null;
+    thanhVienId?: number | null;
 }
 
 export class BaoCaoViPhamModel {

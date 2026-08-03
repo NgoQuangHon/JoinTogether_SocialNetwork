@@ -7,6 +7,7 @@ import { LichSuDiemUyTinRepository } from "../../repositories/group5-review/lich
 import { NhatKyQuanTriRepository } from "../../repositories/group6-admin/nhatKyQuanTri.repository";
 import { ThongBaoRepository } from "../../repositories/group4-interaction/thongBao.repository";
 import { NguoiDungRepository } from "../../repositories/group1-user/nguoiDung.repository";
+import { TaiKhoanRepository } from "../../repositories/group1-user/taiKhoan.repository";
 import { pool } from "../../config/db";
 import {
   BadRequestError,
@@ -27,6 +28,7 @@ export class ReportService {
   private nhatKyRepo = new NhatKyQuanTriRepository();
   private thongBaoRepo = new ThongBaoRepository();
   private nguoiDungRepo = new NguoiDungRepository();
+  private taiKhoanRepo = new TaiKhoanRepository();
 
   // ==================== UC6.1: BÁO CÁO VI PHẠM ====================
 
@@ -36,11 +38,29 @@ export class ReportService {
       nguoiBiBaoCaoId: number;
       loaiViPhamId: number;
       noiDung?: string;
+      hoatDongId?: number;
+      thanhVienId?: number;
       bangChung?: Array<{ loaiBangChung?: string; duongDan: string; kichThuoc?: number }>;
     },
   ): Promise<any> {
     if (nguoiBaoCaoId === data.nguoiBiBaoCaoId) {
       throw new BadRequestError("Bạn không thể tự báo cáo chính mình.");
+    }
+
+    // Nếu báo cáo gắn với hoạt động, kiểm tra người bị báo cáo có phải thành viên/người tổ chức của hoạt động đó không
+    if (data.hoatDongId && data.nguoiBiBaoCaoId) {
+      const memberCheck = await pool.query(
+        `SELECT 1 FROM hoat_dong
+         WHERE hoat_dong_id = $1 AND nguoi_to_chuc_id = $2
+         UNION
+         SELECT 1 FROM thanh_vien_hoat_dong
+         WHERE hoat_dong_id = $1 AND nguoi_dung_id = $2
+         LIMIT 1`,
+        [data.hoatDongId, data.nguoiBiBaoCaoId],
+      ).catch(() => ({ rows: [] as any[] }));
+      if (memberCheck.rows.length === 0) {
+        throw new BadRequestError("Người bị báo cáo không phải là thành viên của hoạt động đã chọn.");
+      }
     }
 
     // Luồng 4a: Kiểm tra tính đầy đủ của thông tin bắt buộc
@@ -120,6 +140,8 @@ export class ReportService {
       nguoiBiBaoCaoId: finalTargetUserId ?? null,
       loaiViPhamId: data.loaiViPhamId,
       noiDung: finalNoiDung,
+      hoatDongId: data.hoatDongId ?? null,
+      thanhVienId: data.thanhVienId ?? null,
     });
 
     // Lưu các tệp bằng chứng đính kèm
@@ -185,34 +207,67 @@ export class ReportService {
       ketQua: data.ketQua,
     });
 
+    let taiKhoanBiKhoa = false;
+    let soLanCanhBaoMoi = 0;
+
     if (data.truDiem && baoCao.nguoiBiBaoCaoId) {
+      // Đảm bảo dòng điểm uy tín tồn tại trước khi tăng số lần cảnh báo
+      await this.diemUyTinRepo.findOrCreate(baoCao.nguoiBiBaoCaoId);
+
+      // Tăng số lần cảnh báo và trừ 20 điểm uy tín
       const updatedDiem = await this.diemUyTinRepo.tangSoLanCanhBao(
         baoCao.nguoiBiBaoCaoId,
       );
+
       if (updatedDiem) {
+        soLanCanhBaoMoi = updatedDiem.soLanCanhBao ?? 0;
         const diemUyTinId = updatedDiem.diemUyTinId!;
         await this.lichSuRepo.create({
           diemUyTinId,
           diemThayDoi: -20,
           lyDoThayDoi: `Bị xử phạt từ báo cáo #${baoCaoId}`,
         });
+
+        // Nếu >= 3 lần cảnh báo → khóa tài khoản vĩnh viễn
+        if (soLanCanhBaoMoi >= 3) {
+          // Tìm taiKhoanId của người bị báo cáo
+          const taiKhoanResult = await pool.query(
+            `SELECT tai_khoan_id FROM tai_khoan WHERE nguoi_dung_id = $1 LIMIT 1`,
+            [baoCao.nguoiBiBaoCaoId],
+          );
+          if (taiKhoanResult.rows.length > 0) {
+            const taiKhoanId = taiKhoanResult.rows[0].tai_khoan_id;
+            await this.taiKhoanRepo.updateTrangThai(taiKhoanId, "KHOA_VINH_VIEN");
+            taiKhoanBiKhoa = true;
+          }
+        }
       }
 
-      await this.thongBaoRepo.create({
-        nguoiNhanId: baoCao.nguoiBiBaoCaoId,
-        tieuDe: "Đã bị xử lý vi phạm",
-        noiDung: `Báo cáo vi phạm của bạn đã được xử lý: ${data.ketQua}.`,
-        loaiThongBao: "XULYVIPHAM",
-      });
+      // Gửi thông báo với số lần cảnh cáo
+      if (taiKhoanBiKhoa) {
+        await this.thongBaoRepo.create({
+          nguoiNhanId: baoCao.nguoiBiBaoCaoId,
+          tieuDe: "⛔ Tài khoản của bạn đã bị khóa vĩnh viễn",
+          noiDung: `Tài khoản của bạn đã bị khóa vĩnh viễn do vi phạm quy định cộng đồng lần thứ ${soLanCanhBaoMoi}. Lý do xử lý: ${data.ketQua}.`,
+          loaiThongBao: "KHOA_TAI_KHOAN",
+        });
+      } else {
+        await this.thongBaoRepo.create({
+          nguoiNhanId: baoCao.nguoiBiBaoCaoId,
+          tieuDe: `⚠️ Cảnh cáo vi phạm lần ${soLanCanhBaoMoi}/3`,
+          noiDung: `Tài khoản của bạn đã bị cảnh cáo lần ${soLanCanhBaoMoi}/3 do báo cáo vi phạm được xử lý. Lý do: ${data.ketQua}. Trừ 20 điểm uy tín. ${soLanCanhBaoMoi >= 2 ? '⚠️ Cảnh báo: Nếu bị thêm 1 lần nữa, tài khoản sẽ bị khóa vĩnh viễn!' : 'Vui lòng tuân thủ quy định cộng đồng.'}`,
+          loaiThongBao: "XULYVIPHAM",
+        });
+      }
     }
 
     await this.nhatKyRepo.create({
       nguoiQuanTriId: nguoiXuLyId,
-      hanhDong: `XỬ_LÝ_BÁO_CÁO #${baoCaoId}: ${data.ketQua}`,
+      hanhDong: `XỬ_LÝ_BÁO_CÁO #${baoCaoId}: ${data.ketQua}${taiKhoanBiKhoa ? ' [TÀI_KHOẢN_BỊ_KHÓA]' : ''}`,
       doiTuongTacDong: `BaoCao_${baoCaoId}`,
     });
 
-    return quyetDinh;
+    return { ...quyetDinh, taiKhoanBiKhoa, soLanCanhBao: soLanCanhBaoMoi };
   }
 
   // ==================== LOẠI VI PHẠM ====================

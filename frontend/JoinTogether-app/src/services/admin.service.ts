@@ -54,3 +54,51 @@ export const getAuditLogsApi = async (
   });
   return res.data;
 };
+
+// ==================== SUPPORT REQUESTS ====================
+
+export interface SupportRequest {
+  hoTroId: number;
+  nguoiGuiId: number;
+  nguoiGui?: string;
+  emailNguoiGui?: string;
+  loaiHoTro: string;
+  tieuDe: string;
+  moTa: string;
+  trangThai: string;
+  ghiChuAdmin?: string;
+  taoLuc: string;
+  capNhatLuc?: string;
+}
+
+export const createSupportRequestApi = async (data: {
+  loaiHoTro: string;
+  tieuDe: string;
+  moTa: string;
+}): Promise<ApiResponse<SupportRequest>> => {
+  const res = await api.post<ApiResponse<SupportRequest>>('/support', data);
+  return res.data;
+};
+
+export const getSupportRequestsApi = async (
+  trangThai?: string,
+): Promise<ApiResponse<SupportRequest[]>> => {
+  const params = trangThai ? { trangThai } : {};
+  const res = await api.get<ApiResponse<SupportRequest[]>>('/support', { params });
+  return res.data;
+};
+
+export const getSupportRequestByIdApi = async (
+  id: number,
+): Promise<ApiResponse<SupportRequest>> => {
+  const res = await api.get<ApiResponse<SupportRequest>>(`/support/${id}`);
+  return res.data;
+};
+
+export const processSupportRequestApi = async (
+  id: number,
+  data: { trangThai: string; ghiChuAdmin?: string },
+): Promise<ApiResponse<SupportRequest>> => {
+  const res = await api.put<ApiResponse<SupportRequest>>(`/support/${id}/process`, data);
+  return res.data;
+};

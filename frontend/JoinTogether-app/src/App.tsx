@@ -23,6 +23,9 @@ import ReportConfirm from './pages/report/reportconfirm/ReportConfirm';
 import ReportLoading from './pages/report/reportloading/ReportLoading';
 import ReportSuccess from './pages/report/reportsuccess/ReportSuccess';
 import ReportResult from './pages/report/reportresult/ReportResult';
+import SUSPage from './pages/report/SUSPage';
+import SupportRequestPage from './pages/report/SupportRequestPage';
+import ReportActivityMember from './pages/report/ReportActivityMember';
 import ChatPage from './pages/chat/ChatPage';
 import NearbyPage from './pages/nearby/NearbyPage';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -141,6 +144,32 @@ export default function App() {
                 element={
                     <ProtectedRoute>
                         <NearbyPage />
+                    </ProtectedRoute>
+                }
+            />
+
+            {/* SUS (Support User System) routes */}
+            <Route
+                path="/sus"
+                element={
+                    <ProtectedRoute>
+                        <SUSPage />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/sus/support"
+                element={
+                    <ProtectedRoute>
+                        <SupportRequestPage />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/sus/report"
+                element={
+                    <ProtectedRoute>
+                        <ReportActivityMember />
                     </ProtectedRoute>
                 }
             />

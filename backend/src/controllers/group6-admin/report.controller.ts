@@ -10,7 +10,7 @@ export class ReportController {
   public createReport = asyncHandler(
     async (req: Request, res: Response): Promise<void> => {
       const nguoiBaoCaoId = req.user!.nguoiDungId;
-      const { nguoiBiBaoCaoId, loaiViPhamId, noiDung, bangChung } = req.body;
+      const { nguoiBiBaoCaoId, loaiViPhamId, noiDung, bangChung, hoatDongId, thanhVienId } = req.body;
 
       if (!nguoiBiBaoCaoId || !loaiViPhamId) {
         res.status(400).json({
@@ -25,6 +25,8 @@ export class ReportController {
         loaiViPhamId,
         noiDung,
         bangChung,
+        hoatDongId,
+        thanhVienId,
       });
 
       res

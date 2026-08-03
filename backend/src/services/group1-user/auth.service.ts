@@ -283,6 +283,14 @@ export class AuthService {
       );
     }
 
+    // Kiểm tra tài khoản bị khóa vĩnh viễn
+    if (taiKhoan.trangThai === "KHOA_VINH_VIEN") {
+      throw new AppError(
+        "Tài khoản của bạn đã bị khóa vĩnh viễn do vi phạm quy định cộng đồng. Bạn không thể đăng nhập vào hệ thống này.",
+        403,
+      );
+    }
+
     if (taiKhoan.trangThai !== "ACTIVE") {
       throw new UnauthorizedError(
         "Tài khoản đã bị khóa. Vui lòng liên hệ quản trị viên để được hỗ trợ.",
