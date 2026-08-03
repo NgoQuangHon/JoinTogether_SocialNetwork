@@ -1,0 +1,1564 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BCE Diagram - JoinTogether Social Network</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Segoe UI", system-ui, sans-serif;
+        background: #fff;
+        color: #111;
+        min-height: 100vh;
+      }
+      header {
+        background: #111;
+        border-bottom: 2px solid #333;
+        padding: 20px 40px;
+      }
+      header .logo {
+        font-size: 24px;
+        font-weight: 800;
+        color: #fff;
+      }
+      header p {
+        color: #aaa;
+        font-size: 13px;
+        margin-top: 4px;
+      }
+      .tabs {
+        display: flex;
+        gap: 2px;
+        padding: 16px 40px 0;
+        border-bottom: 2px solid #222;
+        background: #f5f5f5;
+        overflow-x: auto;
+      }
+      .tab {
+        padding: 10px 18px;
+        border-radius: 6px 6px 0 0;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 600;
+        color: #555;
+        border: 1px solid transparent;
+        border-bottom: none;
+        transition: all 0.15s;
+        white-space: nowrap;
+        background: transparent;
+      }
+      .tab:hover {
+        color: #000;
+        background: #e0e0e0;
+      }
+      .tab.active {
+        color: #000;
+        background: #fff;
+        border-color: #222;
+      }
+      .content {
+        padding: 28px 40px;
+      }
+      .panel {
+        display: none;
+      }
+      .panel.active {
+        display: block;
+      }
+      .legend {
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+        margin-bottom: 24px;
+        background: #f5f5f5;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 14px 20px;
+      }
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 13px;
+        color: #333;
+      }
+      .legend-badge {
+        padding: 3px 12px;
+        border-radius: 4px;
+        font-weight: 700;
+        font-size: 11px;
+        letter-spacing: 0.5px;
+        border: 1.5px solid;
+      }
+      .b-badge {
+        background: #fff;
+        color: #000;
+        border-color: #000;
+      }
+      .c-badge {
+        background: #ddd;
+        color: #000;
+        border-color: #555;
+      }
+      .e-badge {
+        background: #111;
+        color: #fff;
+        border-color: #111;
+      }
+      .mermaid-wrap {
+        background: #fafafa;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 20px;
+        overflow-x: auto;
+        min-height: 200px;
+      }
+      .mermaid-wrap svg {
+        max-width: 100%;
+      }
+      .entity-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 16px;
+      }
+      .entity-card {
+        background: #fff;
+        border: 1.5px solid #ccc;
+        border-radius: 8px;
+        overflow: hidden;
+        transition: border-color 0.15s;
+      }
+      .entity-card:hover {
+        border-color: #000;
+      }
+      .entity-card-header {
+        padding: 10px 14px;
+        font-weight: 700;
+        font-size: 13px;
+        background: #111;
+        color: #fff;
+      }
+      .entity-card-body {
+        padding: 10px 14px;
+      }
+      .field-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 4px 0;
+        font-size: 12px;
+        border-bottom: 1px solid #eee;
+        color: #555;
+      }
+      .field-row:last-child {
+        border-bottom: none;
+      }
+      .field-name {
+        color: #111;
+        font-weight: 500;
+      }
+      .pk-badge {
+        font-size: 10px;
+        background: #111;
+        color: #fff;
+        border-radius: 3px;
+        padding: 1px 6px;
+        font-weight: 700;
+      }
+      .fk-badge {
+        font-size: 10px;
+        background: #eee;
+        color: #111;
+        border: 1px solid #999;
+        border-radius: 3px;
+        padding: 1px 6px;
+        font-weight: 700;
+      }
+      h2 {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 14px;
+        color: #111;
+      }
+      h3 {
+        font-size: 14px;
+        font-weight: 700;
+        margin: 22px 0 10px;
+        color: #111;
+        padding-left: 10px;
+        border-left: 3px solid #111;
+      }
+      .section-desc {
+        font-size: 13px;
+        color: #555;
+        margin-bottom: 18px;
+        line-height: 1.6;
+      }
+      .error-msg {
+        color: #c00;
+        font-size: 13px;
+        padding: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="logo">JoinTogether - BCE Diagram</div>
+      <p>Mo hinh Boundary - Controller - Entity tu full_schema_complete.sql</p>
+    </header>
+
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('overview')">Tong quan BCE</div>
+      <div class="tab" onclick="switchTab('users')">Nguoi dung &amp; Tai khoan</div>
+      <div class="tab" onclick="switchTab('activities')">Hoat dong</div>
+      <div class="tab" onclick="switchTab('social')">Tuong tac &amp; Ket noi</div>
+      <div class="tab" onclick="switchTab('posts')">Bai viet</div>
+      <div class="tab" onclick="switchTab('rating')">Danh gia &amp; Uy tin</div>
+      <div class="tab" onclick="switchTab('admin')">Quan tri &amp; Vi pham</div>
+      <div class="tab" onclick="switchTab('entities')">Chi tiet Entity</div>
+    </div>
+
+    <div class="content">
+      <!-- OVERVIEW -->
+      <div id="panel-overview" class="panel active">
+        <h2>So do BCE Tong quan - JoinTogether Social Network</h2>
+        <div class="legend">
+          <div class="legend-item">
+            <span class="legend-badge b-badge">B</span> Boundary - Giao dien / API endpoint
+          </div>
+          <div class="legend-item">
+            <span class="legend-badge c-badge">C</span> Controller - Logic nghiep vu
+          </div>
+          <div class="legend-item">
+            <span class="legend-badge e-badge">E</span> Entity - Bang du lieu (DB)
+          </div>
+        </div>
+        <div class="mermaid-wrap" id="diagram-overview"></div>
+      </div>
+
+      <!-- USERS -->
+      <div id="panel-users" class="panel">
+        <h2>Module: Nguoi dung &amp; Tai khoan</h2>
+        <p class="section-desc">Dang ky, dang nhap, xac thuc OTP, phan quyen vai tro, ho so ca nhan va so thich.</p>
+        <div class="mermaid-wrap" id="diagram-users"></div>
+      </div>
+
+      <!-- ACTIVITIES -->
+      <div id="panel-activities" class="panel">
+        <h2>Module: Hoat dong</h2>
+        <p class="section-desc">Tao hoat dong, tham gia, xac nhan tham du, hinh anh va tieu chi tham gia.</p>
+        <div class="mermaid-wrap" id="diagram-activities"></div>
+      </div>
+
+      <!-- SOCIAL -->
+      <div id="panel-social" class="panel">
+        <h2>Module: Tuong tac &amp; Ket noi &amp; Nhan tin</h2>
+        <p class="section-desc">Ket noi ban be, theo doi, nhan tin, quet ban gan day, goi y ket ban, chan nguoi dung.</p>
+        <div class="mermaid-wrap" id="diagram-social"></div>
+      </div>
+
+      <!-- POSTS -->
+      <div id="panel-posts" class="panel">
+        <h2>Module: Bai viet &amp; Tuong tac</h2>
+        <p class="section-desc">Tao bai viet, thich, binh luan, chia se va feed ca nhan.</p>
+        <div class="mermaid-wrap" id="diagram-posts"></div>
+      </div>
+
+      <!-- RATING -->
+      <div id="panel-rating" class="panel">
+        <h2>Module: Danh gia &amp; Diem uy tin</h2>
+        <p class="section-desc">He thong danh gia nguoi dung sau hoat dong, tinh diem uy tin theo tieu chi.</p>
+        <div class="mermaid-wrap" id="diagram-rating"></div>
+      </div>
+
+      <!-- ADMIN -->
+      <div id="panel-admin" class="panel">
+        <h2>Module: Quan tri &amp; Bao cao vi pham</h2>
+        <p class="section-desc">Admin xu ly bao cao vi pham, xem bang chung, ra quyet dinh xu ly, ghi nhat ky.</p>
+        <div class="mermaid-wrap" id="diagram-admin"></div>
+      </div>
+
+      <!-- ENTITIES -->
+      <div id="panel-entities" class="panel">
+        <h2>Chi tiet tat ca Entity (Bang CSDL)</h2>
+        <p class="section-desc">Tong hop day du 32 bang trong database theo nhom chuc nang. <strong>PK</strong> = Primary Key, <strong>FK</strong> = Foreign Key.</p>
+
+        <h3>Nhom 1 - Nguoi dung &amp; Tai khoan</h3>
+        <div class="entity-grid">
+          <div class="entity-card">
+            <div class="entity-card-header">nguoi_dung</div>
+            <div class="entity-card-body">
+              <div class="field-row"><span class="field-name">nguoi_dung_id</span><span class="pk-badge">PK</span></div>
+              <div class="field-row"><span class="field-name">ho_ten</span><span>VARCHAR(255)</span></div>
+              <div class="field-row"><span class="field-name">email</span><span>VARCHAR UNIQUE</span></div>
+              <div class="field-row"><span class="field-name">so_dien_thoai</span><span>VARCHAR UNIQUE</span></div>
+              <div class="field-row"><span class="field-name">trang_thai</span><span>VARCHAR(50)</span></div>
+              <div class="field-row"><span class="field-name">ngay_tao</span><span>TIMESTAMPTZ</span></div>
+            </div>
+          </div>
+          <div class="entity-card">
+            <div class="entity-card-header">tai_khoan</div>
+            <div class="entity-card-body">
+              <div class="field-row"><span class="field-name">tai_khoan_id</span><span class="pk-badge">PK</span></div>
+              <div class="field-row"><span class="field-name">nguoi_dung_id</span><span class="fk-badge">FK</span></div>
+              <div class="field-row"><span class="field-name">ten_dang_nhap</span><span>VARCHAR UNIQUE</span></div>
+              <div class="field-row"><span class="field-name">mat_khau_ma_hoa</span><span>VARCHAR(255)</span></div>
+              <div class="field-row"><span class="field-name">da_xac_thuc</span><span>BOOLEAN</span></div>
+              <div class="field-row"><span class="field-name">so_lan_dang_nhap_sai</span><span>INT</span></div>
+              <div class="field-row"><span class="field-name">khoa_den_luc</span><span>TIMESTAMPTZ</span></div>
+            </div>
+          </div>
+          <div class="entity-card">
+            <div class="entity-card-header">thong_tin_xac_thuc</div>
+            <div class="entity-card-body">
+              <div class="field-row"><span class="field-name">xac_thuc_id</span><span class="pk-badge">PK</span></div>
+              <div class="field-row"><span class="field-name">tai_khoan_id</span><span class="fk-badge">FK</span></div>
+              <div class="field-row"><span class="field-name">loai_xac_thuc</span><span>VARCHAR(50)</span></div>
+              <div class="field-row"><span class="field-name">ma_xac_thuc</span><span>VARCHAR(255)</span></div>
+              <div class="field-row"><span class="field-name">thoi_gian_het_han</span><span>TIMESTAMPTZ</span></div>
+              <div class="field-row"><span class="field-name">da_su_dung</span><span>BOOLEAN</span></div>
+            </div>
+          </div>
+          <div class="entity-card">
+            <div class="entity-card-header">vai_tro</div>
+            <div class="entity-card-body">
+              <div class="field-row"><span class="field-name">vai_tro_id</span><span class="pk-badge">PK</span></div>
+              <div class="field-row"><span class="field-name">ten_vai_tro</span><span>VARCHAR UNIQUE</span></div>
+              <div class="field-row"><span class="field-name">mo_ta</span><span>TEXT</span></div>
+            </div>
+          </div>
+          <div class="entity-card">
+            <div class="entity-card-header">quyen_han</div>
+            <div class="entity-card-body">
+              <div class="field-row"><span class="field-name">quyen_han_id</span><span class="pk-badge">PK</span></div>
+              <div class="field-row"><span class="field-name">ten_quyen</span><span>VARCHAR UNIQUE</span></div>
+              <div class="field-row"><span class="field-name">mo_ta</span><span>TEXT</span></div>
+            </div>
+          </div>
+          <div class="entity-card">
+            <div class="entity-card-header">tai_khoan_vai_tro</div>
+            <div class="entity-card-body">
+              <div class="field-row"><span class="field-name">tai_khoan_id</span><span class="fk-badge">FK</span></div>
+              <div class="field-row"><span class="field-name">vai_tro_id</span><span class="fk-badge">FK</span></div>
+            </div>
+          </div>
+          <div class="entity-card">
+            <div class="entity-card-header">vai_tro_quyen_han</div>
+            <div class="entity-card-body">
+              <div class="field-row"><span class="field-name">vai_tro_id</span><span class="fk-badge">FK</span></div>
+              <div class="field-row"><span class="field-name">quyen_han_id</span><span class="fk-badge">FK</span></div>
+            </div>
+          </div>
+        </div>
+
+        <h3>Nhom 2 - Ho so &amp; So thich</h3>
+        <div class="entity-grid">
+          <div class="entity-card">
+            <div class="entity-card-header">ho_so_nguoi_dung</div>
+            <div class="entity-card-body">
+              <div class="field-row"><span class="field-name">ho_so_id</span><span class="pk-badge">PK</span></div>
+              <div class="field-row"><span class="field-name">nguoi_dung_id</span><span class="fk-badge">FK</span></div>
+              <div class="field-row"><span class="field-name">tieu_su / ngay_sinh / khu_vuc</span><span></span></div>
+              <div class="field-row"><span class="field-name">vi_do / kinh_do</span><span>DECIMAL</span></div>
+              <div class="field-row"><span class="field-name">ban_kinh_mong_muon</span><span>INT</span></div>
+              <div class="field-row"><span class="field-name">an_ngay_sinh / an_sdt / an_dia_chi</span><span>BOOLEAN</span></div>
+            </div>
+          </div>
+          <div class="entity-card">
+            <div class="entity-card-header">danh_muc_so_thich</div>
+            <div class="entity-card-body">
+              <div class="field-row"><span class="field-name">danh_muc_so_thich_id</span><span class="pk-badge">PK</span></div>
+              <div class="field-row"><span class="field-name">ten_danh_muc</span><span>VARCHAR(255)</span></div>
+              <div class="field-row"><span class="field-name">mo_ta</span><span>TEXT</span></div>
+            </div>
+          </div>
+          <div class="entity-card">
+            <div class="entity-card-header">so_thich</div>
+            <div class="entity-card-body">
+              <div class="field-row"><span class="field-name">so_thich_id</span><span class="pk-badge">PK</span></div>
+              <div class="field-row"><span class="field-name">danh_muc_so_thich_id</span><span class="fk-badge">FK</span></div>
+              <div class="field-row"><span class="field-name">ten_so_thich</span><span>VARCHAR(255)</span></div>
+            </div>
+          </div>
+          <div class="entity-card">
+            <div class="entity-card-header">ho_so_so_thich</div>
+            <div class="entity-card-body">
+              <div class="field-row"><span class="field-name">ho_so_id</span><span class="fk-badge">FK</span></div>
+              <div class="field-row"><span class="field-name">so_thich_id</span><span class="fk-badge">FK</span></div>
+              <div class="field-row"><span class="field-name">muc_do_quan_tam</span><span>INT</span></div>
+            </div>
+          </div>
+        </div>
+
+        <h3>Nhom 3 - Hoat dong &amp; Thanh vien</h3>
+        <div class="entity-grid">
+          <div class="entity-card">
+            <div class="entity-card-header">danh_muc_hoat_dong</div>
+            <div class="entity-card-body">
+              <div class="field-row"><span class="field-name">danh_muc_hoat_dong_id</span><span class="pk-badge">PK</span></div>
+              <div class="field-row"><span class="field-name">ten_danh_muc / mo_ta</span><span></span></div>
+            </div>
+          </div>
+          <div class="entity-card">
+            <div class="entity-card-header">dia_diem</div>
+            <div class="entity-card-body">
+              <div class="field-row"><span class="field-name">dia_diem_id</span><span class="pk-badge">PK</span></div>
+              <div class="field-row"><span class="field-name">ten_dia_diem / dia_chi</span><span></span></div>
+              <div class="field-row"><span class="field-name">hinh_thuc</span><span>VARCHAR(50)</span></div>
+              <div class="field-row"><span class="field-name">duong_dan_truc_tuyen</span><span>VARCHAR(500)</span></div>
+            </div>
+          </div>
+          <div class="entity-card">
+            <div class="entity-card-header">hoat_dong</div>
+            <div class="entity-card-body">
+              <div class="field-row"><span class="field-name">hoat_dong_id</span><span class="pk-badge">PK</span></div>
+              <div class="field-row"><span class="field-name">nguoi_to_chuc_id</span><span class="fk-badge">FK</span></div>
+              <div class="field-row"><span class="field-name">danh_muc_hoat_dong_id</span><span class="fk-badge">FK</span></div>
+              <div class="field-row"><span class="field-name">dia_diem_id</span><span class="fk-badge">FK</span></div>
+              <div class="field-row"><span class="field-name">ten_hoat_dong / mo_ta</span><span></span></div>
+              <div class="field-row"><span class="field-name">thoi_gian_bat_dau / ket_thuc</span><span>TIMESTAMPTZ</span></div>
+              <div class="field-row"><span class="field-name">so_luong_toi_da / han_dang_ky</span><span></span></div>
+              <div class="field-row"><span class="field-name">trang_thai / ly_do_huy</span><span></span></div>
+            </div>
+          </div>
+          <div class="entity-card">
+            <div class="entity-card-header">tieu_chi_tham_gia</div>
+            <div class="entity-card-body">
+              <div class="field-row"><span class="field-name">tieu_chi_id</span><span class="pk-badge">PK</span></div>
+              <div class="field-row"><span class="field-name">hoat_dong_id</span><span class="fk-badge">FK</span></div>
+              <div class="field-row"><span class="field-name">ten_tieu_chi / gia_tri_yeu_cau</span><span></span></div>
+              <div class="field-row"><span class="field-name">bat_buoc</span><span>BOOLEAN</span></div>
+            </div>
+          </div>
+          <div class="entity-card">
+            <div class="entity-card-header">hinh_anh_hoat_dong</div>
+            <div class="entity-card-body">
+              <div class="field-row"><span class="field-name">hinh_anh_id</span><span class="pk-badge">PK</span></div>
+              <div class="field-row"><span class="field-name">hoat_dong_id</span><span class="fk-badge">FK</span></div>
+              <div class="field-row"><span class="field-name">duong_dan / mo_ta</span><span></span></div>
+              <div class="field-row"><span class="field-name">la_anh_dai_dien</span><span>BOOLEAN</span></div>
+            </div>
+          </div>
+          <div class="entity-card">
+            <div class="entity-card-header">yeu_cau_tham_gia</div>
+            <div class="entity-card-body">
+              <div class="field-row"><span class="field-name">yeu_cau_id</span><span class="pk-badge">PK</span></div>
+              <div class="field-row"><span class="field-name">hoat_dong_id / nguoi_dung_id</span><span class="fk-badge">FK</span></div>
+              <div class="field-row"><span class="field-name">trang_thai</span><span>VARCHAR(50)</span></div>
+              <div class="field-row"><span class="field-name">thoi_gian_gui</span><span>TIMESTAMPTZ</span></div>
+            </div>
+          </div>
+          <div class="entity-card">
+            <div class="entity-card-header">thanh_vien_hoat_dong</div>
+            <div class="entity-card-body">
+              <div class="field-row"><span class="field-name">thanh_vien_id</span><span class="pk-badge">PK</span></div>
+              <div class="field-row"><span class="field-name">hoat_dong_id / nguoi_dung_id / yeu_cau_id</span><span class="fk-badge">FK</span></div>
+              <div class="field-row"><span class="field-name">ngay_tham_gia</span><span>TIMESTAMPTZ</span></div>
+            </div>
+          </div>
+          <div class="entity-card">
+            <div class="entity-card-header">xac_nhan_tham_du</div>
+            <div class="entity-card-body">
+              <div class="field-row"><span class="field-name">xac_nhan_id</span><span class="pk-badge">PK</span></div>
+              <div class="field-row"><span class="field-name">thanh_vien_id</span><span class="fk-badge">FK</span></div>
+              <div class="field-row"><span class="field-name">trang_thai_tham_du</span><span>VARCHAR(50)</span></div>
+              <div class="field-row"><span class="field-name">thoi_gian_check_in</span><span>TIMESTAMPTZ</span></div>
+            </div>
+          </div>
+        </div>
+
+        <h3>Nhom 4 - Tuong tac &amp; Ket noi &amp; Chat</h3>
+        <div class="entity-grid">
+          <div class="entity-card">
+            <div class="entity-card-header">lich_su_tim_kiem</div>
+            <div class="entity-card-body">
+              <div class="field-row"><span class="field-name">lich_su_id</span><span class="pk-badge">PK</span></div>
+              <div class="field-row"><span class="field-name">nguoi_dung_id</span><span class="fk-badge">FK</span></div>
+              <div class="field-row"><span class="field-name">tu_khoa_tim_kiem</span><span>VARCHAR(255)</span></div>
+              <div class="field-row"><span class="field-name">bo_loc_tim_kiem</span><span>TEXT</span></div>
+            </div>
+          </div>
+          <div class="entity-card">
+            <div class="entity-card-header">yeu_cau_ket_noi</div>
+            <div class="entity-card-body">
+              <div class="field-row"><span class="field-name">yeu_cau_ket_noi_id</span><span class="pk-badge">PK</span></div>
+              <div class="field-row"><span class="field-name">nguoi_gui_id / nguoi_nhan_id</span><span class="fk-badge">FK</span></div>
+              <div class="field-row"><span class="field-name">loi_nhan / trang_thai</span><span></span></div>
+            </div>
+          </div>
+          <div class="entity-card">
+            <div class="entity-card-header">quan_he_ket_noi</div>
+            <div class="entity-card-body">
+              <div class="field-row"><span class="field-name">quan_he_id</span><span class="pk-badge">PK</span></div>
+              <div class="field-row"><span class="field-name">nguoi_dung_id_1 / nguoi_dung_id_2</span><span class="fk-badge">FK</span></div>
+              <div class="field-row"><span class="field-name">ngay_ket_noi / trang_thai</span><span></span></div>
+            </div>
+          </div>
+          <div class="entity-card">
+            <div class="entity-card-header">theo_doi</div>
+            <div class="entity-card-body">
+              <div class="field-row"><span class="field-name">nguoi_theo_doi_id</span><span class="fk-badge">FK</span></div>
+              <div class="field-row"><span class="field-name">nguoi_duoc_theo_doi_id</span><span class="fk-badge">FK</span></div>
+              <div class="field-row"><span class="field-name">thoi_gian_tao</span><span>TIMESTAMPTZ</span></div>
+            </div>
+          </div>
+          <div class="entity-card">
+            <div class="entity-card-header">phong_tro_chuyen</div>
+            <div class="entity-card-body">
+              <div class="field-row"><span class="field-name">phong_id</span><span class="pk-badge">PK</span></div>
+              <div class="field-row"><span class="field-name">hoat_dong_id</span><span class="fk-badge">FK</span></div>
+              <div class="field-row"><span class="field-name">ten_phong / loai_phong</span><span></span></div>
+              <div class="field-row"><span class="field-name">trang_thai / het_han_luc</span><span></span></div>
+            </div>
+          </div>
+          <div class="entity-card">
+            <div class="entity-card-header">thanh_vien_phong</div>
+            <div class="entity-card-body">
+              <div class="field-row"><span class="field-name">phong_id / nguoi_dung_id</span><span class="fk-badge">FK</span></div>
+              <div class="field-row"><span class="field-name">ngay_tham_gia</span><span>TIMESTAMPTZ</span></div>
+            </div>
+          </div>
+          <div class="entity-card">
+            <div class="entity-card-header">tin_nhan</div>
+            <div class="entity-card-body">
+              <div class="field-row"><span class="field-name">tin_nhan_id</span><span class="pk-badge">PK</span></div>
+              <div class="field-row"><span class="field-name">phong_id / nguoi_gui_id</span><span class="fk-badge">FK</span></div>
+              <div class="field-row"><span class="field-name">noi_dung</span><span>TEXT</span></div>
+              <div class="field-row"><span class="field-name">thoi_gian_gui</span><span>TIMESTAMPTZ</span></div>
+            </div>
+          </div>
+          <div class="entity-card">
+            <div class="entity-card-header">thong_bao</div>
+            <div class="entity-card-body">
+              <div class="field-row"><span class="field-name">thong_bao_id</span><span class="pk-badge">PK</span></div>
+              <div class="field-row"><span class="field-name">nguoi_nhan_id</span><span class="fk-badge">FK</span></div>
+              <div class="field-row"><span class="field-name">tieu_de / noi_dung / loai_thong_bao</span><span></span></div>
+            </div>
+          </div>
+          <div class="entity-card">
+            <div class="entity-card-header">chan</div>
+            <div class="entity-card-body">
+              <div class="field-row"><span class="field-name">nguoi_chan_id</span><span class="fk-badge">FK</span></div>
+              <div class="field-row"><span class="field-name">nguoi_bi_chan_id</span><span class="fk-badge">FK</span></div>
+              <div class="field-row"><span class="field-name">thoi_gian</span><span>TIMESTAMPTZ</span></div>
+            </div>
+          </div>
+          <div class="entity-card">
+            <div class="entity-card-header">phien_quet_ban</div>
+            <div class="entity-card-body">
+              <div class="field-row"><span class="field-name">phien_id</span><span class="pk-badge">PK</span></div>
+              <div class="field-row"><span class="field-name">nguoi_dung_id</span><span class="fk-badge">FK</span></div>
+              <div class="field-row"><span class="field-name">vi_do / kinh_do</span><span>DECIMAL</span></div>
+              <div class="field-row"><span class="field-name">socket_id</span><span>VARCHAR(255)</span></div>
+              <div class="field-row"><span class="field-name">bat_dau_luc / het_han_luc</span><span>TIMESTAMPTZ</span></div>
+            </div>
+          </div>
+          <div class="entity-card">
+            <div class="entity-card-header">de_xuat_ket_ban</div>
+            <div class="entity-card-body">
+              <div class="field-row"><span class="field-name">phong_id / nguoi_dung_id</span><span class="fk-badge">FK</span></div>
+              <div class="field-row"><span class="field-name">trang_thai</span><span>VARCHAR(20)</span></div>
+              <div class="field-row"><span class="field-name">ngay_tao</span><span>TIMESTAMPTZ</span></div>
+            </div>
+          </div>
+        </div>
+
+        <h3>Nhom 5 - Bai viet</h3>
+        <div class="entity-grid">
+          <div class="entity-card">
+            <div class="entity-card-header">bai_viet</div>
+            <div class="entity-card-body">
+              <div class="field-row"><span class="field-name">bai_viet_id</span><span class="pk-badge">PK</span></div>
+              <div class="field-row"><span class="field-name">nguoi_dung_id / hoat_dong_id</span><span class="fk-badge">FK</span></div>
+              <div class="field-row"><span class="field-name">noi_dung / hinh_anh</span><span></span></div>
+              <div class="field-row"><span class="field-name">so_luot_thich / so_binh_luan / so_chia_se</span><span>INT</span></div>
+            </div>
+          </div>
+          <div class="entity-card">
+            <div class="entity-card-header">thich_bai_viet</div>
+            <div class="entity-card-body">
+              <div class="field-row"><span class="field-name">nguoi_dung_id / bai_viet_id</span><span class="fk-badge">FK</span></div>
+              <div class="field-row"><span class="field-name">thoi_gian_tao</span><span>TIMESTAMPTZ</span></div>
+            </div>
+          </div>
+          <div class="entity-card">
+            <div class="entity-card-header">binh_luan_bai_viet</div>
+            <div class="entity-card-body">
+              <div class="field-row"><span class="field-name">binh_luan_id</span><span class="pk-badge">PK</span></div>
+              <div class="field-row"><span class="field-name">bai_viet_id / nguoi_dung_id</span><span class="fk-badge">FK</span></div>
+              <div class="field-row"><span class="field-name">noi_dung / thoi_gian_tao</span><span></span></div>
+            </div>
+          </div>
+          <div class="entity-card">
+            <div class="entity-card-header">chia_se_bai_viet</div>
+            <div class="entity-card-body">
+              <div class="field-row"><span class="field-name">chia_se_id</span><span class="pk-badge">PK</span></div>
+              <div class="field-row"><span class="field-name">bai_viet_id / nguoi_dung_id</span><span class="fk-badge">FK</span></div>
+              <div class="field-row"><span class="field-name">thoi_gian_tao</span><span>TIMESTAMPTZ</span></div>
+            </div>
+          </div>
+        </div>
+
+        <h3>Nhom 6 - Danh gia &amp; Uy tin</h3>
+        <div class="entity-grid">
+          <div class="entity-card">
+            <div class="entity-card-header">danh_gia</div>
+            <div class="entity-card-body">
+              <div class="field-row"><span class="field-name">danh_gia_id</span><span class="pk-badge">PK</span></div>
+              <div class="field-row"><span class="field-name">hoat_dong_id</span><span class="fk-badge">FK</span></div>
+              <div class="field-row"><span class="field-name">nguoi_danh_gia_id / nguoi_duoc_danh_gia_id</span><span class="fk-badge">FK</span></div>
+              <div class="field-row"><span class="field-name">nhan_xet / diem_tong</span><span></span></div>
+            </div>
+          </div>
+          <div class="entity-card">
+            <div class="entity-card-header">tieu_chi_danh_gia</div>
+            <div class="entity-card-body">
+              <div class="field-row"><span class="field-name">tieu_chi_danh_gia_id</span><span class="pk-badge">PK</span></div>
+              <div class="field-row"><span class="field-name">ten_tieu_chi</span><span>VARCHAR(255)</span></div>
+              <div class="field-row"><span class="field-name">trong_so / diem_toi_da</span><span>NUMERIC</span></div>
+            </div>
+          </div>
+          <div class="entity-card">
+            <div class="entity-card-header">chi_tiet_danh_gia</div>
+            <div class="entity-card-body">
+              <div class="field-row"><span class="field-name">danh_gia_id / tieu_chi_danh_gia_id</span><span class="fk-badge">FK</span></div>
+              <div class="field-row"><span class="field-name">diem</span><span>NUMERIC(3,1)</span></div>
+            </div>
+          </div>
+          <div class="entity-card">
+            <div class="entity-card-header">diem_uy_tin</div>
+            <div class="entity-card-body">
+              <div class="field-row"><span class="field-name">diem_uy_tin_id</span><span class="pk-badge">PK</span></div>
+              <div class="field-row"><span class="field-name">nguoi_dung_id</span><span class="fk-badge">FK</span></div>
+              <div class="field-row"><span class="field-name">diem_hien_tai</span><span>INT (default 100)</span></div>
+              <div class="field-row"><span class="field-name">so_luot_danh_gia / so_lan_canh_bao</span><span>INT</span></div>
+            </div>
+          </div>
+          <div class="entity-card">
+            <div class="entity-card-header">lich_su_diem_uy_tin</div>
+            <div class="entity-card-body">
+              <div class="field-row"><span class="field-name">lich_su_id</span><span class="pk-badge">PK</span></div>
+              <div class="field-row"><span class="field-name">diem_uy_tin_id</span><span class="fk-badge">FK</span></div>
+              <div class="field-row"><span class="field-name">diem_thay_doi / ly_do_thay_doi</span><span></span></div>
+            </div>
+          </div>
+        </div>
+
+        <h3>Nhom 7 - Bao cao vi pham &amp; Quan tri</h3>
+        <div class="entity-grid">
+          <div class="entity-card">
+            <div class="entity-card-header">loai_vi_pham</div>
+            <div class="entity-card-body">
+              <div class="field-row"><span class="field-name">loai_vi_pham_id</span><span class="pk-badge">PK</span></div>
+              <div class="field-row"><span class="field-name">ten_loai / mo_ta / muc_do</span><span></span></div>
+            </div>
+          </div>
+          <div class="entity-card">
+            <div class="entity-card-header">bao_cao_vi_pham</div>
+            <div class="entity-card-body">
+              <div class="field-row"><span class="field-name">bao_cao_id</span><span class="pk-badge">PK</span></div>
+              <div class="field-row"><span class="field-name">nguoi_bao_cao_id / nguoi_bi_bao_cao_id</span><span class="fk-badge">FK</span></div>
+              <div class="field-row"><span class="field-name">loai_vi_pham_id</span><span class="fk-badge">FK</span></div>
+              <div class="field-row"><span class="field-name">noi_dung</span><span>TEXT</span></div>
+            </div>
+          </div>
+          <div class="entity-card">
+            <div class="entity-card-header">bang_chung_vi_pham</div>
+            <div class="entity-card-body">
+              <div class="field-row"><span class="field-name">bang_chung_id</span><span class="pk-badge">PK</span></div>
+              <div class="field-row"><span class="field-name">bao_cao_id</span><span class="fk-badge">FK</span></div>
+              <div class="field-row"><span class="field-name">loai_bang_chung / duong_dan</span><span></span></div>
+            </div>
+          </div>
+          <div class="entity-card">
+            <div class="entity-card-header">quyet_dinh_xu_ly</div>
+            <div class="entity-card-body">
+              <div class="field-row"><span class="field-name">quyet_dinh_id</span><span class="pk-badge">PK</span></div>
+              <div class="field-row"><span class="field-name">bao_cao_id / nguoi_xu_ly_id</span><span class="fk-badge">FK</span></div>
+              <div class="field-row"><span class="field-name">ket_qua / ngay_xu_ly</span><span></span></div>
+            </div>
+          </div>
+          <div class="entity-card">
+            <div class="entity-card-header">nhat_ky_quan_tri</div>
+            <div class="entity-card-body">
+              <div class="field-row"><span class="field-name">nhat_ky_id</span><span class="pk-badge">PK</span></div>
+              <div class="field-row"><span class="field-name">nguoi_quan_tri_id</span><span class="fk-badge">FK</span></div>
+              <div class="field-row"><span class="field-name">hanh_dong / doi_tuong_tac_dong</span><span></span></div>
+              <div class="field-row"><span class="field-name">thoi_gian_thuc_hien</span><span>TIMESTAMPTZ</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ============================================================
+      // MERMAID DIAGRAMS - defined as JS strings to avoid HTML
+      // encoding issues and formatter interference
+      // ============================================================
+      var DIAGRAMS = {};
+
+      DIAGRAMS["overview"] =
+        "classDiagram\n" +
+        "direction TB\n" +
+        "class AuthBoundary {\n" +
+        "  <<boundary>>\n" +
+        "  +register()\n" +
+        "  +login()\n" +
+        "  +verifyOTP()\n" +
+        "  +refreshToken()\n" +
+        "}\n" +
+        "class ProfileBoundary {\n" +
+        "  <<boundary>>\n" +
+        "  +getProfile()\n" +
+        "  +updateProfile()\n" +
+        "  +setInterests()\n" +
+        "}\n" +
+        "class ActivityBoundary {\n" +
+        "  <<boundary>>\n" +
+        "  +listActivities()\n" +
+        "  +createActivity()\n" +
+        "  +joinActivity()\n" +
+        "  +checkIn()\n" +
+        "}\n" +
+        "class SocialBoundary {\n" +
+        "  <<boundary>>\n" +
+        "  +connectRequest()\n" +
+        "  +getMessages()\n" +
+        "  +sendMessage()\n" +
+        "  +nearbyScan()\n" +
+        "}\n" +
+        "class PostBoundary {\n" +
+        "  <<boundary>>\n" +
+        "  +getFeed()\n" +
+        "  +createPost()\n" +
+        "  +likePost()\n" +
+        "  +commentPost()\n" +
+        "}\n" +
+        "class RatingBoundary {\n" +
+        "  <<boundary>>\n" +
+        "  +createRating()\n" +
+        "  +getReputation()\n" +
+        "}\n" +
+        "class AdminBoundary {\n" +
+        "  <<boundary>>\n" +
+        "  +listReports()\n" +
+        "  +resolveReport()\n" +
+        "  +getAuditLogs()\n" +
+        "}\n" +
+        "class AuthController {\n" +
+        "  <<controller>>\n" +
+        "  +register()\n" +
+        "  +login()\n" +
+        "  +verifyOTP()\n" +
+        "  +refreshToken()\n" +
+        "}\n" +
+        "class ProfileController {\n" +
+        "  <<controller>>\n" +
+        "  +getProfile()\n" +
+        "  +updateProfile()\n" +
+        "  +manageInterests()\n" +
+        "}\n" +
+        "class ActivityController {\n" +
+        "  <<controller>>\n" +
+        "  +listActivities()\n" +
+        "  +createActivity()\n" +
+        "  +requestJoin()\n" +
+        "  +approveJoin()\n" +
+        "  +checkIn()\n" +
+        "}\n" +
+        "class SocialController {\n" +
+        "  <<controller>>\n" +
+        "  +sendConnectRequest()\n" +
+        "  +acceptConnect()\n" +
+        "  +sendMessage()\n" +
+        "  +nearbySearch()\n" +
+        "  +blockUser()\n" +
+        "}\n" +
+        "class PostController {\n" +
+        "  <<controller>>\n" +
+        "  +createPost()\n" +
+        "  +likePost()\n" +
+        "  +commentPost()\n" +
+        "  +sharePost()\n" +
+        "  +getFeed()\n" +
+        "}\n" +
+        "class RatingController {\n" +
+        "  <<controller>>\n" +
+        "  +createRating()\n" +
+        "  +calcReputation()\n" +
+        "  +logReputationChange()\n" +
+        "}\n" +
+        "class AdminController {\n" +
+        "  <<controller>>\n" +
+        "  +listReports()\n" +
+        "  +resolveReport()\n" +
+        "  +auditLog()\n" +
+        "  +manageUsers()\n" +
+        "}\n" +
+        "class nguoi_dung {\n" +
+        "  <<entity>>\n" +
+        "  +nguoi_dung_id PK\n" +
+        "  +ho_ten\n" +
+        "  +email\n" +
+        "  +so_dien_thoai\n" +
+        "  +trang_thai\n" +
+        "}\n" +
+        "class tai_khoan {\n" +
+        "  <<entity>>\n" +
+        "  +tai_khoan_id PK\n" +
+        "  +nguoi_dung_id FK\n" +
+        "  +ten_dang_nhap\n" +
+        "  +mat_khau_ma_hoa\n" +
+        "  +da_xac_thuc\n" +
+        "}\n" +
+        "class ho_so_nguoi_dung {\n" +
+        "  <<entity>>\n" +
+        "  +ho_so_id PK\n" +
+        "  +nguoi_dung_id FK\n" +
+        "  +vi_do\n" +
+        "  +kinh_do\n" +
+        "}\n" +
+        "class hoat_dong {\n" +
+        "  <<entity>>\n" +
+        "  +hoat_dong_id PK\n" +
+        "  +nguoi_to_chuc_id FK\n" +
+        "  +ten_hoat_dong\n" +
+        "  +trang_thai\n" +
+        "}\n" +
+        "class bai_viet {\n" +
+        "  <<entity>>\n" +
+        "  +bai_viet_id PK\n" +
+        "  +nguoi_dung_id FK\n" +
+        "  +noi_dung\n" +
+        "}\n" +
+        "class danh_gia {\n" +
+        "  <<entity>>\n" +
+        "  +danh_gia_id PK\n" +
+        "  +hoat_dong_id FK\n" +
+        "  +diem_tong\n" +
+        "}\n" +
+        "class bao_cao_vi_pham {\n" +
+        "  <<entity>>\n" +
+        "  +bao_cao_id PK\n" +
+        "  +nguoi_bao_cao_id FK\n" +
+        "  +loai_vi_pham_id FK\n" +
+        "}\n" +
+        "AuthBoundary --> AuthController\n" +
+        "ProfileBoundary --> ProfileController\n" +
+        "ActivityBoundary --> ActivityController\n" +
+        "SocialBoundary --> SocialController\n" +
+        "PostBoundary --> PostController\n" +
+        "RatingBoundary --> RatingController\n" +
+        "AdminBoundary --> AdminController\n" +
+        "AuthController --> nguoi_dung\n" +
+        "AuthController --> tai_khoan\n" +
+        "ProfileController --> ho_so_nguoi_dung\n" +
+        "ProfileController --> nguoi_dung\n" +
+        "ActivityController --> hoat_dong\n" +
+        "ActivityController --> nguoi_dung\n" +
+        "PostController --> bai_viet\n" +
+        "RatingController --> danh_gia\n" +
+        "AdminController --> bao_cao_vi_pham\n";
+
+      DIAGRAMS["users"] =
+        "classDiagram\n" +
+        "direction LR\n" +
+        "class RegisterPage {\n" +
+        "  <<boundary>>\n" +
+        "  +register()\n" +
+        "  +verifyOTP()\n" +
+        "}\n" +
+        "class LoginPage {\n" +
+        "  <<boundary>>\n" +
+        "  +login()\n" +
+        "  +refreshToken()\n" +
+        "}\n" +
+        "class ProfilePage {\n" +
+        "  <<boundary>>\n" +
+        "  +getProfile()\n" +
+        "  +updateProfile()\n" +
+        "  +updatePrivacy()\n" +
+        "  +setInterests()\n" +
+        "}\n" +
+        "class AuthController {\n" +
+        "  <<controller>>\n" +
+        "  +register(dto)\n" +
+        "  +login(credentials)\n" +
+        "  +verifyOTP(code)\n" +
+        "  +refreshToken(token)\n" +
+        "  +lockAccount()\n" +
+        "}\n" +
+        "class ProfileController {\n" +
+        "  <<controller>>\n" +
+        "  +getProfile(id)\n" +
+        "  +updateProfile(dto)\n" +
+        "  +updatePrivacy(dto)\n" +
+        "  +setInterests(ids)\n" +
+        "}\n" +
+        "class nguoi_dung {\n" +
+        "  <<entity>>\n" +
+        "  +nguoi_dung_id BIGSERIAL PK\n" +
+        "  +ho_ten VARCHAR255\n" +
+        "  +email VARCHAR255 UNIQUE\n" +
+        "  +so_dien_thoai VARCHAR20 UNIQUE\n" +
+        "  +trang_thai VARCHAR50\n" +
+        "  +ngay_tao TIMESTAMPTZ\n" +
+        "}\n" +
+        "class tai_khoan {\n" +
+        "  <<entity>>\n" +
+        "  +tai_khoan_id BIGSERIAL PK\n" +
+        "  +nguoi_dung_id BIGINT FK\n" +
+        "  +ten_dang_nhap VARCHAR100 UNIQUE\n" +
+        "  +mat_khau_ma_hoa VARCHAR255\n" +
+        "  +da_xac_thuc BOOLEAN\n" +
+        "  +so_lan_dang_nhap_sai INT\n" +
+        "  +khoa_den_luc TIMESTAMPTZ\n" +
+        "}\n" +
+        "class thong_tin_xac_thuc {\n" +
+        "  <<entity>>\n" +
+        "  +xac_thuc_id BIGSERIAL PK\n" +
+        "  +tai_khoan_id BIGINT FK\n" +
+        "  +loai_xac_thuc VARCHAR50\n" +
+        "  +ma_xac_thuc VARCHAR255\n" +
+        "  +thoi_gian_het_han TIMESTAMPTZ\n" +
+        "  +da_su_dung BOOLEAN\n" +
+        "}\n" +
+        "class vai_tro {\n" +
+        "  <<entity>>\n" +
+        "  +vai_tro_id BIGSERIAL PK\n" +
+        "  +ten_vai_tro VARCHAR100 UNIQUE\n" +
+        "  +mo_ta TEXT\n" +
+        "}\n" +
+        "class quyen_han {\n" +
+        "  <<entity>>\n" +
+        "  +quyen_han_id BIGSERIAL PK\n" +
+        "  +ten_quyen VARCHAR100 UNIQUE\n" +
+        "  +mo_ta TEXT\n" +
+        "}\n" +
+        "class tai_khoan_vai_tro {\n" +
+        "  <<entity>>\n" +
+        "  +tai_khoan_id FK\n" +
+        "  +vai_tro_id FK\n" +
+        "}\n" +
+        "class vai_tro_quyen_han {\n" +
+        "  <<entity>>\n" +
+        "  +vai_tro_id FK\n" +
+        "  +quyen_han_id FK\n" +
+        "}\n" +
+        "class ho_so_nguoi_dung {\n" +
+        "  <<entity>>\n" +
+        "  +ho_so_id BIGSERIAL PK\n" +
+        "  +nguoi_dung_id BIGINT FK\n" +
+        "  +tieu_su TEXT\n" +
+        "  +ngay_sinh DATE\n" +
+        "  +khu_vuc VARCHAR255\n" +
+        "  +gioi_tinh VARCHAR20\n" +
+        "  +anh_dai_dien TEXT\n" +
+        "  +ban_kinh_mong_muon INT\n" +
+        "  +vi_do DECIMAL\n" +
+        "  +kinh_do DECIMAL\n" +
+        "  +an_ngay_sinh BOOLEAN\n" +
+        "  +an_so_dien_thoai BOOLEAN\n" +
+        "  +an_dia_chi BOOLEAN\n" +
+        "}\n" +
+        "class so_thich {\n" +
+        "  <<entity>>\n" +
+        "  +so_thich_id BIGSERIAL PK\n" +
+        "  +danh_muc_so_thich_id BIGINT FK\n" +
+        "  +ten_so_thich VARCHAR255\n" +
+        "  +mo_ta TEXT\n" +
+        "}\n" +
+        "class danh_muc_so_thich {\n" +
+        "  <<entity>>\n" +
+        "  +danh_muc_so_thich_id BIGSERIAL PK\n" +
+        "  +ten_danh_muc VARCHAR255\n" +
+        "  +mo_ta TEXT\n" +
+        "}\n" +
+        "class ho_so_so_thich {\n" +
+        "  <<entity>>\n" +
+        "  +ho_so_id FK\n" +
+        "  +so_thich_id FK\n" +
+        "  +muc_do_quan_tam INT\n" +
+        "}\n" +
+        "RegisterPage --> AuthController\n" +
+        "LoginPage --> AuthController\n" +
+        "ProfilePage --> ProfileController\n" +
+        "AuthController --> nguoi_dung\n" +
+        "AuthController --> tai_khoan\n" +
+        "AuthController --> thong_tin_xac_thuc\n" +
+        "AuthController --> tai_khoan_vai_tro\n" +
+        "tai_khoan_vai_tro --> tai_khoan\n" +
+        "tai_khoan_vai_tro --> vai_tro\n" +
+        "vai_tro_quyen_han --> vai_tro\n" +
+        "vai_tro_quyen_han --> quyen_han\n" +
+        "ProfileController --> ho_so_nguoi_dung\n" +
+        "ProfileController --> ho_so_so_thich\n" +
+        "ho_so_so_thich --> so_thich\n" +
+        "so_thich --> danh_muc_so_thich\n";
+
+      DIAGRAMS["activities"] =
+        "classDiagram\n" +
+        "direction LR\n" +
+        "class ActivityListPage {\n" +
+        "  <<boundary>>\n" +
+        "  +listActivities()\n" +
+        "  +listNearby()\n" +
+        "  +filterActivities()\n" +
+        "}\n" +
+        "class ActivityDetailPage {\n" +
+        "  <<boundary>>\n" +
+        "  +getActivityDetail()\n" +
+        "  +joinActivity()\n" +
+        "  +checkIn()\n" +
+        "}\n" +
+        "class CreateActivityPage {\n" +
+        "  <<boundary>>\n" +
+        "  +createActivity()\n" +
+        "  +updateActivity()\n" +
+        "  +cancelActivity()\n" +
+        "}\n" +
+        "class ActivityController {\n" +
+        "  <<controller>>\n" +
+        "  +listActivities(filters)\n" +
+        "  +getActivityDetail(id)\n" +
+        "  +createActivity(dto)\n" +
+        "  +updateActivity(id)\n" +
+        "  +cancelActivity(id)\n" +
+        "  +requestJoin(userId)\n" +
+        "  +approveJoin(requestId)\n" +
+        "  +rejectJoin(requestId)\n" +
+        "  +checkIn(memberId)\n" +
+        "}\n" +
+        "class hoat_dong {\n" +
+        "  <<entity>>\n" +
+        "  +hoat_dong_id BIGSERIAL PK\n" +
+        "  +nguoi_to_chuc_id BIGINT FK\n" +
+        "  +danh_muc_hoat_dong_id BIGINT FK\n" +
+        "  +dia_diem_id BIGINT FK\n" +
+        "  +ten_hoat_dong VARCHAR255\n" +
+        "  +mo_ta TEXT\n" +
+        "  +thoi_gian_bat_dau TIMESTAMPTZ\n" +
+        "  +thoi_gian_ket_thuc TIMESTAMPTZ\n" +
+        "  +so_luong_toi_da INT\n" +
+        "  +han_dang_ky TIMESTAMPTZ\n" +
+        "  +trang_thai VARCHAR50\n" +
+        "  +ly_do_huy TEXT\n" +
+        "}\n" +
+        "class dia_diem {\n" +
+        "  <<entity>>\n" +
+        "  +dia_diem_id BIGSERIAL PK\n" +
+        "  +ten_dia_diem VARCHAR255\n" +
+        "  +dia_chi TEXT\n" +
+        "  +hinh_thuc VARCHAR50\n" +
+        "  +duong_dan_truc_tuyen VARCHAR500\n" +
+        "}\n" +
+        "class danh_muc_hoat_dong {\n" +
+        "  <<entity>>\n" +
+        "  +danh_muc_hoat_dong_id BIGSERIAL PK\n" +
+        "  +ten_danh_muc VARCHAR255\n" +
+        "  +mo_ta TEXT\n" +
+        "}\n" +
+        "class tieu_chi_tham_gia {\n" +
+        "  <<entity>>\n" +
+        "  +tieu_chi_id BIGSERIAL PK\n" +
+        "  +hoat_dong_id BIGINT FK\n" +
+        "  +ten_tieu_chi VARCHAR255\n" +
+        "  +gia_tri_yeu_cau VARCHAR255\n" +
+        "  +bat_buoc BOOLEAN\n" +
+        "}\n" +
+        "class hinh_anh_hoat_dong {\n" +
+        "  <<entity>>\n" +
+        "  +hinh_anh_id BIGSERIAL PK\n" +
+        "  +hoat_dong_id BIGINT FK\n" +
+        "  +duong_dan TEXT\n" +
+        "  +mo_ta TEXT\n" +
+        "  +la_anh_dai_dien BOOLEAN\n" +
+        "}\n" +
+        "class yeu_cau_tham_gia {\n" +
+        "  <<entity>>\n" +
+        "  +yeu_cau_id BIGSERIAL PK\n" +
+        "  +hoat_dong_id BIGINT FK\n" +
+        "  +nguoi_dung_id BIGINT FK\n" +
+        "  +trang_thai VARCHAR50\n" +
+        "  +thoi_gian_gui TIMESTAMPTZ\n" +
+        "}\n" +
+        "class thanh_vien_hoat_dong {\n" +
+        "  <<entity>>\n" +
+        "  +thanh_vien_id BIGSERIAL PK\n" +
+        "  +hoat_dong_id BIGINT FK\n" +
+        "  +nguoi_dung_id BIGINT FK\n" +
+        "  +yeu_cau_id BIGINT FK\n" +
+        "  +ngay_tham_gia TIMESTAMPTZ\n" +
+        "}\n" +
+        "class xac_nhan_tham_du {\n" +
+        "  <<entity>>\n" +
+        "  +xac_nhan_id BIGSERIAL PK\n" +
+        "  +thanh_vien_id BIGINT FK\n" +
+        "  +trang_thai_tham_du VARCHAR50\n" +
+        "  +thoi_gian_check_in TIMESTAMPTZ\n" +
+        "}\n" +
+        "ActivityListPage --> ActivityController\n" +
+        "ActivityDetailPage --> ActivityController\n" +
+        "CreateActivityPage --> ActivityController\n" +
+        "ActivityController --> hoat_dong\n" +
+        "ActivityController --> yeu_cau_tham_gia\n" +
+        "ActivityController --> thanh_vien_hoat_dong\n" +
+        "ActivityController --> xac_nhan_tham_du\n" +
+        "hoat_dong --> dia_diem\n" +
+        "hoat_dong --> danh_muc_hoat_dong\n" +
+        "hoat_dong --> tieu_chi_tham_gia\n" +
+        "hoat_dong --> hinh_anh_hoat_dong\n" +
+        "yeu_cau_tham_gia --> hoat_dong\n" +
+        "thanh_vien_hoat_dong --> hoat_dong\n" +
+        "xac_nhan_tham_du --> thanh_vien_hoat_dong\n";
+
+      DIAGRAMS["social"] =
+        "classDiagram\n" +
+        "direction LR\n" +
+        "class ConnectPage {\n" +
+        "  <<boundary>>\n" +
+        "  +sendRequest()\n" +
+        "  +acceptConnect()\n" +
+        "  +rejectConnect()\n" +
+        "  +removeConnect()\n" +
+        "}\n" +
+        "class ChatPage {\n" +
+        "  <<boundary>>\n" +
+        "  +getRooms()\n" +
+        "  +getMessages()\n" +
+        "  +sendMessage()\n" +
+        "  +wsChat()\n" +
+        "}\n" +
+        "class NearbyPage {\n" +
+        "  <<boundary>>\n" +
+        "  +startScan()\n" +
+        "  +getNearbyUsers()\n" +
+        "  +suggestFriend()\n" +
+        "}\n" +
+        "class NotificationPanel {\n" +
+        "  <<boundary>>\n" +
+        "  +getNotifications()\n" +
+        "  +markRead()\n" +
+        "}\n" +
+        "class SocialController {\n" +
+        "  <<controller>>\n" +
+        "  +sendConnectRequest(dto)\n" +
+        "  +acceptConnect(id)\n" +
+        "  +rejectConnect(id)\n" +
+        "  +followUser(targetId)\n" +
+        "  +blockUser(targetId)\n" +
+        "  +sendMessage(roomId)\n" +
+        "  +getMessages(roomId)\n" +
+        "  +startNearScan(location)\n" +
+        "  +suggestFriend(targetId)\n" +
+        "}\n" +
+        "class NotificationController {\n" +
+        "  <<controller>>\n" +
+        "  +getNotifications(userId)\n" +
+        "  +markRead(notifId)\n" +
+        "  +pushNotification(dto)\n" +
+        "}\n" +
+        "class yeu_cau_ket_noi {\n" +
+        "  <<entity>>\n" +
+        "  +yeu_cau_ket_noi_id BIGSERIAL PK\n" +
+        "  +nguoi_gui_id BIGINT FK\n" +
+        "  +nguoi_nhan_id BIGINT FK\n" +
+        "  +loi_nhan TEXT\n" +
+        "  +trang_thai VARCHAR50\n" +
+        "}\n" +
+        "class quan_he_ket_noi {\n" +
+        "  <<entity>>\n" +
+        "  +quan_he_id BIGSERIAL PK\n" +
+        "  +nguoi_dung_id_1 BIGINT FK\n" +
+        "  +nguoi_dung_id_2 BIGINT FK\n" +
+        "  +ngay_ket_noi TIMESTAMPTZ\n" +
+        "  +trang_thai VARCHAR50\n" +
+        "}\n" +
+        "class theo_doi {\n" +
+        "  <<entity>>\n" +
+        "  +nguoi_theo_doi_id BIGINT FK\n" +
+        "  +nguoi_duoc_theo_doi_id BIGINT FK\n" +
+        "  +thoi_gian_tao TIMESTAMPTZ\n" +
+        "}\n" +
+        "class phong_tro_chuyen {\n" +
+        "  <<entity>>\n" +
+        "  +phong_id BIGSERIAL PK\n" +
+        "  +hoat_dong_id BIGINT FK\n" +
+        "  +ten_phong VARCHAR255\n" +
+        "  +loai_phong VARCHAR50\n" +
+        "  +trang_thai VARCHAR50\n" +
+        "  +het_han_luc TIMESTAMPTZ\n" +
+        "}\n" +
+        "class thanh_vien_phong {\n" +
+        "  <<entity>>\n" +
+        "  +phong_id BIGINT FK\n" +
+        "  +nguoi_dung_id BIGINT FK\n" +
+        "  +ngay_tham_gia TIMESTAMPTZ\n" +
+        "}\n" +
+        "class tin_nhan {\n" +
+        "  <<entity>>\n" +
+        "  +tin_nhan_id BIGSERIAL PK\n" +
+        "  +phong_id BIGINT FK\n" +
+        "  +nguoi_gui_id BIGINT FK\n" +
+        "  +noi_dung TEXT\n" +
+        "  +thoi_gian_gui TIMESTAMPTZ\n" +
+        "}\n" +
+        "class thong_bao {\n" +
+        "  <<entity>>\n" +
+        "  +thong_bao_id BIGSERIAL PK\n" +
+        "  +nguoi_nhan_id BIGINT FK\n" +
+        "  +tieu_de VARCHAR255\n" +
+        "  +noi_dung TEXT\n" +
+        "  +loai_thong_bao VARCHAR50\n" +
+        "  +duong_dan TEXT\n" +
+        "}\n" +
+        "class chan {\n" +
+        "  <<entity>>\n" +
+        "  +nguoi_chan_id BIGINT FK\n" +
+        "  +nguoi_bi_chan_id BIGINT FK\n" +
+        "  +thoi_gian TIMESTAMPTZ\n" +
+        "}\n" +
+        "class phien_quet_ban {\n" +
+        "  <<entity>>\n" +
+        "  +phien_id BIGSERIAL PK\n" +
+        "  +nguoi_dung_id BIGINT FK\n" +
+        "  +vi_do DECIMAL\n" +
+        "  +kinh_do DECIMAL\n" +
+        "  +socket_id VARCHAR255\n" +
+        "  +bat_dau_luc TIMESTAMPTZ\n" +
+        "  +het_han_luc TIMESTAMPTZ\n" +
+        "}\n" +
+        "class de_xuat_ket_ban {\n" +
+        "  <<entity>>\n" +
+        "  +phong_id BIGINT FK\n" +
+        "  +nguoi_dung_id BIGINT FK\n" +
+        "  +trang_thai VARCHAR20\n" +
+        "  +ngay_tao TIMESTAMPTZ\n" +
+        "}\n" +
+        "class lich_su_tim_kiem {\n" +
+        "  <<entity>>\n" +
+        "  +lich_su_id BIGSERIAL PK\n" +
+        "  +nguoi_dung_id BIGINT FK\n" +
+        "  +tu_khoa_tim_kiem VARCHAR255\n" +
+        "  +bo_loc_tim_kiem TEXT\n" +
+        "  +thoi_gian_tim_kiem TIMESTAMPTZ\n" +
+        "}\n" +
+        "ConnectPage --> SocialController\n" +
+        "ChatPage --> SocialController\n" +
+        "NearbyPage --> SocialController\n" +
+        "NotificationPanel --> NotificationController\n" +
+        "SocialController --> yeu_cau_ket_noi\n" +
+        "SocialController --> quan_he_ket_noi\n" +
+        "SocialController --> theo_doi\n" +
+        "SocialController --> phong_tro_chuyen\n" +
+        "SocialController --> thanh_vien_phong\n" +
+        "SocialController --> tin_nhan\n" +
+        "SocialController --> chan\n" +
+        "SocialController --> phien_quet_ban\n" +
+        "SocialController --> de_xuat_ket_ban\n" +
+        "SocialController --> lich_su_tim_kiem\n" +
+        "NotificationController --> thong_bao\n" +
+        "phong_tro_chuyen --> thanh_vien_phong\n" +
+        "phong_tro_chuyen --> tin_nhan\n" +
+        "de_xuat_ket_ban --> phong_tro_chuyen\n";
+
+      DIAGRAMS["posts"] =
+        "classDiagram\n" +
+        "direction LR\n" +
+        "class FeedPage {\n" +
+        "  <<boundary>>\n" +
+        "  +getFeed()\n" +
+        "  +getPostDetail()\n" +
+        "}\n" +
+        "class PostEditorPage {\n" +
+        "  <<boundary>>\n" +
+        "  +createPost()\n" +
+        "  +updatePost()\n" +
+        "  +deletePost()\n" +
+        "}\n" +
+        "class PostInteraction {\n" +
+        "  <<boundary>>\n" +
+        "  +likePost()\n" +
+        "  +unlikePost()\n" +
+        "  +commentPost()\n" +
+        "  +sharePost()\n" +
+        "}\n" +
+        "class PostController {\n" +
+        "  <<controller>>\n" +
+        "  +getFeed(userId)\n" +
+        "  +getPost(id)\n" +
+        "  +createPost(dto)\n" +
+        "  +updatePost(id)\n" +
+        "  +deletePost(id)\n" +
+        "  +likePost(userId)\n" +
+        "  +unlikePost(userId)\n" +
+        "  +commentPost(dto)\n" +
+        "  +sharePost(userId)\n" +
+        "}\n" +
+        "class bai_viet {\n" +
+        "  <<entity>>\n" +
+        "  +bai_viet_id BIGSERIAL PK\n" +
+        "  +nguoi_dung_id BIGINT FK\n" +
+        "  +hoat_dong_id BIGINT FK\n" +
+        "  +noi_dung TEXT\n" +
+        "  +hinh_anh TEXT\n" +
+        "  +so_luot_thich INT\n" +
+        "  +so_binh_luan INT\n" +
+        "  +so_luot_chia_se INT\n" +
+        "  +thoi_gian_tao TIMESTAMPTZ\n" +
+        "}\n" +
+        "class thich_bai_viet {\n" +
+        "  <<entity>>\n" +
+        "  +nguoi_dung_id BIGINT FK\n" +
+        "  +bai_viet_id BIGINT FK\n" +
+        "  +thoi_gian_tao TIMESTAMPTZ\n" +
+        "}\n" +
+        "class binh_luan_bai_viet {\n" +
+        "  <<entity>>\n" +
+        "  +binh_luan_id BIGSERIAL PK\n" +
+        "  +bai_viet_id BIGINT FK\n" +
+        "  +nguoi_dung_id BIGINT FK\n" +
+        "  +noi_dung TEXT\n" +
+        "  +thoi_gian_tao TIMESTAMPTZ\n" +
+        "}\n" +
+        "class chia_se_bai_viet {\n" +
+        "  <<entity>>\n" +
+        "  +chia_se_id BIGSERIAL PK\n" +
+        "  +bai_viet_id BIGINT FK\n" +
+        "  +nguoi_dung_id BIGINT FK\n" +
+        "  +thoi_gian_tao TIMESTAMPTZ\n" +
+        "}\n" +
+        "FeedPage --> PostController\n" +
+        "PostEditorPage --> PostController\n" +
+        "PostInteraction --> PostController\n" +
+        "PostController --> bai_viet\n" +
+        "PostController --> thich_bai_viet\n" +
+        "PostController --> binh_luan_bai_viet\n" +
+        "PostController --> chia_se_bai_viet\n" +
+        "thich_bai_viet --> bai_viet\n" +
+        "binh_luan_bai_viet --> bai_viet\n" +
+        "chia_se_bai_viet --> bai_viet\n";
+
+      DIAGRAMS["rating"] =
+        "classDiagram\n" +
+        "direction LR\n" +
+        "class RatingPage {\n" +
+        "  <<boundary>>\n" +
+        "  +createRating()\n" +
+        "  +getRatingsByActivity()\n" +
+        "  +getUserRatings()\n" +
+        "}\n" +
+        "class ReputationPage {\n" +
+        "  <<boundary>>\n" +
+        "  +getReputation()\n" +
+        "  +getReputationHistory()\n" +
+        "}\n" +
+        "class RatingController {\n" +
+        "  <<controller>>\n" +
+        "  +createRating(dto)\n" +
+        "  +getRatingsByActivity(actId)\n" +
+        "  +getUserRatings(userId)\n" +
+        "  +calculateReputation(userId)\n" +
+        "  +logReputationChange(userId)\n" +
+        "}\n" +
+        "class danh_gia {\n" +
+        "  <<entity>>\n" +
+        "  +danh_gia_id BIGSERIAL PK\n" +
+        "  +hoat_dong_id BIGINT FK\n" +
+        "  +nguoi_danh_gia_id BIGINT FK\n" +
+        "  +nguoi_duoc_danh_gia_id BIGINT FK\n" +
+        "  +nhan_xet TEXT\n" +
+        "  +diem_tong NUMERIC\n" +
+        "  +loai_danh_gia VARCHAR50\n" +
+        "}\n" +
+        "class tieu_chi_danh_gia {\n" +
+        "  <<entity>>\n" +
+        "  +tieu_chi_danh_gia_id BIGSERIAL PK\n" +
+        "  +ten_tieu_chi VARCHAR255\n" +
+        "  +trong_so NUMERIC\n" +
+        "  +diem_toi_da INT\n" +
+        "}\n" +
+        "class chi_tiet_danh_gia {\n" +
+        "  <<entity>>\n" +
+        "  +danh_gia_id BIGINT FK\n" +
+        "  +tieu_chi_danh_gia_id BIGINT FK\n" +
+        "  +diem NUMERIC\n" +
+        "}\n" +
+        "class diem_uy_tin {\n" +
+        "  <<entity>>\n" +
+        "  +diem_uy_tin_id BIGSERIAL PK\n" +
+        "  +nguoi_dung_id BIGINT FK\n" +
+        "  +diem_hien_tai INT\n" +
+        "  +so_luot_danh_gia INT\n" +
+        "  +so_lan_canh_bao INT\n" +
+        "}\n" +
+        "class lich_su_diem_uy_tin {\n" +
+        "  <<entity>>\n" +
+        "  +lich_su_id BIGSERIAL PK\n" +
+        "  +diem_uy_tin_id BIGINT FK\n" +
+        "  +diem_thay_doi INT\n" +
+        "  +ly_do_thay_doi VARCHAR255\n" +
+        "  +thoi_gian_cap_nhat TIMESTAMPTZ\n" +
+        "}\n" +
+        "RatingPage --> RatingController\n" +
+        "ReputationPage --> RatingController\n" +
+        "RatingController --> danh_gia\n" +
+        "RatingController --> chi_tiet_danh_gia\n" +
+        "RatingController --> diem_uy_tin\n" +
+        "RatingController --> lich_su_diem_uy_tin\n" +
+        "chi_tiet_danh_gia --> danh_gia\n" +
+        "chi_tiet_danh_gia --> tieu_chi_danh_gia\n" +
+        "lich_su_diem_uy_tin --> diem_uy_tin\n";
+
+      DIAGRAMS["admin"] =
+        "classDiagram\n" +
+        "direction LR\n" +
+        "class ReportPage {\n" +
+        "  <<boundary>>\n" +
+        "  +createReport()\n" +
+        "  +getMyReports()\n" +
+        "}\n" +
+        "class AdminDashboard {\n" +
+        "  <<boundary>>\n" +
+        "  +listReports()\n" +
+        "  +getReportDetail()\n" +
+        "  +resolveReport()\n" +
+        "  +getAuditLogs()\n" +
+        "  +listUsers()\n" +
+        "  +banUser()\n" +
+        "}\n" +
+        "class AdminController {\n" +
+        "  <<controller>>\n" +
+        "  +listReports(filters)\n" +
+        "  +getReportDetail(id)\n" +
+        "  +resolveReport(id)\n" +
+        "  +getAuditLogs(filters)\n" +
+        "  +listUsers(filters)\n" +
+        "  +banUser(id)\n" +
+        "  +unbanUser(id)\n" +
+        "}\n" +
+        "class ReportController {\n" +
+        "  <<controller>>\n" +
+        "  +createReport(dto)\n" +
+        "  +getMyReports(userId)\n" +
+        "  +uploadEvidence(reportId)\n" +
+        "}\n" +
+        "class loai_vi_pham {\n" +
+        "  <<entity>>\n" +
+        "  +loai_vi_pham_id BIGSERIAL PK\n" +
+        "  +ten_loai VARCHAR255\n" +
+        "  +mo_ta TEXT\n" +
+        "  +muc_do VARCHAR50\n" +
+        "}\n" +
+        "class bao_cao_vi_pham {\n" +
+        "  <<entity>>\n" +
+        "  +bao_cao_id BIGSERIAL PK\n" +
+        "  +nguoi_bao_cao_id BIGINT FK\n" +
+        "  +nguoi_bi_bao_cao_id BIGINT FK\n" +
+        "  +loai_vi_pham_id BIGINT FK\n" +
+        "  +noi_dung TEXT\n" +
+        "}\n" +
+        "class bang_chung_vi_pham {\n" +
+        "  <<entity>>\n" +
+        "  +bang_chung_id BIGSERIAL PK\n" +
+        "  +bao_cao_id BIGINT FK\n" +
+        "  +loai_bang_chung VARCHAR50\n" +
+        "  +duong_dan VARCHAR500\n" +
+        "}\n" +
+        "class quyet_dinh_xu_ly {\n" +
+        "  <<entity>>\n" +
+        "  +quyet_dinh_id BIGSERIAL PK\n" +
+        "  +bao_cao_id BIGINT FK\n" +
+        "  +nguoi_xu_ly_id BIGINT FK\n" +
+        "  +ket_qua TEXT\n" +
+        "  +ngay_xu_ly TIMESTAMPTZ\n" +
+        "}\n" +
+        "class nhat_ky_quan_tri {\n" +
+        "  <<entity>>\n" +
+        "  +nhat_ky_id BIGSERIAL PK\n" +
+        "  +nguoi_quan_tri_id BIGINT FK\n" +
+        "  +hanh_dong VARCHAR255\n" +
+        "  +doi_tuong_tac_dong VARCHAR100\n" +
+        "  +thoi_gian_thuc_hien TIMESTAMPTZ\n" +
+        "}\n" +
+        "ReportPage --> ReportController\n" +
+        "AdminDashboard --> AdminController\n" +
+        "ReportController --> bao_cao_vi_pham\n" +
+        "ReportController --> bang_chung_vi_pham\n" +
+        "ReportController --> loai_vi_pham\n" +
+        "AdminController --> bao_cao_vi_pham\n" +
+        "AdminController --> quyet_dinh_xu_ly\n" +
+        "AdminController --> nhat_ky_quan_tri\n" +
+        "bao_cao_vi_pham --> loai_vi_pham\n" +
+        "bao_cao_vi_pham --> bang_chung_vi_pham\n" +
+        "quyet_dinh_xu_ly --> bao_cao_vi_pham\n";
+
+      // ============================================================
+      // Initialize Mermaid and render all diagrams
+      // ============================================================
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: "base",
+        themeVariables: {
+          primaryColor: "#ffffff",
+          primaryTextColor: "#000000",
+          primaryBorderColor: "#000000",
+          lineColor: "#333333",
+          secondaryColor: "#eeeeee",
+          tertiaryColor: "#dddddd",
+          background: "#ffffff",
+          mainBkg: "#ffffff",
+          nodeBorder: "#000000",
+          clusterBkg: "#f5f5f5",
+          titleColor: "#000000",
+          edgeLabelBackground: "#ffffff",
+          attributeBackgroundColorEven: "#ffffff",
+          attributeBackgroundColorOdd: "#f5f5f5",
+          fontSize: "13px",
+        },
+      });
+
+      var rendered = {};
+
+      async function renderDiagram(name) {
+        if (rendered[name]) return;
+        var el = document.getElementById("diagram-" + name);
+        if (!el || !DIAGRAMS[name]) return;
+        try {
+          var result = await mermaid.render("svg-" + name + "-" + Date.now(), DIAGRAMS[name]);
+          el.innerHTML = result.svg;
+          rendered[name] = true;
+        } catch (e) {
+          el.innerHTML = '<p class="error-msg">Loi render diagram: ' + e.message + "</p>";
+        }
+      }
+
+      function switchTab(name) {
+        var tabNames = ["overview", "users", "activities", "social", "posts", "rating", "admin", "entities"];
+        document.querySelectorAll(".tab").forEach(function (t) {
+          t.classList.remove("active");
+        });
+        document.querySelectorAll(".panel").forEach(function (p) {
+          p.classList.remove("active");
+        });
+        var idx = tabNames.indexOf(name);
+        if (idx >= 0) {
+          document.querySelectorAll(".tab")[idx].classList.add("active");
+          document.getElementById("panel-" + name).classList.add("active");
+        }
+        renderDiagram(name);
+      }
+
+      // Render default tab on load
+      document.addEventListener("DOMContentLoaded", function () {
+        renderDiagram("overview");
+      });
+    </script>
+  </body>
+</html>
