@@ -362,7 +362,7 @@ CREATE TABLE IF NOT EXISTS bang_chung_vi_pham (
     bang_chung_id BIGSERIAL PRIMARY KEY,
     bao_cao_id BIGINT NOT NULL REFERENCES bao_cao_vi_pham(bao_cao_id) ON DELETE CASCADE,
     loai_bang_chung VARCHAR(50),
-    duong_dan VARCHAR(500) NOT NULL
+    duong_dan TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS quyet_dinh_xu_ly (

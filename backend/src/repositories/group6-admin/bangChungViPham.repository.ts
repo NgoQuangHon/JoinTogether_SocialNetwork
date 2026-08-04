@@ -2,6 +2,18 @@ import { pool } from "../../config/db";
 import { BangChungViPham } from "../../models/group6-admin/bangChungViPham.model";
 
 export class BangChungViPhamRepository {
+  constructor() {
+    this.ensureTable();
+  }
+
+  private async ensureTable() {
+    try {
+      await pool.query(`
+        ALTER TABLE bang_chung_vi_pham ALTER COLUMN duong_dan TYPE TEXT;
+      `);
+    } catch {}
+  }
+
   async create(data: Partial<BangChungViPham>): Promise<BangChungViPham> {
     const query = `
       INSERT INTO bang_chung_vi_pham (bao_cao_id, loai_bang_chung, duong_dan)
