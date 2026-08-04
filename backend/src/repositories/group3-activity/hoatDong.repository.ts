@@ -4,6 +4,18 @@ import { HoatDong } from "../../models/group3-activity/hoatDong.model";
 export class HoatDongRepository {
   private static lastSyncTime = 0;
 
+  constructor() {
+    this.ensureColumns();
+  }
+
+  private async ensureColumns() {
+    try {
+      await pool.query(`
+        ALTER TABLE hoat_dong ADD COLUMN IF NOT EXISTS tu_dong_chap_nhan BOOLEAN NOT NULL DEFAULT TRUE;
+      `);
+    } catch {}
+  }
+
   async syncActivityStatuses(): Promise<void> {
     const now = Date.now();
     // Throttling: Tối đa 5 phút mới chạy đồng bộ 1 lần để giảm 80% truy vấn dư thừa tới Database
@@ -38,8 +50,8 @@ export class HoatDongRepository {
 
   async create(data: Partial<HoatDong>): Promise<HoatDong> {
     const query = `
-      INSERT INTO hoat_dong (nguoi_to_chuc_id, danh_muc_hoat_dong_id, dia_diem_id, ten_hoat_dong, mo_ta, thoi_gian_bat_dau, thoi_gian_ket_thuc, so_luong_toi_da, do_tuoi_tu, do_tuoi_den, gioi_tinh_phu_hop, muc_do_kinh_nghiem, yeu_cau_khac, noi_quy_chung, luu_y_dac_biet, do_dung_can_mang, han_dang_ky, trang_thai)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+      INSERT INTO hoat_dong (nguoi_to_chuc_id, danh_muc_hoat_dong_id, dia_diem_id, ten_hoat_dong, mo_ta, thoi_gian_bat_dau, thoi_gian_ket_thuc, so_luong_toi_da, do_tuoi_tu, do_tuoi_den, gioi_tinh_phu_hop, muc_do_kinh_nghiem, yeu_cau_khac, noi_quy_chung, luu_y_dac_biet, do_dung_can_mang, han_dang_ky, trang_thai, tu_dong_chap_nhan)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
       RETURNING
         hoat_dong_id AS "hoatDongId",
         nguoi_to_chuc_id AS "nguoiToChucId",
@@ -59,7 +71,8 @@ export class HoatDongRepository {
         luu_y_dac_biet AS "luuYDatBiet",
         do_dung_can_mang AS "doDungCanMang",
         han_dang_ky AS "hanDangKy",
-        trang_thai AS "trangThai"
+        trang_thai AS "trangThai",
+        tu_dong_chap_nhan AS "tuDongChapNhan"
     `;
     const values = [
       data.nguoiToChucId === undefined || data.nguoiToChucId === null ? null : data.nguoiToChucId,
@@ -80,6 +93,7 @@ export class HoatDongRepository {
       data.doDungCanMang === undefined || data.doDungCanMang === null ? null : data.doDungCanMang,
       data.hanDangKy === undefined || data.hanDangKy === null ? null : data.hanDangKy,
       data.trangThai === undefined || data.trangThai === null ? 'sap_dien_ra' : data.trangThai,
+      data.tuDongChapNhan === undefined || data.tuDongChapNhan === null ? true : data.tuDongChapNhan,
     ];
     const result = await pool.query(query, values);
     return result.rows[0];
@@ -114,6 +128,7 @@ export class HoatDongRepository {
         hd.do_dung_can_mang AS "doDungCanMang",
         hd.han_dang_ky AS "hanDangKy",
         hd.trang_thai AS "trangThai",
+        hd.tu_dong_chap_nhan AS "tuDongChapNhan",
         hd.ly_do_huy AS "lyDoHuy",
         (SELECT COUNT(*) FROM thanh_vien_hoat_dong tv WHERE tv.hoat_dong_id = hd.hoat_dong_id) AS "soLuongThanhVien"
       FROM hoat_dong hd
@@ -158,6 +173,7 @@ export class HoatDongRepository {
         hd.do_dung_can_mang AS "doDungCanMang",
         hd.han_dang_ky AS "hanDangKy",
         hd.trang_thai AS "trangThai",
+        hd.tu_dong_chap_nhan AS "tuDongChapNhan",
         hd.ly_do_huy AS "lyDoHuy"
       FROM hoat_dong hd
       LEFT JOIN nguoi_dung nd ON hd.nguoi_to_chuc_id = nd.nguoi_dung_id
@@ -247,6 +263,10 @@ export class HoatDongRepository {
       setClauses.push(`trang_thai = $${paramIndex++}`);
       values.push(data.trangThai);
     }
+    if (data.tuDongChapNhan !== undefined) {
+      setClauses.push(`tu_dong_chap_nhan = $${paramIndex++}`);
+      values.push(data.tuDongChapNhan);
+    }
 
     if (setClauses.length === 0) return this.findById(id) as any;
 
@@ -275,7 +295,8 @@ export class HoatDongRepository {
         do_dung_can_mang AS "doDungCanMang",
         han_dang_ky AS "hanDangKy",
         trang_thai AS "trangThai",
-        ly_do_huy AS "lyDoHuy"
+        ly_do_huy AS "lyDoHuy",
+        tu_dong_chap_nhan AS "tuDongChapNhan"
     `;
     const result = await pool.query(query, values);
     return result.rows.length > 0 ? result.rows[0] : null;
@@ -308,6 +329,7 @@ export class HoatDongRepository {
         hd.do_dung_can_mang AS "doDungCanMang",
         hd.han_dang_ky AS "hanDangKy",
         hd.trang_thai AS "trangThai",
+        hd.tu_dong_chap_nhan AS "tuDongChapNhan",
         hd.ly_do_huy AS "lyDoHuy",
         (SELECT COUNT(*) FROM thanh_vien_hoat_dong tv WHERE tv.hoat_dong_id = hd.hoat_dong_id) AS "soLuongThanhVien"
       FROM hoat_dong hd
@@ -348,6 +370,7 @@ export class HoatDongRepository {
         hd.do_dung_can_mang AS "doDungCanMang",
         hd.han_dang_ky AS "hanDangKy",
         hd.trang_thai AS "trangThai",
+        hd.tu_dong_chap_nhan AS "tuDongChapNhan",
         hd.ly_do_huy AS "lyDoHuy",
         (SELECT COUNT(*) FROM thanh_vien_hoat_dong tv WHERE tv.hoat_dong_id = hd.hoat_dong_id) AS "soLuongThanhVien"
       FROM hoat_dong hd
@@ -390,6 +413,7 @@ export class HoatDongRepository {
         hd.do_dung_can_mang AS "doDungCanMang",
         hd.han_dang_ky AS "hanDangKy",
         hd.trang_thai AS "trangThai",
+        hd.tu_dong_chap_nhan AS "tuDongChapNhan",
         hd.ly_do_huy AS "lyDoHuy",
         (SELECT COUNT(*) FROM thanh_vien_hoat_dong tv WHERE tv.hoat_dong_id = hd.hoat_dong_id) AS "soLuongThanhVien"
       FROM hoat_dong hd
@@ -437,6 +461,7 @@ export class HoatDongRepository {
         hd.so_luong_toi_da AS "soLuongToiDa",
         hd.han_dang_ky AS "hanDangKy",
         hd.trang_thai AS "trangThai",
+        hd.tu_dong_chap_nhan AS "tuDongChapNhan",
         hd.ly_do_huy AS "lyDoHuy",
         (SELECT COUNT(*) FROM thanh_vien_hoat_dong tv WHERE tv.hoat_dong_id = hd.hoat_dong_id) AS "soLuongThanhVien"
       FROM hoat_dong hd
@@ -528,6 +553,7 @@ export class HoatDongRepository {
         hd.do_dung_can_mang AS "doDungCanMang",
         hd.han_dang_ky AS "hanDangKy",
         hd.trang_thai AS "trangThai",
+        hd.tu_dong_chap_nhan AS "tuDongChapNhan",
         (SELECT COUNT(*) FROM thanh_vien_hoat_dong tv WHERE tv.hoat_dong_id = hd.hoat_dong_id) AS "soLuongThanhVien"
       FROM hoat_dong hd
       LEFT JOIN nguoi_dung nd ON hd.nguoi_to_chuc_id = nd.nguoi_dung_id

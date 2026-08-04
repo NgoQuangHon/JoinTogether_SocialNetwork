@@ -79,6 +79,28 @@ export class MemberService {
       }
     }
 
+    // Nếu hoạt động bật "tự động chấp nhận" → duyệt ngay, không cần chờ người tổ chức
+    const tuDongChapNhan = activity.tuDongChapNhan !== false;
+    if (tuDongChapNhan) {
+      const yeuCau = await this.yeuCauRepo.create({
+        hoatDongId,
+        nguoiDungId,
+        trangThai: 'APPROVED',
+      });
+      await this.thanhVienRepo.create({
+        hoatDongId,
+        nguoiDungId,
+        yeuCauId: yeuCau.yeuCauId!,
+      });
+      await this.thongBaoRepo.create({
+        nguoiNhanId: nguoiDungId,
+        tieuDe: "Đã tham gia hoạt động",
+        noiDung: `Bạn đã được tự động chấp nhận tham gia hoạt động "${activity.tenHoatDong}".`,
+        loaiThongBao: "DUYETTHAMGIA",
+      });
+      return { ...yeuCau, daThamGia: true };
+    }
+
     const yeuCau = await this.yeuCauRepo.create({
       hoatDongId,
       nguoiDungId,

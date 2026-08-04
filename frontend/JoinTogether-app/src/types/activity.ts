@@ -44,6 +44,7 @@ export interface CreateActivityRequest {
   luuYDatBiet?: string;
   doDungCanMang?: string;
   hanDangKy?: string;
+  tuDongChapNhan?: boolean;
 }
 
 export interface DanhMucHoatDong {
@@ -81,6 +82,7 @@ export interface HoatDongResponse {
   soLuongThanhVien?: number;
   trangThai?: string;
   lyDoHuy?: string;
+  tuDongChapNhan?: boolean;
   isMember?: boolean;
   trangThaiYeuCau?: string | null;
 }

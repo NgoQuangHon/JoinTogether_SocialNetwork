@@ -205,6 +205,7 @@ export default function CreateActivityModal({ onClose }: { onClose: () => void }
         noiQuyChung: form.noiQuyChung || undefined,
         luuYDatBiet: form.luuYDatBiet || undefined,
         doDungCanMang: form.doDungCanMang || undefined,
+        tuDongChapNhan: form.tuDongChapNhan,
       } as any;
       const res = await createActivityApi(payload);
       if (res.success && res.data) {

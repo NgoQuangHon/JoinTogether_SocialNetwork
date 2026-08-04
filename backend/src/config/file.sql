@@ -133,7 +133,8 @@ CREATE TABLE IF NOT EXISTS hoat_dong (
     do_dung_can_mang TEXT,
     han_dang_ky TIMESTAMPTZ,
     trang_thai VARCHAR(50) DEFAULT 'sap_dien_ra',
-    ly_do_huy TEXT
+    ly_do_huy TEXT,
+    tu_dong_chap_nhan BOOLEAN NOT NULL DEFAULT TRUE
 );
 
 CREATE TABLE IF NOT EXISTS tieu_chi_tham_gia (

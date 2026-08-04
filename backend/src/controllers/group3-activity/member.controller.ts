@@ -27,7 +27,9 @@ export class MemberController {
         .status(201)
         .json({
           success: true,
-          message: "Đã gửi yêu cầu tham gia.",
+          message: result?.daThamGia
+            ? "Bạn đã tham gia hoạt động thành công."
+            : "Đã gửi yêu cầu tham gia.",
           data: result,
         });
     },

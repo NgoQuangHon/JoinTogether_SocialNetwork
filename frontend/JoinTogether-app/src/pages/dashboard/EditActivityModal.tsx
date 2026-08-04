@@ -50,6 +50,7 @@ export default function EditActivityModal({
     noiQuyChung: activity.noiQuyChung || '',
     luuYDatBiet: activity.luuYDatBiet || '',
     doDungCanMang: activity.doDungCanMang || '',
+    tuDongChapNhan: activity.tuDongChapNhan !== false,
   });
   const [images, setImages] = useState<string[]>(
     activity.hinhAnh?.filter((h) => !h.laAnhDaiDien).map((h) => h.duongDan) || []
@@ -167,6 +168,7 @@ export default function EditActivityModal({
         noiQuyChung: form.noiQuyChung || undefined,
         luuYDatBiet: form.luuYDatBiet || undefined,
         doDungCanMang: form.doDungCanMang || undefined,
+        tuDongChapNhan: form.tuDongChapNhan,
       };
       const res = await updateActivityApi(activity.hoatDongId, payload);
       if (res.success) {
@@ -285,6 +287,36 @@ export default function EditActivityModal({
             <div className="cam-field">
               <label>Số lượng tối đa <span className="required">*</span></label>
               <input type="number" min={1} value={form.soLuongToiDa} onChange={(e) => set('soLuongToiDa', e.target.value)} />
+            </div>
+            <div className="cam-field" style={{ background: '#F8FAFC', padding: '14px 16px', borderRadius: 16, border: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 12, marginBottom: 16 }}>
+              <div style={{ paddingRight: 12 }}>
+                <label style={{ margin: 0, fontWeight: 700, cursor: 'pointer', color: '#1F2937', fontSize: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  ⚡ Tự động chấp nhận người đăng ký
+                </label>
+                <p style={{ margin: '4px 0 0', fontSize: 12, color: '#4B5563', lineHeight: 1.4 }}>
+                  {form.tuDongChapNhan
+                    ? 'Đang BẬT: Người đăng ký sẽ tự động được chấp nhận tham gia ngay.'
+                    : 'Đang TẮT: Bạn cần phê duyệt thủ công từng yêu cầu tham gia.'}
+                </p>
+              </div>
+              <label style={{ position: 'relative', display: 'inline-block', width: 48, height: 26, flexShrink: 0, cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={form.tuDongChapNhan}
+                  onChange={(e) => set('tuDongChapNhan', e.target.checked)}
+                  style={{ opacity: 0, width: 0, height: 0 }}
+                />
+                <span style={{
+                  position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                  backgroundColor: form.tuDongChapNhan ? '#6FBF73' : '#9CA3AF',
+                  transition: '.3s', borderRadius: 26
+                }}>
+                  <span style={{
+                    position: 'absolute', height: 20, width: 20, left: form.tuDongChapNhan ? 24 : 3, bottom: 3,
+                    backgroundColor: 'white', transition: '.3s', borderRadius: '50%', boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                  }} />
+                </span>
+              </label>
             </div>
             <div className="cam-row">
               <div className="cam-field">

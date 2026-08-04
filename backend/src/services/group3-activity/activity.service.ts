@@ -102,6 +102,12 @@ export class ActivityService {
         data.soLuongToiDa = 20;
       }
 
+      // Mặc định tự động chấp nhận người đăng ký khi người tổ chức không tắt
+      data.tuDongChapNhan =
+        data.tuDongChapNhan === undefined || data.tuDongChapNhan === null
+          ? true
+          : !!data.tuDongChapNhan;
+
       // Check profile completeness
       let profileCheck: any;
       try {
