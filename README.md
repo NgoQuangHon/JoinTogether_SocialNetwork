@@ -9,7 +9,7 @@
 ## 2. Clone & cài đặt
 
 ```bash
-git clone https://github.com/DinhTrongPhuc/JoinTogether_SocialNetwork.git
+git clone https://github.com/NgoQuangHon/JoinTogether_SocialNetwork.git
 cd JoinTogether_SocialNetwork
 
 # Backend
