@@ -200,7 +200,7 @@ export class AuthService {
       );
 
       await client.query(
-        `UPDATE tai_khoan SET da_xac_thuc = false, trang_thai = 'ACTIVE' WHERE tai_khoan_id = $1`,
+        `UPDATE tai_khoan SET da_xac_thuc = true, trang_thai = 'ACTIVE' WHERE tai_khoan_id = $1`,
         [taiKhoanId],
       );
 

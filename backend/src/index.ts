@@ -5,6 +5,11 @@ import http from "http";
 import { Server as SocketIOServer } from "socket.io";
 import app from "./app";
 import { connectDB, pool } from "./config/db";
+import { connectRedis, redisClient } from "./config/redis";
+import { connectKafka, disconnectKafka } from "./config/kafka";
+import { createAdapter } from "@socket.io/redis-adapter";
+import { startEmailConsumer } from "./workers/email.consumer";
+import { startNotificationConsumer } from "./workers/notification.consumer";
 import { ChatService } from "./services/group4-interaction/chat.service";
 import { HoatDongRepository } from "./repositories/group3-activity/hoatDong.repository";
 import { NearbyService } from "./services/group4-interaction/nearby.service";
@@ -16,11 +21,17 @@ const nearbyService = new NearbyService();
 
 async function start() {
   await connectDB();
+  await connectRedis();
+  await connectKafka();
+
+  // Khởi động các Kafka Consumers
+  startEmailConsumer().catch((err) => console.warn("Email Consumer warning:", err.message || err));
+  startNotificationConsumer().catch((err) => console.warn("Notification Consumer warning:", err.message || err));
 
   // Chạy ngay lần đầu và đặt timer 30s đồng bộ trạng thái theo thời gian
-  await hoatDongRepo.syncActivityStatuses().catch(() => {});
+  await hoatDongRepo.syncActivityStatuses().catch(() => { });
   const syncInterval = setInterval(() => {
-    hoatDongRepo.syncActivityStatuses().catch(() => {});
+    hoatDongRepo.syncActivityStatuses().catch(() => { });
   }, 30000);
 
   const httpServer = http.createServer(app);
@@ -31,11 +42,22 @@ async function start() {
     },
   });
 
+  // Tích hợp Socket.io Redis Adapter cho khả năng Scale Out
+  try {
+    const pubClient = redisClient.duplicate();
+    const subClient = redisClient.duplicate();
+    io.adapter(createAdapter(pubClient, subClient));
+    console.log("✅ Đã kết nối Socket.io Redis Adapter.");
+  } catch (err: any) {
+    console.warn("⚠️ Không thể kích hoạt Socket.io Redis Adapter:", err.message || err);
+  }
+
   app.set("io", io);
+
 
   // Interval dọn dẹp các phòng chat tạm thời 10 phút đã hết hạn
   const cleanupInterval = setInterval(() => {
-    nearbyService.cleanupExpiredRooms().catch(() => {});
+    nearbyService.cleanupExpiredRooms().catch(() => { });
   }, 10000);
 
   io.on("connection", (socket) => {
@@ -168,7 +190,7 @@ async function start() {
       try {
         await nearbyService.stopScan(data.nguoiDungId);
         socket.emit("nearby_scan_stopped", {});
-      } catch {}
+      } catch { }
     });
 
     // Client đồng ý kết nối ở màn hình 30s
@@ -275,7 +297,7 @@ async function start() {
         await nearbyService.declineFriendProposal(Number(phongId), Number(nguoiDungId));
         const roomName = `room_${phongId}`;
         io.to(roomName).emit("nearby_friend_declined", { phongId, declinedByUserId: Number(nguoiDungId) });
-      } catch {}
+      } catch { }
     });
 
     // Dọn dẹp khi ngắt kết nối
@@ -289,7 +311,7 @@ async function start() {
         if (res.rows.length > 0) {
           await nearbyService.stopScan(Number(res.rows[0].nguoi_dung_id));
         }
-      } catch {}
+      } catch { }
     });
   });
 
@@ -300,12 +322,15 @@ async function start() {
   const shutdown = async (signal: string) => {
     console.log(`\n${signal} nhận được, đang tắt server...`);
     clearInterval(syncInterval);
+    clearInterval(cleanupInterval);
     server.close(async () => {
       await pool.end();
-      console.log("✅ Đã đóng kết nối PostgreSQL, thoát chương trình.");
+      await disconnectKafka();
+      console.log("✅ Đã đóng kết nối PostgreSQL & Kafka, thoát chương trình.");
       process.exit(0);
     });
   };
+
 
   process.on("SIGINT", () => void shutdown("SIGINT"));
   process.on("SIGTERM", () => void shutdown("SIGTERM"));

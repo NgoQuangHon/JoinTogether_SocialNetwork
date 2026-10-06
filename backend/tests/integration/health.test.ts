@@ -2,6 +2,7 @@ import request from "supertest";
 import app from "../../src/app";
 import { pool } from "../../src/config/db";
 
+
 afterAll(async () => {
   await pool.end();
 });

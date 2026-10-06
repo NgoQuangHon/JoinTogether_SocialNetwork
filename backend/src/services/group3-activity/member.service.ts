@@ -79,6 +79,24 @@ export class MemberService {
       }
     }
 
+
+
+
+
+    // Đếm số thành viên hiện tại của hoạt động
+    const memberCountRes = await pool.query(
+      `SELECT COUNT(*) FROM thanh_vien_hoat_dong WHERE hoat_dong_id = $1`,
+      [hoatDongId]
+    );
+    const currentMembers = parseInt(memberCountRes.rows[0].count, 10);
+    if (activity.soLuongToiDa && currentMembers >= Number(activity.soLuongToiDa)) {
+      throw new BadRequestError("Hoạt động đã đạt số lượng thành viên tối đa.");
+    }
+
+
+
+
+    
     // Nếu hoạt động bật "tự động chấp nhận" → duyệt ngay, không cần chờ người tổ chức
     const tuDongChapNhan = activity.tuDongChapNhan !== false;
     if (tuDongChapNhan) {

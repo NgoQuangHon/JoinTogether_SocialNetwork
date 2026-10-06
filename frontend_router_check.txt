@@ -1,0 +1,5 @@
+jointogether-app@0.0.0 d:\JoinTogether_SocialNetwork\JoinTogether_SocialNetwork\frontend\JoinTogether-app
+├─┬ react-router-dom@7.11.0
+│ └── react-router@7.11.0 deduped
+└── react-router@7.11.0
+
